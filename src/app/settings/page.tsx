@@ -101,7 +101,7 @@ export default function SettingsPage() {
                   cannot be undone.
                 </DialogDescription>
               </DialogHeader>
-              <DialogFooter className="gap-2 sm:gap-0">
+              <DialogFooter className="gap-2">
                 <Button
                   variant="outline"
                   onClick={() => setShowClearDialog(false)}
@@ -127,7 +127,9 @@ export default function SettingsPage() {
                 A minimalist daily journaling app. Capture your moments in
                 beautiful, shareable cards.
               </p>
-              <p className="text-xs text-muted-foreground mt-2">Version 1.0.0</p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Version 1.0.0
+              </p>
             </div>
           </div>
         </div>

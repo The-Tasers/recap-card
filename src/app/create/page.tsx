@@ -24,7 +24,8 @@ const MAX_CHARS = 500;
 
 export default function CreatePage() {
   const router = useRouter();
-  const { addCard, updateCard, getCardByDate, error, setError } = useCardStore();
+  const { addCard, updateCard, getCardByDate, error, setError } =
+    useCardStore();
 
   const [text, setText] = useState('');
   const [mood, setMood] = useState<Mood>('neutral');
@@ -83,7 +84,9 @@ export default function CreatePage() {
         }
       }
     } catch (err) {
-      setError('Failed to save. Try removing the photo or deleting old entries.');
+      setError(
+        'Failed to save. Try removing the photo or deleting old entries.'
+      );
       setIsSubmitting(false);
     }
   };
@@ -110,9 +113,7 @@ export default function CreatePage() {
         </Link>
         <div>
           <h1 className="text-xl font-semibold text-neutral-800">New Entry</h1>
-          <p className="text-sm text-muted-foreground">
-            How was your day?
-          </p>
+          <p className="text-sm text-muted-foreground">How was your day?</p>
         </div>
       </header>
 
@@ -186,7 +187,7 @@ export default function CreatePage() {
               with this new one?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-2">
             <Button
               variant="outline"
               onClick={() => setShowOverwriteDialog(false)}

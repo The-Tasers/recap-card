@@ -1,16 +1,16 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 // @ts-expect-error next-pwa doesn't have types
-import withPWA from "next-pwa";
+import withPWA from 'next-pwa';
 
 const nextConfig: NextConfig = {
   turbopack: {},
 };
 
 const pwaConfig = withPWA({
-  dest: "public",
+  dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === "development",
+  disable: process.env.NODE_ENV === 'development',
 });
 
 export default pwaConfig(nextConfig);

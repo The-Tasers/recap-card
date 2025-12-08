@@ -1,30 +1,30 @@
-import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
-import "./globals.css";
-import { BottomNav } from "@/components/bottom-nav";
+import type { Metadata, Viewport } from 'next';
+import { Geist } from 'next/font/google';
+import './globals.css';
+import { BottomNav } from '@/components/bottom-nav';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
-  title: "AI Day Recap",
-  description: "Capture your daily moments in beautiful shareable cards",
-  manifest: "/manifest.json",
+  title: 'AI Day Recap',
+  description: 'Capture your daily moments in beautiful shareable cards',
+  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
-    title: "Day Recap",
+    statusBarStyle: 'default',
+    title: 'Day Recap',
   },
 };
 
 export const viewport: Viewport = {
-  width: "device-width",
+  width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#ffffff",
+  themeColor: '#ffffff',
 };
 
 export default function RootLayout({

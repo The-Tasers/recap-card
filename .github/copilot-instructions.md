@@ -53,16 +53,17 @@ type Mood = 'great' | 'good' | 'neutral' | 'bad' | 'terrible';
 
 interface DailyCard {
   id: string;
-  text: string;           // max 500 chars
+  text: string; // max 500 chars
   mood: Mood;
-  photoUrl?: string;      // base64 data URL
-  createdAt: string;      // ISO timestamp
+  photoUrl?: string; // base64 data URL
+  createdAt: string; // ISO timestamp
 }
 ```
 
 ## Design System
 
 ### Card Style
+
 - **Corners:** `rounded-3xl`
 - **Padding:** `p-6`
 - **Backgrounds:** Gradient `from-amber-50/80 via-white to-violet-50/80`
@@ -70,6 +71,7 @@ interface DailyCard {
 - **Accents:** Emoji mood icon, date badge (pill style, muted)
 
 ### General UI
+
 - Minimalistic, calm aesthetic
 - Light mode only (MVP)
 - Large touchable controls (`h-12` buttons)
@@ -78,42 +80,59 @@ interface DailyCard {
 ## Key Patterns
 
 ### State Management (Zustand)
+
 ```typescript
 // src/lib/store.ts - includes hydration handling for Next.js
-const useCardStore = create(persist((set, get) => ({
-  cards: [],
-  hydrated: false,
-  addCard: (card) => set((s) => ({ cards: [card, ...s.cards] })),
-  updateCard: (id, updates) => set((s) => ({
-    cards: s.cards.map((c) => c.id === id ? { ...c, ...updates } : c)
-  })),
-  deleteCard: (id) => set((s) => ({ cards: s.cards.filter((c) => c.id !== id) })),
-  getById: (id) => get().cards.find((c) => c.id === id),
-  getCardByDate: (date) => get().cards.find((c) => 
-    new Date(c.createdAt).toDateString() === new Date(date).toDateString()
-  ),
-}), { name: 'recap-cards' }));
+const useCardStore = create(
+  persist(
+    (set, get) => ({
+      cards: [],
+      hydrated: false,
+      addCard: (card) => set((s) => ({ cards: [card, ...s.cards] })),
+      updateCard: (id, updates) =>
+        set((s) => ({
+          cards: s.cards.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+        })),
+      deleteCard: (id) =>
+        set((s) => ({ cards: s.cards.filter((c) => c.id !== id) })),
+      getById: (id) => get().cards.find((c) => c.id === id),
+      getCardByDate: (date) =>
+        get().cards.find(
+          (c) =>
+            new Date(c.createdAt).toDateString() ===
+            new Date(date).toDateString()
+        ),
+    }),
+    { name: 'recap-cards' }
+  )
+);
 ```
 
 ### Image Export
+
 ```typescript
 // src/lib/export.ts
 import { toPng } from 'html-to-image';
-export const exportCardImage = async (el: HTMLElement) => 
+export const exportCardImage = async (el: HTMLElement) =>
   toPng(el, { quality: 0.95, pixelRatio: 2, backgroundColor: '#ffffff' });
 ```
 
 ### Component Pattern: DailyCardView
+
 Use `forwardRef` for the card component to enable image export via ref:
+
 ```typescript
-export const DailyCardView = forwardRef<HTMLDivElement, Props>(({ card }, ref) => (
-  <div ref={ref} className="rounded-3xl p-6 bg-gradient-to-br ...">
-    {/* Card content */}
-  </div>
-));
+export const DailyCardView = forwardRef<HTMLDivElement, Props>(
+  ({ card }, ref) => (
+    <div ref={ref} className="rounded-3xl p-6 bg-gradient-to-br ...">
+      {/* Card content */}
+    </div>
+  )
+);
 ```
 
 ## Development Commands
+
 ```bash
 npm run dev      # Start dev server (Turbopack)
 npm run build    # Production build
@@ -122,6 +141,7 @@ npm run lint     # ESLint check
 ```
 
 ## Constraints
+
 - No AI features in MVP
 - No backend/auth (localStorage only)
 - Max 500 chars for card text

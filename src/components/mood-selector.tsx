@@ -51,9 +51,13 @@ interface MoodBadgeProps {
   size?: 'sm' | 'md';
 }
 
-export function MoodBadge({ mood, showLabel = false, size = 'md' }: MoodBadgeProps) {
+export function MoodBadge({
+  mood,
+  showLabel = false,
+  size = 'md',
+}: MoodBadgeProps) {
   const moodInfo = MOODS.find((m) => m.value === mood) || MOODS[2];
-  
+
   const sizeClasses = {
     sm: 'text-lg',
     md: 'text-2xl',

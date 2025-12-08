@@ -12,7 +12,12 @@ import {
   MoreVertical,
 } from 'lucide-react';
 import { useCardStore } from '@/lib/store';
-import { exportCardImage, downloadImage, shareImage, formatFullDate } from '@/lib/export';
+import {
+  exportCardImage,
+  downloadImage,
+  shareImage,
+  formatFullDate,
+} from '@/lib/export';
 import { DailyCardView } from '@/components/daily-card-view';
 import { Button } from '@/components/ui/button';
 import {
@@ -80,7 +85,10 @@ export default function CardDetailPage() {
 
     try {
       const dataUrl = await exportCardImage(cardRef.current);
-      const filename = `recap-${formatFullDate(card.createdAt).replace(/\s/g, '-')}.png`;
+      const filename = `recap-${formatFullDate(card.createdAt).replace(
+        /\s/g,
+        '-'
+      )}.png`;
 
       // Try native share first (mobile)
       const shared = await shareImage(dataUrl, 'My Day Recap');
@@ -101,7 +109,10 @@ export default function CardDetailPage() {
 
     try {
       const dataUrl = await exportCardImage(cardRef.current);
-      const filename = `recap-${formatFullDate(card.createdAt).replace(/\s/g, '-')}.png`;
+      const filename = `recap-${formatFullDate(card.createdAt).replace(
+        /\s/g,
+        '-'
+      )}.png`;
       downloadImage(dataUrl, filename);
     } catch (error) {
       console.error('Download failed:', error);
@@ -215,7 +226,7 @@ export default function CardDetailPage() {
               undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-2">
             <Button
               variant="outline"
               onClick={() => setShowDeleteDialog(false)}

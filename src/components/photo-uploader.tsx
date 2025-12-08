@@ -11,7 +11,11 @@ interface PhotoUploaderProps {
 }
 
 // Compress image to reduce localStorage usage (iOS has ~5MB limit)
-const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<string> => {
+const compressImage = (
+  file: File,
+  maxWidth = 800,
+  quality = 0.7
+): Promise<string> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const canvas = document.createElement('canvas');
@@ -95,11 +99,7 @@ export function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
   if (value) {
     return (
       <div className="relative rounded-2xl overflow-hidden">
-        <img
-          src={value}
-          alt="Uploaded"
-          className="w-full h-48 object-cover"
-        />
+        <img src={value} alt="Uploaded" className="w-full h-48 object-cover" />
         <Button
           type="button"
           variant="destructive"

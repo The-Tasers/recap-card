@@ -60,9 +60,7 @@ export const formatFullDate = (dateString: string): string => {
 };
 
 export const isSameDay = (date1: string, date2: string): boolean => {
-  return (
-    new Date(date1).toDateString() === new Date(date2).toDateString()
-  );
+  return new Date(date1).toDateString() === new Date(date2).toDateString();
 };
 
 export const isToday = (dateString: string): boolean => {

@@ -63,7 +63,10 @@ export const useCardStore = create<CardStore>()(
           }));
           return true;
         } catch (error) {
-          set({ error: 'Storage quota exceeded. Try removing some old entries or photos.' });
+          set({
+            error:
+              'Storage quota exceeded. Try removing some old entries or photos.',
+          });
           return false;
         }
       },
@@ -77,7 +80,10 @@ export const useCardStore = create<CardStore>()(
           }));
           return true;
         } catch (error) {
-          set({ error: 'Storage quota exceeded. Try removing the photo or some old entries.' });
+          set({
+            error:
+              'Storage quota exceeded. Try removing the photo or some old entries.',
+          });
           return false;
         }
       },

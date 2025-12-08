@@ -86,9 +86,7 @@ export default function EditCardPage() {
         </Link>
         <div>
           <h1 className="text-xl font-semibold text-neutral-800">Edit Entry</h1>
-          <p className="text-sm text-muted-foreground">
-            Update your thoughts
-          </p>
+          <p className="text-sm text-muted-foreground">Update your thoughts</p>
         </div>
       </header>
 
