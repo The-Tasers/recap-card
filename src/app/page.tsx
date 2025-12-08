@@ -3,21 +3,88 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCardStore } from '@/lib/store';
-import { Mood } from '@/lib/types';
+import { DailyCard } from '@/lib/types';
 import { DailyCardView } from '@/components/daily-card-view';
 import { EmptyState } from '@/components/empty-state';
-import { MoodFilter } from '@/components/mood-filter';
-import { Sparkles } from 'lucide-react';
+import {
+  SearchBar,
+  SearchFilters,
+  useCardSearch,
+  extractTags,
+} from '@/components/search-filter';
+import { Sparkles, CalendarDays, TrendingUp } from 'lucide-react';
+
+const DEFAULT_FILTERS: SearchFilters = {
+  query: '',
+  mood: 'all',
+  hasPhoto: 'all',
+  dateRange: 'all',
+  tags: [],
+};
+
+// Group cards by month for timeline display
+function groupByMonth(cards: DailyCard[]) {
+  const groups: { month: string; cards: DailyCard[] }[] = [];
+  const monthMap = new Map<string, DailyCard[]>();
+
+  cards.forEach((card) => {
+    const date = new Date(card.createdAt);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const monthLabel = date.toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric',
+    });
+
+    if (!monthMap.has(monthKey)) {
+      monthMap.set(monthKey, []);
+      groups.push({ month: monthLabel, cards: monthMap.get(monthKey)! });
+    }
+    monthMap.get(monthKey)!.push(card);
+  });
+
+  return groups;
+}
 
 export default function HomePage() {
   const router = useRouter();
   const { cards, hydrated } = useCardStore();
-  const [moodFilter, setMoodFilter] = useState<Mood | 'all'>('all');
+  const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
 
-  const filteredCards = useMemo(() => {
-    if (moodFilter === 'all') return cards;
-    return cards.filter((card) => card.mood === moodFilter);
-  }, [cards, moodFilter]);
+  const availableTags = useMemo(() => extractTags(cards), [cards]);
+  const filteredCards = useCardSearch(cards, filters);
+  const groupedCards = useMemo(() => groupByMonth(filteredCards), [filteredCards]);
+
+  // Stats
+  const stats = useMemo(() => {
+    const thisMonth = new Date();
+    thisMonth.setDate(1);
+    thisMonth.setHours(0, 0, 0, 0);
+
+    const cardsThisMonth = cards.filter(
+      (c) => new Date(c.createdAt) >= thisMonth
+    ).length;
+
+    // Calculate streak
+    let streak = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < 365; i++) {
+      const checkDate = new Date(today);
+      checkDate.setDate(checkDate.getDate() - i);
+      const hasCard = cards.some(
+        (c) =>
+          new Date(c.createdAt).toDateString() === checkDate.toDateString()
+      );
+      if (hasCard) {
+        streak++;
+      } else if (i > 0) {
+        break;
+      }
+    }
+
+    return { total: cards.length, thisMonth: cardsThisMonth, streak };
+  }, [cards]);
 
   if (!hydrated) {
     return (
@@ -44,25 +111,62 @@ export default function HomePage() {
         <EmptyState />
       ) : (
         <>
-          {/* Filters */}
-          <div className="mb-6">
-            <MoodFilter value={moodFilter} onChange={setMoodFilter} />
+          {/* Stats Bar */}
+          <div className="flex gap-4 mb-6 p-4 rounded-2xl bg-gradient-to-r from-violet-50 to-amber-50">
+            <div className="flex-1 text-center">
+              <div className="text-2xl font-bold text-neutral-800">
+                {stats.total}
+              </div>
+              <div className="text-xs text-muted-foreground">Total</div>
+            </div>
+            <div className="flex-1 text-center border-l border-black/10">
+              <div className="text-2xl font-bold text-neutral-800 flex items-center justify-center gap-1">
+                <CalendarDays className="h-4 w-4" />
+                {stats.thisMonth}
+              </div>
+              <div className="text-xs text-muted-foreground">This Month</div>
+            </div>
+            <div className="flex-1 text-center border-l border-black/10">
+              <div className="text-2xl font-bold text-neutral-800 flex items-center justify-center gap-1">
+                <TrendingUp className="h-4 w-4" />
+                {stats.streak}
+              </div>
+              <div className="text-xs text-muted-foreground">Day Streak</div>
+            </div>
           </div>
 
-          {/* Cards */}
-          <div className="space-y-4">
+          {/* Search & Filters */}
+          <div className="mb-6">
+            <SearchBar
+              filters={filters}
+              onFiltersChange={setFilters}
+              availableTags={availableTags}
+            />
+          </div>
+
+          {/* Timeline */}
+          <div className="space-y-6">
             {filteredCards.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                No cards match this filter
+                No cards match your search
               </div>
             ) : (
-              filteredCards.map((card) => (
-                <DailyCardView
-                  key={card.id}
-                  card={card}
-                  variant="compact"
-                  onClick={() => router.push(`/card/${card.id}`)}
-                />
+              groupedCards.map((group) => (
+                <div key={group.month}>
+                  <h2 className="text-sm font-medium text-muted-foreground mb-3 sticky top-0 bg-background/80 backdrop-blur-sm py-2">
+                    {group.month}
+                  </h2>
+                  <div className="space-y-3">
+                    {group.cards.map((card) => (
+                      <DailyCardView
+                        key={card.id}
+                        card={card}
+                        variant="compact"
+                        onClick={() => router.push(`/card/${card.id}`)}
+                      />
+                    ))}
+                  </div>
+                </div>
               ))
             )}
           </div>

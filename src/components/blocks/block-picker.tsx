@@ -1,0 +1,150 @@
+'use client';
+
+import { useState } from 'react';
+import {
+  Plus,
+  Brain,
+  Lightbulb,
+  Sparkles,
+  Music,
+  Footprints,
+  Moon,
+  PenLine,
+  Heart,
+  Cloud,
+  Star,
+  Pin,
+} from 'lucide-react';
+import { BlockId, CardBlock, BLOCK_DEFINITIONS } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { cn } from '@/lib/utils';
+
+const BLOCK_ICONS: Record<BlockId, React.ReactNode> = {
+  hardMoment: <Brain className="h-4 w-4" />,
+  learned: <Lightbulb className="h-4 w-4" />,
+  unexpected: <Sparkles className="h-4 w-4" />,
+  soundtrack: <Music className="h-4 w-4" />,
+  steps: <Footprints className="h-4 w-4" />,
+  sleep: <Moon className="h-4 w-4" />,
+  oneLine: <PenLine className="h-4 w-4" />,
+  gratitude: <Heart className="h-4 w-4" />,
+  weather: <Cloud className="h-4 w-4" />,
+  highlight: <Star className="h-4 w-4" />,
+  custom: <Pin className="h-4 w-4" />,
+};
+
+interface BlockPickerProps {
+  onSelect: (block: CardBlock) => void;
+  existingBlockIds: string[];
+}
+
+export function BlockPicker({ onSelect, existingBlockIds }: BlockPickerProps) {
+  const [open, setOpen] = useState(false);
+
+  const handleSelect = (blockId: BlockId) => {
+    const definition = BLOCK_DEFINITIONS[blockId];
+    const newBlock: CardBlock = {
+      id: `${blockId}-${Date.now()}`,
+      type: definition.type,
+      blockId,
+      label: definition.label,
+      value: definition.type === 'number' ? 0 : '',
+      order: existingBlockIds.length,
+    };
+    onSelect(newBlock);
+    setOpen(false);
+  };
+
+  const availableBlocks = (Object.keys(BLOCK_DEFINITIONS) as BlockId[]).filter(
+    (id) => id === 'custom' || !existingBlockIds.includes(id)
+  );
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="outline" className="w-full rounded-full">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Block
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="bottom" className="rounded-t-3xl">
+        <SheetHeader>
+          <SheetTitle>Add a Block</SheetTitle>
+        </SheetHeader>
+        <div className="grid grid-cols-2 gap-2 py-4">
+          {availableBlocks.map((blockId) => {
+            const def = BLOCK_DEFINITIONS[blockId];
+            return (
+              <button
+                key={blockId}
+                onClick={() => handleSelect(blockId)}
+                className="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 hover:bg-neutral-50 transition-colors text-left"
+              >
+                <span className="text-xl">{def.icon}</span>
+                <span className="text-sm font-medium">{def.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+// Quick add buttons for the editor
+interface QuickAddButtonsProps {
+  onAddBlock: (blockId: BlockId) => void;
+  onAddPhoto: () => void;
+  existingBlockIds: string[];
+  hasPhoto: boolean;
+}
+
+const QUICK_ADD_ITEMS: { blockId: BlockId; icon: React.ReactNode }[] = [
+  { blockId: 'weather', icon: <Cloud className="h-4 w-4" /> },
+  { blockId: 'highlight', icon: <Star className="h-4 w-4" /> },
+  { blockId: 'steps', icon: <Footprints className="h-4 w-4" /> },
+  { blockId: 'sleep', icon: <Moon className="h-4 w-4" /> },
+  { blockId: 'soundtrack', icon: <Music className="h-4 w-4" /> },
+  { blockId: 'gratitude', icon: <Heart className="h-4 w-4" /> },
+];
+
+export function QuickAddButtons({
+  onAddBlock,
+  onAddPhoto,
+  existingBlockIds,
+  hasPhoto,
+}: QuickAddButtonsProps) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {QUICK_ADD_ITEMS.map(({ blockId, icon }) => {
+        const isAdded = existingBlockIds.includes(blockId);
+        const def = BLOCK_DEFINITIONS[blockId];
+        
+        return (
+          <button
+            key={blockId}
+            onClick={() => !isAdded && onAddBlock(blockId)}
+            disabled={isAdded}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
+              isAdded
+                ? "bg-primary/10 text-primary cursor-default"
+                : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
+            )}
+            title={def.label}
+          >
+            {icon}
+            <span className="hidden sm:inline">{def.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
