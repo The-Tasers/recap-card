@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Check } from 'lucide-react';
+import { ArrowLeft, Check, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useCardStore } from '@/lib/store';
 import { Mood, DailyCard } from '@/lib/types';
-import { generateId, isToday } from '@/lib/export';
+import { generateId } from '@/lib/export';
 import { MoodSelector } from '@/components/mood-selector';
 import { PhotoUploader } from '@/components/photo-uploader';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ const MAX_CHARS = 500;
 
 export default function CreatePage() {
   const router = useRouter();
-  const { addCard, updateCard, cards, getCardByDate } = useCardStore();
+  const { addCard, updateCard, getCardByDate, error, setError } = useCardStore();
 
   const [text, setText] = useState('');
   const [mood, setMood] = useState<Mood>('neutral');
@@ -38,6 +38,7 @@ export default function CreatePage() {
 
   const handleSubmit = async () => {
     if (!isValid) return;
+    setError(null);
 
     // Check for existing card today
     const todayCard = getCardByDate(new Date().toISOString());
@@ -52,6 +53,7 @@ export default function CreatePage() {
 
   const saveCard = async (overwrite = false) => {
     setIsSubmitting(true);
+    setError(null);
 
     const cardData = {
       text: text.trim(),
@@ -60,21 +62,45 @@ export default function CreatePage() {
       createdAt: new Date().toISOString(),
     };
 
-    if (overwrite && existingCard) {
-      updateCard(existingCard.id, cardData);
-      router.push(`/card/${existingCard.id}`);
-    } else {
-      const newCard: DailyCard = {
-        id: generateId(),
-        ...cardData,
-      };
-      addCard(newCard);
-      router.push(`/card/${newCard.id}`);
+    try {
+      if (overwrite && existingCard) {
+        const success = updateCard(existingCard.id, cardData);
+        if (success) {
+          router.push(`/card/${existingCard.id}`);
+        } else {
+          setIsSubmitting(false);
+        }
+      } else {
+        const newCard: DailyCard = {
+          id: generateId(),
+          ...cardData,
+        };
+        const success = addCard(newCard);
+        if (success) {
+          router.push(`/card/${newCard.id}`);
+        } else {
+          setIsSubmitting(false);
+        }
+      }
+    } catch (err) {
+      setError('Failed to save. Try removing the photo or deleting old entries.');
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="max-w-md mx-auto px-4 py-6">
+      {/* Error Banner */}
+      {error && (
+        <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm text-destructive font-medium">Storage Full</p>
+            <p className="text-xs text-destructive/80">{error}</p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="flex items-center gap-4 mb-6">
         <Link href="/">

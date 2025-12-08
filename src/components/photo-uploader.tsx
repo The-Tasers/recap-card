@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { ImagePlus, X } from 'lucide-react';
+import { ImagePlus, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -10,11 +10,53 @@ interface PhotoUploaderProps {
   onChange: (photoUrl: string | undefined) => void;
 }
 
+// Compress image to reduce localStorage usage (iOS has ~5MB limit)
+const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    img.onload = () => {
+      // Calculate new dimensions
+      let { width, height } = img;
+      if (width > maxWidth) {
+        height = (height * maxWidth) / width;
+        width = maxWidth;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      if (!ctx) {
+        reject(new Error('Could not get canvas context'));
+        return;
+      }
+
+      // Draw and compress
+      ctx.drawImage(img, 0, 0, width, height);
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+      resolve(compressedDataUrl);
+    };
+
+    img.onerror = () => reject(new Error('Failed to load image'));
+
+    // Read file as data URL
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+};
+
 export function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
 
-  const handleFileChange = (file: File | undefined) => {
+  const handleFileChange = async (file: File | undefined) => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
@@ -22,11 +64,16 @@ export function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      onChange(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    setIsCompressing(true);
+    try {
+      const compressedUrl = await compressImage(file);
+      onChange(compressedUrl);
+    } catch (error) {
+      console.error('Image compression failed:', error);
+      alert('Failed to process image. Please try a smaller image.');
+    } finally {
+      setIsCompressing(false);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -62,6 +109,15 @@ export function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
         >
           <X className="h-4 w-4" />
         </Button>
+      </div>
+    );
+  }
+
+  if (isCompressing) {
+    return (
+      <div className="border-2 border-dashed rounded-2xl p-8 text-center border-primary/50 bg-primary/5">
+        <Loader2 className="h-10 w-10 mx-auto text-primary animate-spin mb-2" />
+        <p className="text-sm text-muted-foreground">Processing image...</p>
       </div>
     );
   }
