@@ -45,8 +45,10 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
     },
     ref
   ) => {
-    const paletteId: PaletteId = paletteProp || (card.palette as PaletteId) || 'warmCinematic';
-    const typographyId: TypographySetId = typographyProp || (card.typography as TypographySetId) || 'modernGeo';
+    const paletteId: PaletteId =
+      paletteProp || (card.palette as PaletteId) || 'warmCinematic';
+    const typographyId: TypographySetId =
+      typographyProp || (card.typography as TypographySetId) || 'modernGeo';
     const template = templateProp || card.storyTemplate || 'photoHero';
     const showGrain = showGrainProp ?? card.showGrain ?? true;
     const showVignette = showVignetteProp ?? card.showVignette ?? false;
@@ -61,8 +63,10 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
       ? { width: STORY_DIMENSIONS.width, height: STORY_DIMENSIONS.height }
       : { aspectRatio: STORY_DIMENSIONS.aspectRatio };
 
-    const scaleFactor = isExport ? 1 : 0.25;
     const fontSize = (base: number) => `${base * (isExport ? 1 : 0.5)}px`;
+
+    // Use createdAt or fallback to empty string for consistent date display
+    const dateValue = card.createdAt || new Date().toISOString();
 
     // Photo Hero Template (default)
     if (template === 'photoHero') {
@@ -81,41 +85,52 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
         >
           {/* Photo Section - 60% */}
           {card.photoUrl ? (
-            <div className="relative flex-[6]">
+            <div className="relative flex-6">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={card.photoUrl}
                 alt=""
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-              
+              <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
+
               {/* Date & Mood overlay on photo */}
               <div className="absolute bottom-0 left-0 right-0 p-[5%] flex items-end justify-between">
                 <div>
                   <div
-                    className={cn('uppercase tracking-wider opacity-80', typography.microClass)}
-                    style={{ 
+                    className={cn(
+                      'uppercase tracking-wider opacity-80',
+                      typography.microClass
+                    )}
+                    style={{
                       color: '#fff',
                       fontSize: fontSize(14),
                     }}
                   >
-                    {new Date(card.createdAt || Date.now()).toLocaleDateString('en-US', { weekday: 'long' })}
+                    {new Date(dateValue).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                    })}
                   </div>
                   <div
                     className={cn('font-bold', typography.headlineClass)}
-                    style={{ 
+                    style={{
                       color: '#fff',
                       fontSize: fontSize(48),
                       lineHeight: 1.1,
                     }}
                   >
-                    {new Date(card.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {new Date(dateValue).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                    })}
                   </div>
                 </div>
                 <div
-                  style={{ 
+                  style={{
                     fontSize: fontSize(72),
-                    filter: `drop-shadow(0 0 ${isExport ? 16 : 8}px ${moodColor})`,
+                    filter: `drop-shadow(0 0 ${
+                      isExport ? 16 : 8
+                    }px ${moodColor})`,
                   }}
                 >
                   {moodData?.emoji}
@@ -123,31 +138,44 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
               </div>
             </div>
           ) : (
-            <div className="flex-[3] p-[5%] flex flex-col justify-end" style={{ background: palette.gradient }}>
+            <div
+              className="flex-3 p-[5%] flex flex-col justify-end"
+              style={{ background: palette.gradient }}
+            >
               <div
-                className={cn('uppercase tracking-wider opacity-70', typography.microClass)}
-                style={{ 
+                className={cn(
+                  'uppercase tracking-wider opacity-70',
+                  typography.microClass
+                )}
+                style={{
                   color: palette.textSecondary,
                   fontSize: fontSize(14),
                 }}
               >
-                {new Date(card.createdAt || Date.now()).toLocaleDateString('en-US', { weekday: 'long' })}
+                {new Date(dateValue).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                })}
               </div>
               <div className="flex items-end justify-between">
                 <div
                   className={cn('font-bold', typography.headlineClass)}
-                  style={{ 
+                  style={{
                     color: palette.textPrimary,
                     fontSize: fontSize(56),
                     lineHeight: 1.1,
                   }}
                 >
-                  {new Date(card.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                  {new Date(dateValue).toLocaleDateString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                  })}
                 </div>
                 <div
-                  style={{ 
+                  style={{
                     fontSize: fontSize(64),
-                    filter: `drop-shadow(0 0 ${isExport ? 16 : 8}px ${moodColor})`,
+                    filter: `drop-shadow(0 0 ${
+                      isExport ? 16 : 8
+                    }px ${moodColor})`,
                   }}
                 >
                   {moodData?.emoji}
@@ -158,12 +186,12 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
 
           {/* Content Section - 40% */}
           <div
-            className="flex-[4] p-[5%] flex flex-col justify-center"
+            className="flex-4 p-[5%] flex flex-col justify-center"
             style={{ background: palette.surface }}
           >
             <p
               className={cn('leading-relaxed', typography.bodyClass)}
-              style={{ 
+              style={{
                 color: palette.textPrimary,
                 fontSize: fontSize(24),
                 lineHeight: 1.6,
@@ -181,10 +209,21 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
                     className="rounded-xl p-[8%]"
                     style={{ background: `${palette.accent}20` }}
                   >
-                    <div style={{ color: palette.textSecondary, fontSize: fontSize(12) }}>
+                    <div
+                      style={{
+                        color: palette.textSecondary,
+                        fontSize: fontSize(12),
+                      }}
+                    >
                       {block.label}
                     </div>
-                    <div style={{ color: palette.textPrimary, fontSize: fontSize(18), fontWeight: 600 }}>
+                    <div
+                      style={{
+                        color: palette.textPrimary,
+                        fontSize: fontSize(18),
+                        fontWeight: 600,
+                      }}
+                    >
                       {block.value}
                     </div>
                   </div>
@@ -199,8 +238,8 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
                   <span
                     key={tag}
                     className="rounded-full"
-                    style={{ 
-                      background: `${palette.accent}30`, 
+                    style={{
+                      background: `${palette.accent}30`,
                       color: palette.accent,
                       fontSize: fontSize(14),
                       padding: `${isExport ? 8 : 4}px ${isExport ? 16 : 8}px`,
@@ -222,12 +261,15 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
           )}
 
           {/* Effects */}
-          {showGrain && <div className="grain-subtle absolute inset-0 pointer-events-none" />}
+          {showGrain && (
+            <div className="grain-subtle absolute inset-0 pointer-events-none" />
+          )}
           {showVignette && (
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
-                background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%)',
+                background:
+                  'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%)',
               }}
             />
           )}
@@ -252,7 +294,7 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
         >
           <div className="text-center p-[8%] max-w-[85%]">
             <div
-              style={{ 
+              style={{
                 fontSize: fontSize(80),
                 filter: `drop-shadow(0 0 ${isExport ? 20 : 10}px ${moodColor})`,
                 marginBottom: isExport ? 40 : 20,
@@ -260,10 +302,10 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
             >
               {moodData?.emoji}
             </div>
-            
+
             <blockquote
               className={cn(typography.headlineClass)}
-              style={{ 
+              style={{
                 color: palette.textPrimary,
                 fontSize: fontSize(32),
                 lineHeight: 1.5,
@@ -271,15 +313,15 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
             >
               &ldquo;{card.text || 'Write your thoughts...'}&rdquo;
             </blockquote>
-            
+
             <div
               className={cn('mt-[6%]', typography.microClass)}
-              style={{ 
+              style={{
                 color: palette.textSecondary,
                 fontSize: fontSize(16),
               }}
             >
-              {new Date(card.createdAt || Date.now()).toLocaleDateString('en-US', {
+              {new Date(dateValue).toLocaleDateString('en-US', {
                 weekday: 'long',
                 month: 'long',
                 day: 'numeric',
@@ -296,12 +338,15 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
             </>
           )}
 
-          {showGrain && <div className="grain-subtle absolute inset-0 pointer-events-none" />}
+          {showGrain && (
+            <div className="grain-subtle absolute inset-0 pointer-events-none" />
+          )}
           {showVignette && (
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
-                background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.3) 100%)',
+                background:
+                  'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.3) 100%)',
               }}
             />
           )}
@@ -321,35 +366,42 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
           )}
           style={containerStyle}
         >
-          <img src={card.photoUrl} alt="" className="w-full h-full object-cover absolute inset-0" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
-          
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={card.photoUrl}
+            alt=""
+            className="w-full h-full object-cover absolute inset-0"
+          />
+          <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-black/10" />
+
           {/* Glass card at bottom */}
           <div className="absolute bottom-[5%] left-[5%] right-[5%]">
             <div
               className="rounded-2xl p-[5%] border border-white/20"
-              style={{ 
+              style={{
                 background: 'rgba(255,255,255,0.1)',
                 backdropFilter: 'blur(20px)',
               }}
             >
               <div className="flex items-center justify-between mb-[4%]">
                 <div
-                  style={{ 
+                  style={{
                     fontSize: fontSize(56),
-                    filter: `drop-shadow(0 0 ${isExport ? 12 : 6}px ${moodColor})`,
+                    filter: `drop-shadow(0 0 ${
+                      isExport ? 12 : 6
+                    }px ${moodColor})`,
                   }}
                 >
                   {moodData?.emoji}
                 </div>
                 <div
-                  style={{ 
+                  style={{
                     color: '#fff',
                     fontSize: fontSize(16),
                     opacity: 0.8,
                   }}
                 >
-                  {new Date(card.createdAt || Date.now()).toLocaleDateString('en-US', {
+                  {new Date(dateValue).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
                   })}
@@ -357,7 +409,7 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
               </div>
               <p
                 className={typography.bodyClass}
-                style={{ 
+                style={{
                   color: '#fff',
                   fontSize: fontSize(22),
                   lineHeight: 1.5,
@@ -376,7 +428,9 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
             </>
           )}
 
-          {showGrain && <div className="grain-subtle absolute inset-0 pointer-events-none" />}
+          {showGrain && (
+            <div className="grain-subtle absolute inset-0 pointer-events-none" />
+          )}
         </div>
       );
     }
@@ -403,8 +457,11 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
               style={{ borderColor: `${palette.textSecondary}30` }}
             >
               <div
-                className={cn('uppercase tracking-[0.3em]', typography.microClass)}
-                style={{ 
+                className={cn(
+                  'uppercase tracking-[0.3em]',
+                  typography.microClass
+                )}
+                style={{
                   color: palette.textSecondary,
                   fontSize: fontSize(14),
                 }}
@@ -416,27 +473,41 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
 
             {/* Big date */}
             <div
-              className={cn('font-black tracking-tight mt-[6%]', typography.headlineClass)}
-              style={{ 
+              className={cn(
+                'font-black tracking-tight mt-[6%]',
+                typography.headlineClass
+              )}
+              style={{
                 color: palette.textPrimary,
                 fontSize: fontSize(72),
                 lineHeight: 1,
               }}
             >
-              {new Date(card.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              {new Date(dateValue).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+              })}
             </div>
 
             {/* Photo if exists */}
             {card.photoUrl && (
-              <div className="rounded-xl overflow-hidden mt-[5%] flex-shrink-0" style={{ height: '30%' }}>
-                <img src={card.photoUrl} alt="" className="w-full h-full object-cover" />
+              <div
+                className="rounded-xl overflow-hidden mt-[5%] shrink-0"
+                style={{ height: '30%' }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={card.photoUrl}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
               </div>
             )}
 
             {/* Text content */}
             <p
               className={cn('mt-[5%] flex-1', typography.bodyClass)}
-              style={{ 
+              style={{
                 color: palette.textPrimary,
                 fontSize: fontSize(24),
                 lineHeight: 1.6,
@@ -454,7 +525,7 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
                 {card.blocks.slice(0, 4).map((block) => (
                   <div key={block.id} className="text-center p-[4%]">
                     <div
-                      style={{ 
+                      style={{
                         color: palette.accent,
                         fontSize: fontSize(36),
                         fontWeight: 700,
@@ -464,7 +535,7 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
                     </div>
                     <div
                       className="uppercase tracking-wider"
-                      style={{ 
+                      style={{
                         color: palette.textSecondary,
                         fontSize: fontSize(12),
                       }}
@@ -485,7 +556,9 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
             </>
           )}
 
-          {showGrain && <div className="grain-subtle absolute inset-0 pointer-events-none" />}
+          {showGrain && (
+            <div className="grain-subtle absolute inset-0 pointer-events-none" />
+          )}
         </div>
       );
     }
@@ -508,27 +581,35 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
           <div className="flex items-start justify-between mb-[4%]">
             <div>
               <div
-                className={cn('uppercase tracking-wider opacity-70', typography.microClass)}
-                style={{ 
+                className={cn(
+                  'uppercase tracking-wider opacity-70',
+                  typography.microClass
+                )}
+                style={{
                   color: palette.textSecondary,
                   fontSize: fontSize(14),
                 }}
               >
-                {new Date(card.createdAt || Date.now()).toLocaleDateString('en-US', { weekday: 'long' })}
+                {new Date(dateValue).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                })}
               </div>
               <div
                 className={cn('font-bold', typography.headlineClass)}
-                style={{ 
+                style={{
                   color: palette.textPrimary,
                   fontSize: fontSize(48),
                   lineHeight: 1.1,
                 }}
               >
-                {new Date(card.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                {new Date(dateValue).toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                })}
               </div>
             </div>
             <div
-              style={{ 
+              style={{
                 fontSize: fontSize(56),
                 filter: `drop-shadow(0 0 ${isExport ? 16 : 8}px ${moodColor})`,
               }}
@@ -539,7 +620,7 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
 
           <p
             className={cn('leading-relaxed', typography.bodyClass)}
-            style={{ 
+            style={{
               color: palette.textPrimary,
               fontSize: fontSize(24),
               lineHeight: 1.6,
@@ -549,8 +630,16 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
           </p>
 
           {card.photoUrl && (
-            <div className="rounded-2xl overflow-hidden mt-[5%]" style={{ height: '35%' }}>
-              <img src={card.photoUrl} alt="" className="w-full h-full object-cover" />
+            <div
+              className="rounded-2xl overflow-hidden mt-[5%]"
+              style={{ height: '35%' }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={card.photoUrl}
+                alt=""
+                className="w-full h-full object-cover"
+              />
             </div>
           )}
         </div>
@@ -563,12 +652,15 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
           </>
         )}
 
-        {showGrain && <div className="grain-subtle absolute inset-0 pointer-events-none" />}
+        {showGrain && (
+          <div className="grain-subtle absolute inset-0 pointer-events-none" />
+        )}
         {showVignette && (
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
-              background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.3) 100%)',
+              background:
+                'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.3) 100%)',
             }}
           />
         )}

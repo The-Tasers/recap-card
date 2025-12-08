@@ -2,7 +2,15 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Check, AlertCircle, X, Plus, Eye, Edit2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  Check,
+  AlertCircle,
+  X,
+  Plus,
+  Eye,
+  Edit2,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useCardStore } from '@/lib/store';
 import {
@@ -212,7 +220,9 @@ export default function CreatePage() {
           <p className="text-xs text-white/50 mt-4 text-center">
             Story format: 1080 × 1920px (9:16)
             <br />
-            <span className="text-white/30">Optimized for Instagram & TikTok Stories</span>
+            <span className="text-white/30">
+              Optimized for Instagram & TikTok Stories
+            </span>
           </p>
         </div>
 

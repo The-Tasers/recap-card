@@ -190,7 +190,9 @@ export default function EditCardPage() {
           <p className="text-xs text-white/50 mt-4 text-center">
             Story format: 1080 × 1920px (9:16)
             <br />
-            <span className="text-white/30">Optimized for Instagram & TikTok Stories</span>
+            <span className="text-white/30">
+              Optimized for Instagram & TikTok Stories
+            </span>
           </p>
         </div>
 

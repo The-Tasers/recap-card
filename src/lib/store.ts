@@ -8,8 +8,10 @@ interface CardStore {
   cards: DailyCard[];
   hydrated: boolean;
   error: string | null;
+  hasSeenOnboarding: boolean;
   setHydrated: (state: boolean) => void;
   setError: (error: string | null) => void;
+  setHasSeenOnboarding: (seen: boolean) => void;
   addCard: (card: DailyCard) => boolean;
   updateCard: (id: string, updates: Partial<DailyCard>) => boolean;
   deleteCard: (id: string) => void;
@@ -53,8 +55,10 @@ export const useCardStore = create<CardStore>()(
       cards: [],
       hydrated: false,
       error: null,
+      hasSeenOnboarding: false,
       setHydrated: (state) => set({ hydrated: state }),
       setError: (error) => set({ error }),
+      setHasSeenOnboarding: (seen) => set({ hasSeenOnboarding: seen }),
       addCard: (card) => {
         try {
           set((state) => ({
