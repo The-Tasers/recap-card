@@ -151,15 +151,7 @@ PhotoHeroTemplate.displayName = 'PhotoHeroTemplate';
 // GLASS CARDS TEMPLATE
 // ============================================
 export const GlassCardsTemplate = forwardRef<HTMLDivElement, StoryCardProps>(
-  (
-    {
-      card,
-      palette = 'cyberGradient',
-      showGrain = true,
-      className,
-    },
-    ref
-  ) => {
+  ({ card, palette = 'cyberGradient', showGrain = true, className }, ref) => {
     const colors = COLOR_PALETTES[palette];
     const moodData = MOODS.find((m) => m.value === card.mood);
     const date = formatDate(card.createdAt);
@@ -317,7 +309,8 @@ export const MagazineCoverTemplate = forwardRef<HTMLDivElement, StoryCardProps>(
             className="text-story-headline font-serif italic leading-tight mb-6"
             style={{ color: colors.textPrimary }}
           >
-            &ldquo;{card.text.slice(0, 100)}{card.text.length > 100 ? '...' : ''}&rdquo;
+            &ldquo;{card.text.slice(0, 100)}
+            {card.text.length > 100 ? '...' : ''}&rdquo;
           </p>
 
           {/* Mood Bar */}
@@ -703,7 +696,14 @@ export const ScrapbookTemplate = forwardRef<HTMLDivElement, StoryCardProps>(
               className="text-xl"
               style={{
                 color:
-                  star <= (card.mood === 'great' ? 5 : card.mood === 'good' ? 4 : card.mood === 'neutral' ? 3 : 2)
+                  star <=
+                  (card.mood === 'great'
+                    ? 5
+                    : card.mood === 'good'
+                    ? 4
+                    : card.mood === 'neutral'
+                    ? 3
+                    : 2)
                     ? colors.accent
                     : colors.textSecondary,
               }}
@@ -774,10 +774,7 @@ export const DarkCinemaTemplate = forwardRef<HTMLDivElement, StoryCardProps>(
         style={{ backgroundColor: colors.background }}
       >
         {/* Top bar texture */}
-        <div
-          className="h-16"
-          style={{ backgroundColor: colors.surface }}
-        />
+        <div className="h-16" style={{ backgroundColor: colors.surface }} />
 
         {/* Photo with cinematic crop */}
         <div className="relative px-6 py-4">
@@ -801,10 +798,7 @@ export const DarkCinemaTemplate = forwardRef<HTMLDivElement, StoryCardProps>(
         </div>
 
         {/* Bottom bar texture */}
-        <div
-          className="h-8"
-          style={{ backgroundColor: colors.surface }}
-        />
+        <div className="h-8" style={{ backgroundColor: colors.surface }} />
 
         {/* Content */}
         <div className="flex-1 p-6 flex flex-col">
@@ -853,8 +847,7 @@ export const DarkCinemaTemplate = forwardRef<HTMLDivElement, StoryCardProps>(
                         card.mood === mood
                           ? colors.moodColors[card.mood]
                           : colors.textSecondary + '40',
-                      transform:
-                        card.mood === mood ? 'scale(1.5)' : 'scale(1)',
+                      transform: card.mood === mood ? 'scale(1.5)' : 'scale(1)',
                     }}
                   />
                 )
@@ -997,10 +990,7 @@ export const GridCollageTemplate = forwardRef<HTMLDivElement, StoryCardProps>(
           {(card.blocks || []).slice(0, 2).map((block, index) => (
             <div
               key={block.id}
-              className={cn(
-                'p-4 text-center',
-                index === 0 && 'border-r'
-              )}
+              className={cn('p-4 text-center', index === 0 && 'border-r')}
               style={{
                 borderColor: colors.textSecondary + '30',
                 backgroundColor: colors.surface,
@@ -1013,10 +1003,7 @@ export const GridCollageTemplate = forwardRef<HTMLDivElement, StoryCardProps>(
               >
                 {block.value}
               </div>
-              <div
-                className="text-xs"
-                style={{ color: colors.textSecondary }}
-              >
+              <div className="text-xs" style={{ color: colors.textSecondary }}>
                 {block.label}
               </div>
             </div>
@@ -1059,7 +1046,9 @@ export const StoryCard = forwardRef<HTMLDivElement, StoryCardProps>(
 
     const TemplateComponent = templates[template] || PhotoHeroTemplate;
 
-    return <TemplateComponent ref={ref} card={card} palette={palette} {...props} />;
+    return (
+      <TemplateComponent ref={ref} card={card} palette={palette} {...props} />
+    );
   }
 );
 StoryCard.displayName = 'StoryCard';

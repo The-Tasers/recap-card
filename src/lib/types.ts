@@ -1,5 +1,27 @@
 export type Mood = 'great' | 'good' | 'neutral' | 'bad' | 'terrible';
 
+// Import design system types
+import {
+  type PaletteId as PaletteIdType,
+  type StoryTemplateId as StoryTemplateIdType,
+  type StyleId as StyleIdType,
+  type TypographySetId as TypographySetIdType,
+  COLOR_PALETTES as COLOR_PALETTES_IMPL,
+  STORY_TEMPLATES as STORY_TEMPLATES_IMPL,
+  VISUAL_STYLES as VISUAL_STYLES_IMPL,
+  TYPOGRAPHY_SETS as TYPOGRAPHY_SETS_IMPL,
+} from './design-system';
+
+// Re-export design system types for unified usage
+export type PaletteId = PaletteIdType;
+export type StoryTemplateId = StoryTemplateIdType;
+export type StyleId = StyleIdType;
+export type TypographySetId = TypographySetIdType;
+export const COLOR_PALETTES = COLOR_PALETTES_IMPL;
+export const STORY_TEMPLATES = STORY_TEMPLATES_IMPL;
+export const VISUAL_STYLES = VISUAL_STYLES_IMPL;
+export const TYPOGRAPHY_SETS = TYPOGRAPHY_SETS_IMPL;
+
 // Block types for modular card content
 export type BlockType = 'text' | 'number' | 'link' | 'slider';
 
@@ -26,14 +48,8 @@ export interface CardBlock {
   icon?: string;
 }
 
-// Template types
-export type TemplateId =
-  | 'default'
-  | 'photoHeader'
-  | 'ultraMinimal'
-  | 'mixedGrid';
-
-// Theme types
+// Legacy type aliases for backward compatibility
+export type TemplateId = 'default' | 'photoHeader' | 'ultraMinimal' | 'mixedGrid';
 export type ThemeId = 'sunrise' | 'ocean' | 'sunset' | 'forest' | 'lavender';
 export type FontPreset = 'system' | 'serif' | 'mono' | 'rounded';
 
@@ -54,6 +70,16 @@ export interface DailyCard {
 
   // New optional fields
   blocks?: CardBlock[];
+
+  // New design system fields
+  palette?: PaletteId;
+  storyTemplate?: StoryTemplateId;
+  style?: StyleId;
+  typography?: TypographySetId;
+  showGrain?: boolean;
+  showVignette?: boolean;
+
+  // Legacy fields (deprecated, for backward compatibility)
   template?: TemplateId;
   theme?: ThemeId;
   font?: FontPreset;

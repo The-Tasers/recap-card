@@ -106,9 +106,7 @@ export function MoodIndicator({
     case 'ring':
       const ringSize = size === 'sm' ? 60 : size === 'md' ? 80 : 100;
       return (
-        <div
-          className={cn('flex flex-col items-center', className)}
-        >
+        <div className={cn('flex flex-col items-center', className)}>
           <div
             className="rounded-full flex items-center justify-center"
             style={{
@@ -270,10 +268,7 @@ export function MetricCard({
           />
         </div>
       )}
-      <div
-        className="text-2xl font-bold"
-        style={{ color: colors.textPrimary }}
-      >
+      <div className="text-2xl font-bold" style={{ color: colors.textPrimary }}>
         {value}
         {unit && (
           <span
@@ -315,7 +310,10 @@ export function DecorativeStars({
             i % 2 === 0 ? 'text-lg' : 'text-xs'
           )}
           style={{
-            color: i === Math.floor(count / 2) ? colors.accent : colors.textSecondary,
+            color:
+              i === Math.floor(count / 2)
+                ? colors.accent
+                : colors.textSecondary,
           }}
         >
           ✦
@@ -366,7 +364,9 @@ export function DecorativeDivider({
   switch (variant) {
     case 'dots':
       return (
-        <div className={cn('flex items-center justify-center gap-2', className)}>
+        <div
+          className={cn('flex items-center justify-center gap-2', className)}
+        >
           <span style={{ color: colors.textSecondary }}>· · ·</span>
         </div>
       );
@@ -512,16 +512,10 @@ export function StoryDateBadge({
       >
         {weekday.toUpperCase()}
       </div>
-      <div
-        className="text-3xl font-bold"
-        style={{ color: colors.textPrimary }}
-      >
+      <div className="text-3xl font-bold" style={{ color: colors.textPrimary }}>
         {month} {day}
       </div>
-      <div
-        className="text-sm"
-        style={{ color: colors.textSecondary }}
-      >
+      <div className="text-sm" style={{ color: colors.textSecondary }}>
         {year}
       </div>
     </div>

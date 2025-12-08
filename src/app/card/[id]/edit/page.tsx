@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Check, X, Plus } from 'lucide-react';
 import { useCardStore } from '@/lib/store';
-import { Mood, CardBlock, TemplateId, ThemeId, FontPreset } from '@/lib/types';
+import { Mood, CardBlock, PaletteId, StoryTemplateId, TypographySetId } from '@/lib/types';
 import { MoodSelector } from '@/components/mood-selector';
 import { PhotoUploader } from '@/components/photo-uploader';
 import { Button } from '@/components/ui/button';
@@ -30,14 +30,15 @@ export default function EditCardPage() {
   const [mood, setMood] = useState<Mood>('neutral');
   const [photoUrl, setPhotoUrl] = useState<string | undefined>();
 
-  // New fields
+  // New design system fields
   const [blocks, setBlocks] = useState<CardBlock[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
-  const [template, setTemplate] = useState<TemplateId>('default');
-  const [theme, setTheme] = useState<ThemeId>('sunrise');
-  const [font, setFont] = useState<FontPreset>('system');
-  const [darkMode, setDarkMode] = useState(false);
+  const [palette, setPalette] = useState<PaletteId>('warmCinematic');
+  const [storyTemplate, setStoryTemplate] = useState<StoryTemplateId>('photoHero');
+  const [typography, setTypography] = useState<TypographySetId>('modernGeo');
+  const [showGrain, setShowGrain] = useState(true);
+  const [showVignette, setShowVignette] = useState(true);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -48,10 +49,11 @@ export default function EditCardPage() {
       setPhotoUrl(card.photoUrl);
       setBlocks(card.blocks || []);
       setTags(card.tags || []);
-      setTemplate(card.template || 'default');
-      setTheme(card.theme || 'sunrise');
-      setFont(card.font || 'system');
-      setDarkMode(card.darkMode || false);
+      setPalette(card.palette || 'warmCinematic');
+      setStoryTemplate(card.storyTemplate || 'photoHero');
+      setTypography(card.typography || 'modernGeo');
+      setShowGrain(card.showGrain ?? true);
+      setShowVignette(card.showVignette ?? false);
     }
   }, [card]);
 
@@ -84,10 +86,11 @@ export default function EditCardPage() {
       photoUrl,
       blocks: blocks.length > 0 ? blocks : undefined,
       tags: tags.length > 0 ? tags : undefined,
-      template,
-      theme,
-      font,
-      darkMode,
+      palette,
+      storyTemplate,
+      typography,
+      showGrain,
+      showVignette,
     });
     router.push(`/card/${card.id}`);
   };
@@ -138,14 +141,16 @@ export default function EditCardPage() {
           </div>
         </div>
         <ThemeSelector
-          theme={theme}
-          font={font}
-          darkMode={darkMode}
-          template={template}
-          onThemeChange={setTheme}
-          onFontChange={setFont}
-          onDarkModeChange={setDarkMode}
-          onTemplateChange={setTemplate}
+          palette={palette}
+          storyTemplate={storyTemplate}
+          typography={typography}
+          showGrain={showGrain}
+          showVignette={showVignette}
+          onPaletteChange={setPalette}
+          onTemplateChange={setStoryTemplate}
+          onTypographyChange={setTypography}
+          onGrainChange={setShowGrain}
+          onVignetteChange={setShowVignette}
         />
       </header>
 

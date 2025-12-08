@@ -480,7 +480,11 @@ export const DECORATIVE_ELEMENTS: Record<
 // MOOD INDICATOR STYLES
 // ============================================
 
-export type MoodIndicatorStyle = 'dotScale' | 'gradientBar' | 'emojiLabel' | 'ringIndicator';
+export type MoodIndicatorStyle =
+  | 'dotScale'
+  | 'gradientBar'
+  | 'emojiLabel'
+  | 'ringIndicator';
 
 export const MOOD_INDICATOR_STYLES: Record<
   MoodIndicatorStyle,

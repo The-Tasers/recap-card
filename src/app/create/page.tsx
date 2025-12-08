@@ -11,9 +11,9 @@ import {
   CardBlock,
   BlockId,
   BLOCK_DEFINITIONS,
-  TemplateId,
-  ThemeId,
-  FontPreset,
+  PaletteId,
+  StoryTemplateId,
+  TypographySetId,
 } from '@/lib/types';
 import { generateId } from '@/lib/export';
 import { MoodSelector } from '@/components/mood-selector';
@@ -49,14 +49,17 @@ export default function CreatePage() {
   const [mood, setMood] = useState<Mood>('neutral');
   const [photoUrl, setPhotoUrl] = useState<string | undefined>();
 
-  // New fields
+  // New design system fields
+  const [palette, setPalette] = useState<PaletteId>('warmCinematic');
+  const [storyTemplate, setStoryTemplate] = useState<StoryTemplateId>('photoHero');
+  const [typography, setTypography] = useState<TypographySetId>('modernGeo');
+  const [showGrain, setShowGrain] = useState(true);
+  const [showVignette, setShowVignette] = useState(true);
+
+  // Legacy fields
   const [blocks, setBlocks] = useState<CardBlock[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
-  const [template, setTemplate] = useState<TemplateId>('default');
-  const [theme, setTheme] = useState<ThemeId>('sunrise');
-  const [font, setFont] = useState<FontPreset>('system');
-  const [darkMode, setDarkMode] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showOverwriteDialog, setShowOverwriteDialog] = useState(false);
@@ -110,10 +113,11 @@ export default function CreatePage() {
       photoUrl,
       blocks: blocks.length > 0 ? blocks : undefined,
       tags: tags.length > 0 ? tags : undefined,
-      template,
-      theme,
-      font,
-      darkMode,
+      palette,
+      storyTemplate,
+      typography,
+      showGrain,
+      showVignette,
       createdAt: new Date().toISOString(),
     };
 
@@ -174,14 +178,16 @@ export default function CreatePage() {
           </div>
         </div>
         <ThemeSelector
-          theme={theme}
-          font={font}
-          darkMode={darkMode}
-          template={template}
-          onThemeChange={setTheme}
-          onFontChange={setFont}
-          onDarkModeChange={setDarkMode}
-          onTemplateChange={setTemplate}
+          palette={palette}
+          storyTemplate={storyTemplate}
+          typography={typography}
+          showGrain={showGrain}
+          showVignette={showVignette}
+          onPaletteChange={setPalette}
+          onTemplateChange={setStoryTemplate}
+          onTypographyChange={setTypography}
+          onGrainChange={setShowGrain}
+          onVignetteChange={setShowVignette}
         />
       </header>
 

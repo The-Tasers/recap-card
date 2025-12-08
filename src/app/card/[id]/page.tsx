@@ -11,7 +11,6 @@ import {
   Edit,
   MoreVertical,
   Link2,
-  Sparkles,
 } from 'lucide-react';
 import { useCardStore } from '@/lib/store';
 import {
@@ -199,17 +198,6 @@ export default function CardDetailPage() {
 
       {/* Quick Action Buttons */}
       <div className="flex gap-3 mt-6">
-        <Link href={`/card/${card.id}/story`} className="flex-1">
-          <Button
-            className="w-full rounded-full h-12 bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-700 hover:to-pink-700"
-          >
-            <Sparkles className="h-4 w-4 mr-2" />
-            Create Story
-          </Button>
-        </Link>
-      </div>
-
-      <div className="flex gap-3 mt-3">
         <Button
           variant="outline"
           className="flex-1 rounded-full h-12"
