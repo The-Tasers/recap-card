@@ -11,15 +11,19 @@ import {
   Edit,
   MoreVertical,
   Link2,
+  Smartphone,
+  Square,
 } from 'lucide-react';
 import { useCardStore } from '@/lib/store';
 import {
   exportCardImage,
+  exportStoryImage,
   downloadImage,
   shareImage,
   formatFullDate,
 } from '@/lib/export';
 import { DailyCardView } from '@/components/daily-card-view';
+import { StoryPreview } from '@/components/story-preview';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -42,9 +46,12 @@ export default function CardDetailPage() {
   const params = useParams();
   const router = useRouter();
   const cardRef = useRef<HTMLDivElement>(null);
+  const storyRef = useRef<HTMLDivElement>(null);
   const { getById, deleteCard, hydrated } = useCardStore();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showStoryPreview, setShowStoryPreview] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportFormat, setExportFormat] = useState<'card' | 'story'>('card');
   const [card, setCard] = useState<ReturnType<typeof getById>>(undefined);
 
   const cardId = params.id as string;
@@ -81,16 +88,20 @@ export default function CardDetailPage() {
     );
   }
 
-  const handleExport = async () => {
-    if (!cardRef.current) return;
+  const handleExport = async (format: 'card' | 'story' = 'card') => {
+    const ref = format === 'story' ? storyRef : cardRef;
+    if (!ref.current) return;
     setIsExporting(true);
+    setExportFormat(format);
 
     try {
-      const dataUrl = await exportCardImage(cardRef.current);
+      const exportFn = format === 'story' ? exportStoryImage : exportCardImage;
+      const dataUrl = await exportFn(ref.current);
+      const suffix = format === 'story' ? '-story' : '';
       const filename = `recap-${formatFullDate(card.createdAt).replace(
         /\s/g,
         '-'
-      )}.png`;
+      )}${suffix}.png`;
 
       // Try native share first (mobile)
       const shared = await shareImage(dataUrl, 'My Day Recap');
@@ -105,16 +116,20 @@ export default function CardDetailPage() {
     }
   };
 
-  const handleDownload = async () => {
-    if (!cardRef.current) return;
+  const handleDownload = async (format: 'card' | 'story' = 'card') => {
+    const ref = format === 'story' ? storyRef : cardRef;
+    if (!ref.current) return;
     setIsExporting(true);
+    setExportFormat(format);
 
     try {
-      const dataUrl = await exportCardImage(cardRef.current);
+      const exportFn = format === 'story' ? exportStoryImage : exportCardImage;
+      const dataUrl = await exportFn(ref.current);
+      const suffix = format === 'story' ? '-story' : '';
       const filename = `recap-${formatFullDate(card.createdAt).replace(
         /\s/g,
         '-'
-      )}.png`;
+      )}${suffix}.png`;
       downloadImage(dataUrl, filename);
     } catch (error) {
       console.error('Download failed:', error);
@@ -159,20 +174,29 @@ export default function CardDetailPage() {
               <Button
                 variant="ghost"
                 className="justify-start h-12"
-                onClick={handleExport}
+                onClick={() => handleExport('card')}
                 disabled={isExporting}
               >
-                <Share2 className="h-5 w-5 mr-3" />
-                Share Card
+                <Square className="h-5 w-5 mr-3" />
+                Share as Card
               </Button>
               <Button
                 variant="ghost"
                 className="justify-start h-12"
-                onClick={handleDownload}
+                onClick={() => setShowStoryPreview(true)}
+                disabled={isExporting}
+              >
+                <Smartphone className="h-5 w-5 mr-3" />
+                Share as Story (9:16)
+              </Button>
+              <Button
+                variant="ghost"
+                className="justify-start h-12"
+                onClick={() => handleDownload('card')}
                 disabled={isExporting}
               >
                 <Download className="h-5 w-5 mr-3" />
-                Download Image
+                Download Card
               </Button>
               <Link href={`/card/${card.id}/edit`}>
                 <Button variant="ghost" className="justify-start h-12 w-full">
@@ -201,22 +225,65 @@ export default function CardDetailPage() {
         <Button
           variant="outline"
           className="flex-1 rounded-full h-12"
-          onClick={handleExport}
+          onClick={() => handleExport('card')}
           disabled={isExporting}
         >
           <Share2 className="h-4 w-4 mr-2" />
-          {isExporting ? 'Exporting...' : 'Share Image'}
+          {isExporting && exportFormat === 'card' ? 'Exporting...' : 'Share'}
+        </Button>
+        <Button
+          variant="outline"
+          className="flex-1 rounded-full h-12"
+          onClick={() => setShowStoryPreview(true)}
+          disabled={isExporting}
+        >
+          <Smartphone className="h-4 w-4 mr-2" />
+          Story
         </Button>
         <ShareLinkDialog
           card={card}
           trigger={
             <Button variant="outline" className="flex-1 rounded-full h-12">
               <Link2 className="h-4 w-4 mr-2" />
-              Share Link
+              Link
             </Button>
           }
         />
       </div>
+
+      {/* Story Preview Dialog */}
+      <Dialog open={showStoryPreview} onOpenChange={setShowStoryPreview}>
+        <DialogContent className="max-w-sm p-0 overflow-hidden">
+          <DialogHeader className="px-4 pt-4">
+            <DialogTitle>Story Preview (9:16)</DialogTitle>
+            <DialogDescription>
+              Perfect for Instagram, TikTok, and other social stories
+            </DialogDescription>
+          </DialogHeader>
+          <div className="px-4 py-4">
+            <StoryPreview ref={storyRef} card={card} />
+          </div>
+          <DialogFooter className="px-4 pb-4 gap-2">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => handleDownload('story')}
+              disabled={isExporting}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download
+            </Button>
+            <Button
+              className="flex-1"
+              onClick={() => handleExport('story')}
+              disabled={isExporting}
+            >
+              <Share2 className="h-4 w-4 mr-2" />
+              {isExporting && exportFormat === 'story' ? 'Sharing...' : 'Share'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

@@ -49,7 +49,11 @@ export interface CardBlock {
 }
 
 // Legacy type aliases for backward compatibility
-export type TemplateId = 'default' | 'photoHeader' | 'ultraMinimal' | 'mixedGrid';
+export type TemplateId =
+  | 'default'
+  | 'photoHeader'
+  | 'ultraMinimal'
+  | 'mixedGrid';
 export type ThemeId = 'sunrise' | 'ocean' | 'sunset' | 'forest' | 'lavender';
 export type FontPreset = 'system' | 'serif' | 'mono' | 'rounded';
 

@@ -1,6 +1,14 @@
 import { toPng } from 'html-to-image';
 import { DailyCard } from './types';
 
+// Story dimensions for Instagram/TikTok (9:16)
+export const STORY_EXPORT_CONFIG = {
+  width: 1080,
+  height: 1920,
+  pixelRatio: 1, // Since we're rendering at full size
+  quality: 0.95,
+};
+
 export const exportCardImage = async (
   element: HTMLElement
 ): Promise<string> => {
@@ -8,6 +16,20 @@ export const exportCardImage = async (
     quality: 0.95,
     pixelRatio: 2,
     backgroundColor: '#ffffff',
+  });
+  return dataUrl;
+};
+
+// Export story at full 1080x1920 resolution
+export const exportStoryImage = async (
+  element: HTMLElement
+): Promise<string> => {
+  const dataUrl = await toPng(element, {
+    quality: STORY_EXPORT_CONFIG.quality,
+    pixelRatio: STORY_EXPORT_CONFIG.pixelRatio,
+    width: STORY_EXPORT_CONFIG.width,
+    height: STORY_EXPORT_CONFIG.height,
+    backgroundColor: undefined, // Use element's background
   });
   return dataUrl;
 };

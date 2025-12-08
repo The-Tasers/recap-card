@@ -1,7 +1,15 @@
 'use client';
 
 import { forwardRef } from 'react';
-import { DailyCard, MOODS, COLOR_PALETTES, TYPOGRAPHY_SETS, PaletteId, StoryTemplateId, TypographySetId } from '@/lib/types';
+import {
+  DailyCard,
+  MOODS,
+  COLOR_PALETTES,
+  TYPOGRAPHY_SETS,
+  PaletteId,
+  StoryTemplateId,
+  TypographySetId,
+} from '@/lib/types';
 import { MoodBadge } from './mood-selector';
 import { DateBadge } from './date-badge';
 import { BlockDisplay } from './blocks/block-editor';
@@ -18,7 +26,8 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
   ({ card, variant = 'default', onClick, className }, ref) => {
     const isCompact = variant === 'compact';
     const paletteId: PaletteId = (card.palette as PaletteId) || 'warmCinematic';
-    const typographyId: TypographySetId = (card.typography as TypographySetId) || 'modernGeo';
+    const typographyId: TypographySetId =
+      (card.typography as TypographySetId) || 'modernGeo';
     const palette = COLOR_PALETTES[paletteId];
     const typography = TYPOGRAPHY_SETS[typographyId];
     const moodData = MOODS.find((m) => m.value === card.mood);
@@ -27,7 +36,13 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
     const showVignette = card.showVignette ?? false;
 
     // Determine if dark palette
-    const isDark = ['warmCinematic', 'cyberGradient', 'infraredNeon', 'forestMist', 'sunsetBoulevard'].includes(card.palette || 'warmCinematic');
+    const isDark = [
+      'warmCinematic',
+      'cyberGradient',
+      'infraredNeon',
+      'forestMist',
+      'sunsetBoulevard',
+    ].includes(card.palette || 'warmCinematic');
 
     // Compact card for timeline view
     if (isCompact) {
@@ -56,7 +71,10 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
             <span className="text-xl">{moodData?.emoji}</span>
           </div>
           <p
-            className={cn('text-sm leading-relaxed line-clamp-3', typography.bodyClass)}
+            className={cn(
+              'text-sm leading-relaxed line-clamp-3',
+              typography.bodyClass
+            )}
             style={{ color: palette.textPrimary }}
           >
             {card.text}
@@ -65,7 +83,10 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
             <div className="flex items-center gap-2 mt-2 pt-2 border-t border-white/10 text-xs opacity-60">
               {card.photoUrl && <span>📷</span>}
               {card.blocks && card.blocks.length > 0 && (
-                <span>+{card.blocks.length} detail{card.blocks.length > 1 ? 's' : ''}</span>
+                <span>
+                  +{card.blocks.length} detail
+                  {card.blocks.length > 1 ? 's' : ''}
+                </span>
               )}
             </div>
           )}
@@ -92,18 +113,42 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
           {/* Photo Section */}
           {card.photoUrl && (
             <div className="relative h-64">
-              <img src={card.photoUrl} alt="" className="w-full h-full object-cover" />
+              <img
+                src={card.photoUrl}
+                alt=""
+                className="w-full h-full object-cover"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
               <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
                 <div>
-                  <div className={cn('text-xs uppercase tracking-wider opacity-70 mb-1', typography.microClass)} style={{ color: palette.textSecondary }}>
-                    {new Date(card.createdAt).toLocaleDateString('en-US', { weekday: 'long' })}
+                  <div
+                    className={cn(
+                      'text-xs uppercase tracking-wider opacity-70 mb-1',
+                      typography.microClass
+                    )}
+                    style={{ color: palette.textSecondary }}
+                  >
+                    {new Date(card.createdAt).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                    })}
                   </div>
-                  <div className={cn('text-2xl font-bold', typography.headlineClass)} style={{ color: '#fff' }}>
-                    {new Date(card.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  <div
+                    className={cn(
+                      'text-2xl font-bold',
+                      typography.headlineClass
+                    )}
+                    style={{ color: '#fff' }}
+                  >
+                    {new Date(card.createdAt).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                    })}
                   </div>
                 </div>
-                <div className="text-4xl" style={{ filter: `drop-shadow(0 0 8px ${moodColor})` }}>
+                <div
+                  className="text-4xl"
+                  style={{ filter: `drop-shadow(0 0 8px ${moodColor})` }}
+                >
                   {moodData?.emoji}
                 </div>
               </div>
@@ -111,22 +156,45 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
           )}
 
           {/* Content Section */}
-          <div className="p-6 space-y-4" style={{ background: palette.surface }}>
+          <div
+            className="p-6 space-y-4"
+            style={{ background: palette.surface }}
+          >
             {!card.photoUrl && (
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <div className={cn('text-xs uppercase tracking-wider opacity-70', typography.microClass)} style={{ color: palette.textSecondary }}>
-                    {new Date(card.createdAt).toLocaleDateString('en-US', { weekday: 'long' })}
+                  <div
+                    className={cn(
+                      'text-xs uppercase tracking-wider opacity-70',
+                      typography.microClass
+                    )}
+                    style={{ color: palette.textSecondary }}
+                  >
+                    {new Date(card.createdAt).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                    })}
                   </div>
-                  <div className={cn('text-xl font-bold', typography.headlineClass)} style={{ color: palette.textPrimary }}>
-                    {new Date(card.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                  <div
+                    className={cn(
+                      'text-xl font-bold',
+                      typography.headlineClass
+                    )}
+                    style={{ color: palette.textPrimary }}
+                  >
+                    {new Date(card.createdAt).toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                    })}
                   </div>
                 </div>
                 <div className="text-3xl">{moodData?.emoji}</div>
               </div>
             )}
 
-            <p className={cn('leading-relaxed', typography.bodyClass)} style={{ color: palette.textPrimary }}>
+            <p
+              className={cn('leading-relaxed', typography.bodyClass)}
+              style={{ color: palette.textPrimary }}
+            >
               {card.text}
             </p>
 
@@ -138,8 +206,18 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
                     className="p-3 rounded-xl"
                     style={{ background: `${palette.accent}20` }}
                   >
-                    <div className="text-xs opacity-60 mb-1" style={{ color: palette.textSecondary }}>{block.label}</div>
-                    <div className="text-sm font-medium" style={{ color: palette.textPrimary }}>{block.value}</div>
+                    <div
+                      className="text-xs opacity-60 mb-1"
+                      style={{ color: palette.textSecondary }}
+                    >
+                      {block.label}
+                    </div>
+                    <div
+                      className="text-sm font-medium"
+                      style={{ color: palette.textPrimary }}
+                    >
+                      {block.value}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -151,7 +229,10 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
                   <span
                     key={tag}
                     className="px-3 py-1 rounded-full text-xs"
-                    style={{ background: `${palette.accent}30`, color: palette.accent }}
+                    style={{
+                      background: `${palette.accent}30`,
+                      color: palette.accent,
+                    }}
                   >
                     #{tag}
                   </span>
@@ -161,12 +242,15 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
           </div>
 
           {/* Effects */}
-          {showGrain && <div className="grain-subtle absolute inset-0 pointer-events-none" />}
+          {showGrain && (
+            <div className="grain-subtle absolute inset-0 pointer-events-none" />
+          )}
           {showVignette && (
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
-                background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%)',
+                background:
+                  'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%)',
               }}
             />
           )}
@@ -188,13 +272,25 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
           style={{ background: palette.gradient }}
         >
           <div className="text-center space-y-6 max-w-sm">
-            <div className="text-5xl mb-4" style={{ filter: `drop-shadow(0 0 12px ${moodColor})` }}>
+            <div
+              className="text-5xl mb-4"
+              style={{ filter: `drop-shadow(0 0 12px ${moodColor})` }}
+            >
               {moodData?.emoji}
             </div>
-            <blockquote className={cn('text-xl leading-relaxed', typography.headlineClass)} style={{ color: palette.textPrimary }}>
+            <blockquote
+              className={cn(
+                'text-xl leading-relaxed',
+                typography.headlineClass
+              )}
+              style={{ color: palette.textPrimary }}
+            >
               &ldquo;{card.text}&rdquo;
             </blockquote>
-            <div className={cn('text-sm opacity-70', typography.microClass)} style={{ color: palette.textSecondary }}>
+            <div
+              className={cn('text-sm opacity-70', typography.microClass)}
+              style={{ color: palette.textSecondary }}
+            >
               {new Date(card.createdAt).toLocaleDateString('en-US', {
                 weekday: 'long',
                 month: 'long',
@@ -204,12 +300,15 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
             </div>
           </div>
 
-          {showGrain && <div className="grain-subtle absolute inset-0 pointer-events-none" />}
+          {showGrain && (
+            <div className="grain-subtle absolute inset-0 pointer-events-none" />
+          )}
           {showVignette && (
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
-                background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.3) 100%)',
+                background:
+                  'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.3) 100%)',
               }}
             />
           )}
@@ -229,9 +328,13 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
             className
           )}
         >
-          <img src={card.photoUrl} alt="" className="w-full h-[450px] object-cover" />
+          <img
+            src={card.photoUrl}
+            alt=""
+            className="w-full h-[450px] object-cover"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-          
+
           <div className="absolute bottom-0 left-0 right-0 p-6 space-y-4">
             <div className="backdrop-blur-xl bg-white/10 rounded-2xl p-5 border border-white/20">
               <div className="flex items-center justify-between mb-3">
@@ -243,11 +346,20 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
                   })}
                 </span>
               </div>
-              <p className={cn('text-white leading-relaxed', typography.bodyClass)}>{card.text}</p>
+              <p
+                className={cn(
+                  'text-white leading-relaxed',
+                  typography.bodyClass
+                )}
+              >
+                {card.text}
+              </p>
             </div>
           </div>
 
-          {showGrain && <div className="grain-subtle absolute inset-0 pointer-events-none" />}
+          {showGrain && (
+            <div className="grain-subtle absolute inset-0 pointer-events-none" />
+          )}
         </div>
       );
     }
@@ -267,41 +379,81 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
         >
           <div className="p-8 space-y-6">
             {/* Magazine-style header */}
-            <div className="flex items-center justify-between border-b pb-4" style={{ borderColor: `${palette.textSecondary}30` }}>
-              <div className={cn('text-xs uppercase tracking-[0.3em]', typography.microClass)} style={{ color: palette.textSecondary }}>
+            <div
+              className="flex items-center justify-between border-b pb-4"
+              style={{ borderColor: `${palette.textSecondary}30` }}
+            >
+              <div
+                className={cn(
+                  'text-xs uppercase tracking-[0.3em]',
+                  typography.microClass
+                )}
+                style={{ color: palette.textSecondary }}
+              >
                 Daily Recap
               </div>
               <div className="text-4xl">{moodData?.emoji}</div>
             </div>
 
             {/* Big headline date */}
-            <div className={cn('text-5xl font-black tracking-tight', typography.headlineClass)} style={{ color: palette.textPrimary }}>
-              {new Date(card.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            <div
+              className={cn(
+                'text-5xl font-black tracking-tight',
+                typography.headlineClass
+              )}
+              style={{ color: palette.textPrimary }}
+            >
+              {new Date(card.createdAt).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+              })}
             </div>
 
             {card.photoUrl && (
               <div className="rounded-xl overflow-hidden">
-                <img src={card.photoUrl} alt="" className="w-full h-48 object-cover" />
+                <img
+                  src={card.photoUrl}
+                  alt=""
+                  className="w-full h-48 object-cover"
+                />
               </div>
             )}
 
-            <p className={cn('text-lg leading-relaxed', typography.bodyClass)} style={{ color: palette.textPrimary }}>
+            <p
+              className={cn('text-lg leading-relaxed', typography.bodyClass)}
+              style={{ color: palette.textPrimary }}
+            >
               {card.text}
             </p>
 
             {card.blocks && card.blocks.length > 0 && (
-              <div className="grid grid-cols-2 gap-3 pt-4 border-t" style={{ borderColor: `${palette.textSecondary}20` }}>
+              <div
+                className="grid grid-cols-2 gap-3 pt-4 border-t"
+                style={{ borderColor: `${palette.textSecondary}20` }}
+              >
                 {card.blocks.slice(0, 4).map((block) => (
                   <div key={block.id} className="text-center p-3">
-                    <div className="text-2xl font-bold" style={{ color: palette.accent }}>{block.value}</div>
-                    <div className="text-xs uppercase tracking-wider opacity-60" style={{ color: palette.textSecondary }}>{block.label}</div>
+                    <div
+                      className="text-2xl font-bold"
+                      style={{ color: palette.accent }}
+                    >
+                      {block.value}
+                    </div>
+                    <div
+                      className="text-xs uppercase tracking-wider opacity-60"
+                      style={{ color: palette.textSecondary }}
+                    >
+                      {block.label}
+                    </div>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          {showGrain && <div className="grain-subtle absolute inset-0 pointer-events-none" />}
+          {showGrain && (
+            <div className="grain-subtle absolute inset-0 pointer-events-none" />
+          )}
         </div>
       );
     }
@@ -321,25 +473,49 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
         <div className="p-6 space-y-4">
           <div className="flex items-start justify-between">
             <div>
-              <div className={cn('text-xs uppercase tracking-wider opacity-70', typography.microClass)} style={{ color: palette.textSecondary }}>
-                {new Date(card.createdAt).toLocaleDateString('en-US', { weekday: 'long' })}
+              <div
+                className={cn(
+                  'text-xs uppercase tracking-wider opacity-70',
+                  typography.microClass
+                )}
+                style={{ color: palette.textSecondary }}
+              >
+                {new Date(card.createdAt).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                })}
               </div>
-              <div className={cn('text-xl font-bold', typography.headlineClass)} style={{ color: palette.textPrimary }}>
-                {new Date(card.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+              <div
+                className={cn('text-xl font-bold', typography.headlineClass)}
+                style={{ color: palette.textPrimary }}
+              >
+                {new Date(card.createdAt).toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                })}
               </div>
             </div>
-            <div className="text-3xl" style={{ filter: `drop-shadow(0 0 8px ${moodColor})` }}>
+            <div
+              className="text-3xl"
+              style={{ filter: `drop-shadow(0 0 8px ${moodColor})` }}
+            >
               {moodData?.emoji}
             </div>
           </div>
 
-          <p className={cn('leading-relaxed', typography.bodyClass)} style={{ color: palette.textPrimary }}>
+          <p
+            className={cn('leading-relaxed', typography.bodyClass)}
+            style={{ color: palette.textPrimary }}
+          >
             {card.text}
           </p>
 
           {card.photoUrl && (
             <div className="rounded-2xl overflow-hidden">
-              <img src={card.photoUrl} alt="" className="w-full h-48 object-cover" />
+              <img
+                src={card.photoUrl}
+                alt=""
+                className="w-full h-48 object-cover"
+              />
             </div>
           )}
 
@@ -351,8 +527,18 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
                   className="p-3 rounded-xl"
                   style={{ background: `${palette.surface}` }}
                 >
-                  <div className="text-xs opacity-60 mb-1" style={{ color: palette.textSecondary }}>{block.label}</div>
-                  <div className="text-sm font-medium" style={{ color: palette.textPrimary }}>{block.value}</div>
+                  <div
+                    className="text-xs opacity-60 mb-1"
+                    style={{ color: palette.textSecondary }}
+                  >
+                    {block.label}
+                  </div>
+                  <div
+                    className="text-sm font-medium"
+                    style={{ color: palette.textPrimary }}
+                  >
+                    {block.value}
+                  </div>
                 </div>
               ))}
             </div>
@@ -364,7 +550,10 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
                 <span
                   key={tag}
                   className="px-3 py-1 rounded-full text-xs"
-                  style={{ background: `${palette.accent}30`, color: palette.accent }}
+                  style={{
+                    background: `${palette.accent}30`,
+                    color: palette.accent,
+                  }}
                 >
                   #{tag}
                 </span>
@@ -373,12 +562,15 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
           )}
         </div>
 
-        {showGrain && <div className="grain-subtle absolute inset-0 pointer-events-none" />}
+        {showGrain && (
+          <div className="grain-subtle absolute inset-0 pointer-events-none" />
+        )}
         {showVignette && (
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
-              background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.3) 100%)',
+              background:
+                'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.3) 100%)',
             }}
           />
         )}
