@@ -147,3 +147,422 @@ html {
     -webkit-tap-highlight-color: transparent;
   }
 }
+
+/* ============================================
+   AI DAY RECAP - VISUAL DESIGN SYSTEM
+   ============================================ */
+
+/* Story Card Container (9:16 aspect ratio) */
+.story-card {
+  aspect-ratio: 9 / 16;
+  width: 100%;
+  max-width: 405px; /* 1080 / 2.666 for retina display preview */
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.story-card-export {
+  width: 1080px;
+  height: 1920px;
+}
+
+/* Safe zones for story platforms */
+.story-safe-zone {
+  padding: 60px 24px 80px 24px; /* Scaled down from 120/48/160 */
+}
+
+/* ============================================
+   GRAIN & TEXTURE OVERLAYS
+   ============================================ */
+
+.grain-subtle::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.grain-heavy::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.08;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* ============================================
+   VIGNETTE & LIGHTING EFFECTS
+   ============================================ */
+
+.vignette::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.4) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.vignette-light::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.2) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ============================================
+   GLOW EFFECTS
+   ============================================ */
+
+.soft-glow {
+  box-shadow: 0 0 60px rgba(255, 255, 255, 0.1);
+}
+
+.mood-glow-great {
+  box-shadow: 0 0 40px rgba(34, 197, 94, 0.3);
+}
+
+.mood-glow-good {
+  box-shadow: 0 0 40px rgba(132, 204, 22, 0.3);
+}
+
+.mood-glow-neutral {
+  box-shadow: 0 0 40px rgba(234, 179, 8, 0.3);
+}
+
+.mood-glow-bad {
+  box-shadow: 0 0 40px rgba(249, 115, 22, 0.3);
+}
+
+.mood-glow-terrible {
+  box-shadow: 0 0 40px rgba(239, 68, 68, 0.3);
+}
+
+.accent-glow {
+  box-shadow: 0 0 80px var(--accent-color, rgba(139, 92, 246, 0.4));
+}
+
+/* ============================================
+   LIGHT LEAKS & FILM EFFECTS
+   ============================================ */
+
+.light-leak::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 200, 150, 0.15) 0%,
+    transparent 40%,
+    transparent 60%,
+    rgba(255, 150, 200, 0.1) 100%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+.light-leak-warm::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  right: -20%;
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(ellipse, rgba(255, 180, 100, 0.2) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ============================================
+   PAPER & TEXTURE BACKGROUNDS
+   ============================================ */
+
+.paper-texture {
+  background-color: #fdfbf7;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='paper'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='5' result='noise'/%3E%3CfeDiffuseLighting in='noise' lighting-color='%23fff' surfaceScale='1'%3E%3CfeDistantLight azimuth='45' elevation='60'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paper)'/%3E%3C/svg%3E");
+  background-blend-mode: multiply;
+}
+
+.noise-gradient {
+  position: relative;
+}
+
+.noise-gradient::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%, rgba(0, 0, 0, 0.05) 100%);
+  pointer-events: none;
+}
+
+/* ============================================
+   GLASS MORPHISM
+   ============================================ */
+
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* ============================================
+   SCRAPBOOK ELEMENTS
+   ============================================ */
+
+.tape-strip {
+  position: relative;
+}
+
+.tape-strip::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  width: 60px;
+  height: 20px;
+  background: rgba(255, 250, 230, 0.8);
+  border: 1px solid rgba(200, 180, 140, 0.3);
+}
+
+.photo-tilted {
+  transform: rotate(-2deg);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.photo-tilted-right {
+  transform: rotate(2deg);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.polaroid-frame {
+  background: white;
+  padding: 12px 12px 40px 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================
+   MOOD INDICATORS
+   ============================================ */
+
+.mood-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.mood-dot-active {
+  transform: scale(1.3);
+}
+
+.mood-ring {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 4px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mood-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--mood-start), var(--mood-end));
+}
+
+/* ============================================
+   METRIC CARDS
+   ============================================ */
+
+.metric-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+}
+
+.metric-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.metric-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: currentColor;
+  transition: width 0.5s ease;
+}
+
+/* ============================================
+   HIGHLIGHT MARKERS
+   ============================================ */
+
+.highlight-marker {
+  background: linear-gradient(180deg, transparent 50%, rgba(255, 220, 100, 0.4) 50%);
+  padding: 0 4px;
+}
+
+.highlight-marker-accent {
+  background: linear-gradient(180deg, transparent 50%, var(--accent-color, rgba(139, 92, 246, 0.3)) 50%);
+  padding: 0 4px;
+}
+
+.underline-scribble {
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-decoration-color: var(--accent-color, #E8A87C);
+  text-underline-offset: 4px;
+}
+
+/* ============================================
+   TYPOGRAPHY UTILITIES
+   ============================================ */
+
+.text-story-headline {
+  font-size: clamp(2rem, 8vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.text-story-subheadline {
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
+  line-height: 1.3;
+}
+
+.text-story-body {
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  line-height: 1.6;
+}
+
+.text-story-micro {
+  font-size: clamp(0.625rem, 2vw, 0.75rem);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ============================================
+   ANIMATION UTILITIES
+   ============================================ */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* ============================================
+   COLOR PALETTE UTILITIES
+   ============================================ */
+
+/* Warm Cinematic */
+.palette-warm-cinematic {
+  --bg: #1A1512;
+  --surface: #2D2420;
+  --accent: #E8A87C;
+  --text-primary: #F5F0EB;
+  --text-secondary: #9C8B7D;
+}
+
+/* Cyber Gradient */
+.palette-cyber {
+  --bg: #0D0D1A;
+  --surface: #1A1A2E;
+  --accent: #00D4FF;
+  --text-primary: #FFFFFF;
+  --text-secondary: #8B8BA3;
+}
+
+/* Pastel Dream */
+.palette-pastel {
+  --bg: #FFF8F0;
+  --surface: #FFFFFF;
+  --accent: #FFB5A7;
+  --text-primary: #2D3748;
+  --text-secondary: #718096;
+}
+
+/* Earthy Raw */
+.palette-earthy {
+  --bg: #F5F1EB;
+  --surface: #FDFBF7;
+  --accent: #C17F59;
+  --text-primary: #3D3528;
+  --text-secondary: #7C7265;
+}
+
+/* Infrared Neon */
+.palette-neon {
+  --bg: #0A0A0F;
+  --surface: #12121A;
+  --accent: #FF2D6A;
+  --text-primary: #FFFFFF;
+  --text-secondary: #6B6B8D;
+}
+
+/* Forest Mist */
+.palette-forest {
+  --bg: #1C2420;
+  --surface: #243028;
+  --accent: #7FB069;
+  --text-primary: #E8F0E8;
+  --text-secondary: #9CAF9C;
+}
+
+/* Sunset Boulevard */
+.palette-sunset {
+  --bg: #1F1B2D;
+  --surface: #2A2540;
+  --accent: #FF8C42;
+  --text-primary: #FFF5EB;
+  --text-secondary: #A89EC9;
+}
