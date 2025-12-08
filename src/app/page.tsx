@@ -12,7 +12,10 @@ import {
   useCardSearch,
   extractTags,
 } from '@/components/search-filter';
-import { Sparkles, CalendarDays, TrendingUp } from 'lucide-react';
+import { CalendarView } from '@/components/calendar-view';
+import { Sparkles, CalendarDays, TrendingUp, List, Calendar } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const DEFAULT_FILTERS: SearchFilters = {
   query: '',
@@ -49,10 +52,20 @@ export default function HomePage() {
   const router = useRouter();
   const { cards, hydrated } = useCardStore();
   const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const availableTags = useMemo(() => extractTags(cards), [cards]);
   const filteredCards = useCardSearch(cards, filters);
   const groupedCards = useMemo(() => groupByMonth(filteredCards), [filteredCards]);
+
+  // Get card for selected date
+  const selectedCard = useMemo(() => {
+    if (!selectedDate) return null;
+    return cards.find(
+      (c) => new Date(c.createdAt).toDateString() === selectedDate.toDateString()
+    );
+  }, [cards, selectedDate]);
 
   // Stats
   const stats = useMemo(() => {
@@ -136,7 +149,7 @@ export default function HomePage() {
           </div>
 
           {/* Search & Filters */}
-          <div className="mb-6">
+          <div className="mb-4">
             <SearchBar
               filters={filters}
               onFiltersChange={setFilters}
@@ -144,8 +157,54 @@ export default function HomePage() {
             />
           </div>
 
+          {/* View Toggle */}
+          <div className="flex gap-2 mb-4">
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+              className="flex-1 rounded-full"
+            >
+              <List className="h-4 w-4 mr-1" />
+              List
+            </Button>
+            <Button
+              variant={viewMode === 'calendar' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('calendar')}
+              className="flex-1 rounded-full"
+            >
+              <Calendar className="h-4 w-4 mr-1" />
+              Calendar
+            </Button>
+          </div>
+
+          {/* Calendar View */}
+          {viewMode === 'calendar' && (
+            <div className="space-y-4 mb-6">
+              <CalendarView
+                cards={cards}
+                onSelectDate={setSelectedDate}
+                selectedDate={selectedDate}
+              />
+              {selectedCard && (
+                <DailyCardView
+                  card={selectedCard}
+                  variant="compact"
+                  onClick={() => router.push(`/card/${selectedCard.id}`)}
+                />
+              )}
+              {selectedDate && !selectedCard && (
+                <div className="text-center py-8 text-muted-foreground">
+                  No entry for this date
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Timeline */}
-          <div className="space-y-6">
+          {viewMode === 'list' && (
+            <div className="space-y-6">
             {filteredCards.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 No cards match your search
@@ -170,6 +229,7 @@ export default function HomePage() {
               ))
             )}
           </div>
+          )}
         </>
       )}
     </div>

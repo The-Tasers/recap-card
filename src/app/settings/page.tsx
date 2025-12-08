@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeft, Trash2, Info } from 'lucide-react';
+import { ArrowLeft, Trash2, Info, Download, FileJson, Calendar } from 'lucide-react';
 import { useCardStore } from '@/lib/store';
+import { downloadJson } from '@/lib/export';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,6 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { MoodStats, MoodHeatmap } from '@/components/calendar-view';
 import { useState } from 'react';
 
 export default function SettingsPage() {
@@ -24,6 +26,10 @@ export default function SettingsPage() {
     window.location.reload();
   };
 
+  const handleExportJson = () => {
+    downloadJson(cards, `recap-backup-${new Date().toISOString().split('T')[0]}.json`);
+  };
+
   if (!hydrated) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -33,7 +39,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6">
+    <div className="max-w-md mx-auto px-4 py-6 pb-24">
       {/* Header */}
       <header className="flex items-center gap-4 mb-6">
         <Link href="/">
@@ -71,6 +77,29 @@ export default function SettingsPage() {
               </p>
               <p className="text-xs text-muted-foreground">Days Journaling</p>
             </div>
+          </div>
+        </div>
+
+        {/* Mood Heatmap */}
+        {cards.length > 0 && <MoodHeatmap cards={cards} months={3} />}
+
+        {/* Mood Distribution */}
+        {cards.length > 0 && <MoodStats cards={cards} />}
+
+        {/* Export Options */}
+        <div className="bg-white rounded-2xl p-4 border border-neutral-200/50">
+          <h2 className="text-sm font-medium text-neutral-500 mb-3">
+            Export Data
+          </h2>
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={handleExportJson}
+            >
+              <FileJson className="h-4 w-4 mr-2" />
+              Export as JSON Backup
+            </Button>
           </div>
         </div>
 
@@ -128,7 +157,7 @@ export default function SettingsPage() {
                 beautiful, shareable cards.
               </p>
               <p className="text-xs text-muted-foreground mt-2">
-                Version 1.0.0
+                Version 1.1.0
               </p>
             </div>
           </div>

@@ -10,6 +10,7 @@ import {
   Trash2,
   Edit,
   MoreVertical,
+  Link2,
 } from 'lucide-react';
 import { useCardStore } from '@/lib/store';
 import {
@@ -35,6 +36,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { ShareLinkDialog } from '@/components/share-link';
 
 export default function CardDetailPage() {
   const params = useParams();
@@ -203,8 +205,20 @@ export default function CardDetailPage() {
           disabled={isExporting}
         >
           <Share2 className="h-4 w-4 mr-2" />
-          {isExporting ? 'Exporting...' : 'Share'}
+          {isExporting ? 'Exporting...' : 'Share Image'}
         </Button>
+        <ShareLinkDialog
+          card={card}
+          trigger={
+            <Button variant="outline" className="flex-1 rounded-full h-12">
+              <Link2 className="h-4 w-4 mr-2" />
+              Share Link
+            </Button>
+          }
+        />
+      </div>
+      
+      <div className="flex gap-3 mt-3">
         <Button
           variant="outline"
           className="flex-1 rounded-full h-12"
