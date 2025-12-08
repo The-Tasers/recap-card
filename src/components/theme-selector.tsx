@@ -12,7 +12,14 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { ThemeId, THEMES, FontPreset, FONT_PRESETS, TemplateId, TEMPLATES } from '@/lib/types';
+import {
+  ThemeId,
+  THEMES,
+  FontPreset,
+  FONT_PRESETS,
+  TemplateId,
+  TEMPLATES,
+} from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 interface ThemeSelectorProps {
@@ -45,7 +52,10 @@ export function ThemeSelector({
           <Palette className="h-4 w-4" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="bottom" className="rounded-t-3xl max-h-[80vh] overflow-y-auto">
+      <SheetContent
+        side="bottom"
+        className="rounded-t-3xl max-h-[80vh] overflow-y-auto"
+      >
         <SheetHeader>
           <SheetTitle>Card Style</SheetTitle>
         </SheetHeader>

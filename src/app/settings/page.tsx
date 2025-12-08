@@ -1,7 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeft, Trash2, Info, Download, FileJson, Calendar } from 'lucide-react';
+import {
+  ArrowLeft,
+  Trash2,
+  Info,
+  Download,
+  FileJson,
+  Calendar,
+} from 'lucide-react';
 import { useCardStore } from '@/lib/store';
 import { downloadJson } from '@/lib/export';
 import { Button } from '@/components/ui/button';
@@ -27,7 +34,10 @@ export default function SettingsPage() {
   };
 
   const handleExportJson = () => {
-    downloadJson(cards, `recap-backup-${new Date().toISOString().split('T')[0]}.json`);
+    downloadJson(
+      cards,
+      `recap-backup-${new Date().toISOString().split('T')[0]}.json`
+    );
   };
 
   if (!hydrated) {

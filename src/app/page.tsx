@@ -13,7 +13,13 @@ import {
   extractTags,
 } from '@/components/search-filter';
 import { CalendarView } from '@/components/calendar-view';
-import { Sparkles, CalendarDays, TrendingUp, List, Calendar } from 'lucide-react';
+import {
+  Sparkles,
+  CalendarDays,
+  TrendingUp,
+  List,
+  Calendar,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -32,7 +38,9 @@ function groupByMonth(cards: DailyCard[]) {
 
   cards.forEach((card) => {
     const date = new Date(card.createdAt);
-    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const monthKey = `${date.getFullYear()}-${String(
+      date.getMonth() + 1
+    ).padStart(2, '0')}`;
     const monthLabel = date.toLocaleDateString('en-US', {
       month: 'long',
       year: 'numeric',
@@ -57,13 +65,17 @@ export default function HomePage() {
 
   const availableTags = useMemo(() => extractTags(cards), [cards]);
   const filteredCards = useCardSearch(cards, filters);
-  const groupedCards = useMemo(() => groupByMonth(filteredCards), [filteredCards]);
+  const groupedCards = useMemo(
+    () => groupByMonth(filteredCards),
+    [filteredCards]
+  );
 
   // Get card for selected date
   const selectedCard = useMemo(() => {
     if (!selectedDate) return null;
     return cards.find(
-      (c) => new Date(c.createdAt).toDateString() === selectedDate.toDateString()
+      (c) =>
+        new Date(c.createdAt).toDateString() === selectedDate.toDateString()
     );
   }, [cards, selectedDate]);
 
@@ -86,8 +98,7 @@ export default function HomePage() {
       const checkDate = new Date(today);
       checkDate.setDate(checkDate.getDate() - i);
       const hasCard = cards.some(
-        (c) =>
-          new Date(c.createdAt).toDateString() === checkDate.toDateString()
+        (c) => new Date(c.createdAt).toDateString() === checkDate.toDateString()
       );
       if (hasCard) {
         streak++;
@@ -205,30 +216,30 @@ export default function HomePage() {
           {/* Timeline */}
           {viewMode === 'list' && (
             <div className="space-y-6">
-            {filteredCards.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                No cards match your search
-              </div>
-            ) : (
-              groupedCards.map((group) => (
-                <div key={group.month}>
-                  <h2 className="text-sm font-medium text-muted-foreground mb-3 sticky top-0 bg-background/80 backdrop-blur-sm py-2">
-                    {group.month}
-                  </h2>
-                  <div className="space-y-3">
-                    {group.cards.map((card) => (
-                      <DailyCardView
-                        key={card.id}
-                        card={card}
-                        variant="compact"
-                        onClick={() => router.push(`/card/${card.id}`)}
-                      />
-                    ))}
-                  </div>
+              {filteredCards.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  No cards match your search
                 </div>
-              ))
-            )}
-          </div>
+              ) : (
+                groupedCards.map((group) => (
+                  <div key={group.month}>
+                    <h2 className="text-sm font-medium text-muted-foreground mb-3 sticky top-0 bg-background/80 backdrop-blur-sm py-2">
+                      {group.month}
+                    </h2>
+                    <div className="space-y-3">
+                      {group.cards.map((card) => (
+                        <DailyCardView
+                          key={card.id}
+                          card={card}
+                          variant="compact"
+                          onClick={() => router.push(`/card/${card.id}`)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           )}
         </>
       )}

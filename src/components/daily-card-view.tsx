@@ -57,10 +57,7 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
             </div>
           )}
           <div
-            className={cn(
-              'p-5 space-y-3 bg-gradient-to-br',
-              theme.gradient
-            )}
+            className={cn('p-5 space-y-3 bg-gradient-to-br', theme.gradient)}
           >
             {!card.photoUrl && (
               <div className="flex items-center justify-between">
@@ -142,10 +139,7 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
           )}
         >
           <div
-            className={cn(
-              'p-5 space-y-4 bg-gradient-to-br',
-              theme.gradient
-            )}
+            className={cn('p-5 space-y-4 bg-gradient-to-br', theme.gradient)}
           >
             <div className="flex items-start gap-3">
               <span className="text-3xl">{moodData?.emoji}</span>
@@ -196,13 +190,14 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
     }
 
     // Default template (original design + enhancements)
-    const backgroundStyle = card.photoUrl && isCompact
-      ? {
-          backgroundImage: `linear-gradient(to bottom, rgba(255,255,255,0.9), rgba(255,255,255,0.95)), url(${card.photoUrl})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }
-      : undefined;
+    const backgroundStyle =
+      card.photoUrl && isCompact
+        ? {
+            backgroundImage: `linear-gradient(to bottom, rgba(255,255,255,0.9), rgba(255,255,255,0.95)), url(${card.photoUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }
+        : undefined;
 
     return (
       <div
@@ -271,17 +266,23 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
         )}
 
         {/* Compact view indicators */}
-        {isCompact && (card.blocks?.length || card.tags?.length || card.photoUrl) && (
-          <div className="flex items-center gap-2 mt-3 pt-2 border-t border-black/5 text-xs text-muted-foreground">
-            {card.photoUrl && <span>📷</span>}
-            {card.blocks && card.blocks.length > 0 && (
-              <span>+{card.blocks.length} detail{card.blocks.length > 1 ? 's' : ''}</span>
-            )}
-            {card.tags && card.tags.length > 0 && (
-              <span>#{card.tags.length} tag{card.tags.length > 1 ? 's' : ''}</span>
-            )}
-          </div>
-        )}
+        {isCompact &&
+          (card.blocks?.length || card.tags?.length || card.photoUrl) && (
+            <div className="flex items-center gap-2 mt-3 pt-2 border-t border-black/5 text-xs text-muted-foreground">
+              {card.photoUrl && <span>📷</span>}
+              {card.blocks && card.blocks.length > 0 && (
+                <span>
+                  +{card.blocks.length} detail
+                  {card.blocks.length > 1 ? 's' : ''}
+                </span>
+              )}
+              {card.tags && card.tags.length > 0 && (
+                <span>
+                  #{card.tags.length} tag{card.tags.length > 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+          )}
       </div>
     );
   }

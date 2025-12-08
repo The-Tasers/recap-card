@@ -217,7 +217,7 @@ export default function CardDetailPage() {
           }
         />
       </div>
-      
+
       <div className="flex gap-3 mt-3">
         <Button
           variant="outline"

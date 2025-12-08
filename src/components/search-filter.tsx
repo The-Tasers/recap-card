@@ -1,7 +1,14 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Search, X, SlidersHorizontal, Calendar, Image, Tag } from 'lucide-react';
+import {
+  Search,
+  X,
+  SlidersHorizontal,
+  Calendar,
+  Image as ImageIcon,
+  Tag,
+} from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -43,7 +50,11 @@ interface SearchBarProps {
   availableTags: string[];
 }
 
-export function SearchBar({ filters, onFiltersChange, availableTags }: SearchBarProps) {
+export function SearchBar({
+  filters,
+  onFiltersChange,
+  availableTags,
+}: SearchBarProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const hasActiveFilters =
@@ -134,7 +145,7 @@ export function SearchBar({ filters, onFiltersChange, availableTags }: SearchBar
               {/* Photo Filter */}
               <div className="space-y-2">
                 <label className="text-sm font-medium flex items-center gap-2">
-                  <Image className="h-4 w-4" />
+                  <ImageIcon className="h-4 w-4" />
                   Photo
                 </label>
                 <Select
@@ -236,7 +247,9 @@ export function SearchBar({ filters, onFiltersChange, availableTags }: SearchBar
           )}
           {filters.hasPhoto !== 'all' && (
             <FilterPill
-              label={filters.hasPhoto === 'yes' ? '📷 With photo' : '📷 No photo'}
+              label={
+                filters.hasPhoto === 'yes' ? '📷 With photo' : '📷 No photo'
+              }
               onRemove={() => onFiltersChange({ ...filters, hasPhoto: 'all' })}
             />
           )}
@@ -264,11 +277,20 @@ export function SearchBar({ filters, onFiltersChange, availableTags }: SearchBar
   );
 }
 
-function FilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
+function FilterPill({
+  label,
+  onRemove,
+}: {
+  label: string;
+  onRemove: () => void;
+}) {
   return (
     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
       {label}
-      <button onClick={onRemove} className="hover:bg-primary/20 rounded-full p-0.5">
+      <button
+        onClick={onRemove}
+        className="hover:bg-primary/20 rounded-full p-0.5"
+      >
         <X className="h-3 w-3" />
       </button>
     </span>
@@ -310,8 +332,12 @@ export function useCardSearch(cards: DailyCard[], filters: SearchFilters) {
     // Date range filter
     if (filters.dateRange !== 'all') {
       const now = new Date();
-      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      
+      const startOfDay = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate()
+      );
+
       let startDate: Date;
       switch (filters.dateRange) {
         case 'today':

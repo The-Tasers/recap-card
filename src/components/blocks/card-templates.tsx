@@ -1,7 +1,14 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
-import { DailyCard, TEMPLATES, TemplateId, ThemeId, THEMES, FontPreset, FONT_PRESETS, MOODS } from '@/lib/types';
+import {
+  DailyCard,
+  ThemeId,
+  THEMES,
+  FontPreset,
+  FONT_PRESETS,
+  MOODS,
+} from '@/lib/types';
 import { MoodBadge } from '@/components/mood-selector';
 import { DateBadge } from '@/components/date-badge';
 import { BlockDisplay } from './block-editor';
@@ -60,7 +67,9 @@ export const DefaultTemplate = forwardRef<HTMLDivElement, CardTemplateProps>(
             <MoodBadge mood={card.mood} />
           </div>
 
-          <p className="text-base leading-relaxed text-foreground">{card.text}</p>
+          <p className="text-base leading-relaxed text-foreground">
+            {card.text}
+          </p>
 
           {card.blocks && card.blocks.length > 0 && (
             <div className="space-y-2 pt-2 border-t border-black/5">
@@ -90,123 +99,125 @@ export const DefaultTemplate = forwardRef<HTMLDivElement, CardTemplateProps>(
 DefaultTemplate.displayName = 'DefaultTemplate';
 
 // Photo Header Template - large photo at top
-export const PhotoHeaderTemplate = forwardRef<HTMLDivElement, CardTemplateProps>(
-  ({ card, className }, ref) => {
-    const themeClasses = getThemeClasses(card.theme);
-    const fontClasses = getFontClasses(card.font);
-    const moodData = MOODS.find(m => m.value === card.mood);
+export const PhotoHeaderTemplate = forwardRef<
+  HTMLDivElement,
+  CardTemplateProps
+>(({ card, className }, ref) => {
+  const themeClasses = getThemeClasses(card.theme);
+  const fontClasses = getFontClasses(card.font);
+  const moodData = MOODS.find((m) => m.value === card.mood);
 
-    return (
-      <Card
-        ref={ref}
+  return (
+    <Card
+      ref={ref}
+      className={cn(
+        'w-full max-w-sm mx-auto rounded-3xl border-0 shadow-lg overflow-hidden',
+        card.darkMode && 'dark',
+        className
+      )}
+    >
+      {card.photoUrl && (
+        <div className="relative h-56">
+          <img
+            src={card.photoUrl}
+            alt=""
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+            <div className="flex items-center justify-between text-white">
+              <span className="text-sm font-medium">
+                {new Date(card.createdAt).toLocaleDateString('en-US', {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </span>
+              <span className="text-2xl">{moodData?.emoji}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <CardContent
         className={cn(
-          'w-full max-w-sm mx-auto rounded-3xl border-0 shadow-lg overflow-hidden',
-          card.darkMode && 'dark',
-          className
+          'p-5 space-y-3 bg-gradient-to-br',
+          themeClasses,
+          fontClasses
         )}
       >
-        {card.photoUrl && (
-          <div className="relative h-56">
-            <img
-              src={card.photoUrl}
-              alt=""
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-              <div className="flex items-center justify-between text-white">
-                <span className="text-sm font-medium">
-                  {new Date(card.createdAt).toLocaleDateString('en-US', {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </span>
-                <span className="text-2xl">{moodData?.emoji}</span>
-              </div>
-            </div>
+        {!card.photoUrl && (
+          <div className="flex items-center justify-between">
+            <DateBadge date={card.createdAt} />
+            <MoodBadge mood={card.mood} />
           </div>
         )}
 
-        <CardContent
-          className={cn(
-            'p-5 space-y-3 bg-gradient-to-br',
-            themeClasses,
-            fontClasses
-          )}
-        >
-          {!card.photoUrl && (
-            <div className="flex items-center justify-between">
-              <DateBadge date={card.createdAt} />
-              <MoodBadge mood={card.mood} />
-            </div>
-          )}
+        <p className="text-base leading-relaxed text-foreground">{card.text}</p>
 
-          <p className="text-base leading-relaxed text-foreground">{card.text}</p>
-
-          {card.blocks && card.blocks.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-2">
-              {card.blocks.slice(0, 4).map((block) => (
-                <div
-                  key={block.id}
-                  className="px-3 py-1.5 rounded-full bg-black/5 text-xs"
-                >
-                  {block.label}: {block.value}
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
-);
+        {card.blocks && card.blocks.length > 0 && (
+          <div className="flex flex-wrap gap-2 pt-2">
+            {card.blocks.slice(0, 4).map((block) => (
+              <div
+                key={block.id}
+                className="px-3 py-1.5 rounded-full bg-black/5 text-xs"
+              >
+                {block.label}: {block.value}
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+});
 PhotoHeaderTemplate.displayName = 'PhotoHeaderTemplate';
 
 // Ultra Minimal Template - clean, text-focused
-export const UltraMinimalTemplate = forwardRef<HTMLDivElement, CardTemplateProps>(
-  ({ card, className }, ref) => {
-    const fontClasses = getFontClasses(card.font);
-    const moodData = MOODS.find(m => m.value === card.mood);
+export const UltraMinimalTemplate = forwardRef<
+  HTMLDivElement,
+  CardTemplateProps
+>(({ card, className }, ref) => {
+  const fontClasses = getFontClasses(card.font);
+  const moodData = MOODS.find((m) => m.value === card.mood);
 
-    return (
-      <Card
-        ref={ref}
-        className={cn(
-          'w-full max-w-sm mx-auto rounded-3xl border shadow-sm overflow-hidden',
-          card.darkMode ? 'bg-neutral-900 text-white' : 'bg-white',
-          className
+  return (
+    <Card
+      ref={ref}
+      className={cn(
+        'w-full max-w-sm mx-auto rounded-3xl border shadow-sm overflow-hidden',
+        card.darkMode ? 'bg-neutral-900 text-white' : 'bg-white',
+        className
+      )}
+    >
+      <CardContent className={cn('p-8 space-y-6', fontClasses)}>
+        <div className="text-center">
+          <span className="text-4xl">{moodData?.emoji}</span>
+        </div>
+
+        <p className="text-lg leading-relaxed text-center">{card.text}</p>
+
+        {card.photoUrl && (
+          <div className="rounded-2xl overflow-hidden">
+            <img
+              src={card.photoUrl}
+              alt=""
+              className="w-full h-40 object-cover"
+            />
+          </div>
         )}
-      >
-        <CardContent className={cn('p-8 space-y-6', fontClasses)}>
-          <div className="text-center">
-            <span className="text-4xl">{moodData?.emoji}</span>
-          </div>
 
-          <p className="text-lg leading-relaxed text-center">{card.text}</p>
-
-          {card.photoUrl && (
-            <div className="rounded-2xl overflow-hidden">
-              <img
-                src={card.photoUrl}
-                alt=""
-                className="w-full h-40 object-cover"
-              />
-            </div>
-          )}
-
-          <div className="text-center text-sm text-muted-foreground">
-            {new Date(card.createdAt).toLocaleDateString('en-US', {
-              weekday: 'long',
-              month: 'long',
-              day: 'numeric',
-              year: 'numeric',
-            })}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-);
+        <div className="text-center text-sm text-muted-foreground">
+          {new Date(card.createdAt).toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+});
 UltraMinimalTemplate.displayName = 'UltraMinimalTemplate';
 
 // Mixed Grid Template - blocks in a grid layout
@@ -214,7 +225,7 @@ export const MixedGridTemplate = forwardRef<HTMLDivElement, CardTemplateProps>(
   ({ card, className }, ref) => {
     const themeClasses = getThemeClasses(card.theme);
     const fontClasses = getFontClasses(card.font);
-    const moodData = MOODS.find(m => m.value === card.mood);
+    const moodData = MOODS.find((m) => m.value === card.mood);
 
     return (
       <Card
@@ -293,11 +304,17 @@ export const DailyCardView = forwardRef<HTMLDivElement, CardTemplateProps>(
 
     switch (templateId) {
       case 'photoHeader':
-        return <PhotoHeaderTemplate ref={ref} card={card} className={className} />;
+        return (
+          <PhotoHeaderTemplate ref={ref} card={card} className={className} />
+        );
       case 'ultraMinimal':
-        return <UltraMinimalTemplate ref={ref} card={card} className={className} />;
+        return (
+          <UltraMinimalTemplate ref={ref} card={card} className={className} />
+        );
       case 'mixedGrid':
-        return <MixedGridTemplate ref={ref} card={card} className={className} />;
+        return (
+          <MixedGridTemplate ref={ref} card={card} className={className} />
+        );
       default:
         return <DefaultTemplate ref={ref} card={card} className={className} />;
     }

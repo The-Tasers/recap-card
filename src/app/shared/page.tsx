@@ -4,11 +4,21 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Lock, AlertTriangle, Eye, Download } from 'lucide-react';
-import { decompressCardFromUrl, downloadImage, exportCardImage } from '@/lib/export';
+import {
+  decompressCardFromUrl,
+  downloadImage,
+  exportCardImage,
+} from '@/lib/export';
 import { DailyCard, Mood } from '@/lib/types';
 import { DailyCardView } from '@/components/daily-card-view';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { useRef } from 'react';
 
 function SharedCardContent() {
@@ -69,7 +79,9 @@ function SharedCardContent() {
 
     try {
       const dataUrl = await exportCardImage(cardRef.current);
-      const date = card?.createdAt ? new Date(card.createdAt).toLocaleDateString().replace(/\//g, '-') : 'shared';
+      const date = card?.createdAt
+        ? new Date(card.createdAt).toLocaleDateString().replace(/\//g, '-')
+        : 'shared';
       downloadImage(dataUrl, `recap-${date}.png`);
     } catch (error) {
       console.error('Download failed:', error);
@@ -88,7 +100,9 @@ function SharedCardContent() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-xl font-semibold text-neutral-800">Shared Card</h1>
+          <h1 className="text-xl font-semibold text-neutral-800">
+            Shared Card
+          </h1>
         </header>
         <Card>
           <CardHeader>
@@ -118,7 +132,9 @@ function SharedCardContent() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-xl font-semibold text-neutral-800">Shared Card</h1>
+          <h1 className="text-xl font-semibold text-neutral-800">
+            Shared Card
+          </h1>
         </header>
         <Card>
           <CardHeader>
@@ -150,7 +166,9 @@ function SharedCardContent() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-xl font-semibold text-neutral-800">Shared Card</h1>
+          <h1 className="text-xl font-semibold text-neutral-800">
+            Shared Card
+          </h1>
         </header>
         <Card>
           <CardHeader>
@@ -159,12 +177,14 @@ function SharedCardContent() {
               Private Content
             </CardTitle>
             <CardDescription>
-              This card has been marked as private by the sender. The content may be personal or sensitive.
+              This card has been marked as private by the sender. The content
+              may be personal or sensitive.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Click below to view the content. This action cannot be tracked by the sender.
+              Click below to view the content. This action cannot be tracked by
+              the sender.
             </p>
             <Button onClick={() => setShowContent(true)} className="w-full">
               <Eye className="h-4 w-4 mr-2" />
@@ -196,14 +216,17 @@ function SharedCardContent() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-xl font-semibold text-neutral-800">Shared Card</h1>
+            <h1 className="text-xl font-semibold text-neutral-800">
+              Shared Card
+            </h1>
             <p className="text-sm text-muted-foreground">
-              {card.createdAt && new Date(card.createdAt).toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
+              {card.createdAt &&
+                new Date(card.createdAt).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
             </p>
           </div>
         </div>
@@ -229,9 +252,7 @@ function SharedCardContent() {
           {isExporting ? 'Saving...' : 'Save Image'}
         </Button>
         <Link href="/create" className="flex-1">
-          <Button className="w-full">
-            Create Your Own
-          </Button>
+          <Button className="w-full">Create Your Own</Button>
         </Link>
       </div>
     </div>
@@ -240,11 +261,13 @@ function SharedCardContent() {
 
 export default function SharedCardPage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-pulse text-muted-foreground">Loading...</div>
+        </div>
+      }
+    >
       <SharedCardContent />
     </Suspense>
   );

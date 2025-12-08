@@ -75,7 +75,10 @@ export const exportCardsAsZip = async (
         try {
           const dataUrl = await exportCardImage(element);
           const base64Data = dataUrl.split(',')[1];
-          const filename = `${formatFullDate(card.createdAt).replace(/\s/g, '-')}.png`;
+          const filename = `${formatFullDate(card.createdAt).replace(
+            /\s/g,
+            '-'
+          )}.png`;
           imagesFolder.file(filename, base64Data, { base64: true });
         } catch (error) {
           console.error(`Failed to export card ${card.id}:`, error);
@@ -116,21 +119,25 @@ export const compressCardForUrl = (card: DailyCard): string => {
 };
 
 // Decompress card data from URL
-export const decompressCardFromUrl = (compressed: string): Partial<DailyCard> | null => {
+export const decompressCardFromUrl = (
+  compressed: string
+): Partial<DailyCard> | null => {
   try {
     const decoded = JSON.parse(decodeURIComponent(atob(compressed)));
     return {
       text: decoded.t,
       mood: decoded.m,
       createdAt: decoded.d,
-      blocks: decoded.b?.map((b: { l: string; v: string | number }, i: number) => ({
-        id: `shared-${i}`,
-        type: 'text',
-        blockId: 'custom',
-        label: b.l,
-        value: b.v,
-        order: i,
-      })),
+      blocks: decoded.b?.map(
+        (b: { l: string; v: string | number }, i: number) => ({
+          id: `shared-${i}`,
+          type: 'text',
+          blockId: 'custom',
+          label: b.l,
+          value: b.v,
+          order: i,
+        })
+      ),
     };
   } catch {
     return null;

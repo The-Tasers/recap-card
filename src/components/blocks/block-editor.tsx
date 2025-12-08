@@ -1,11 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { GripVertical, X, ChevronDown, ChevronUp } from 'lucide-react';
-import { CardBlock, BlockType, BLOCK_DEFINITIONS, BlockId } from '@/lib/types';
+import { X, ChevronDown, ChevronUp } from 'lucide-react';
+import { CardBlock, BLOCK_DEFINITIONS } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface BlockEditorProps {
@@ -52,10 +51,10 @@ export function BlockEditor({
             value={block.value as string}
             onChange={(e) => handleValueChange(e.target.value)}
             placeholder={definition.placeholder}
-            className="rounded-xl min-h-[80px] resize-none"
+            className="rounded-xl min-h-20 resize-none"
           />
         );
-      
+
       case 'number':
         return (
           <Input
@@ -67,7 +66,7 @@ export function BlockEditor({
             min={0}
           />
         );
-      
+
       case 'link':
         return (
           <Input
@@ -77,7 +76,7 @@ export function BlockEditor({
             className="rounded-xl"
           />
         );
-      
+
       case 'slider':
         return (
           <input
@@ -89,7 +88,7 @@ export function BlockEditor({
             className="w-full"
           />
         );
-      
+
       default:
         return null;
     }
@@ -117,12 +116,12 @@ export function BlockEditor({
             </button>
           )}
         </div>
-        
+
         <span className="text-lg">{definition.icon}</span>
         <span className="text-sm font-medium text-neutral-700 flex-1">
           {block.label}
         </span>
-        
+
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="p-1 hover:bg-neutral-200 rounded transition-colors"
@@ -133,7 +132,7 @@ export function BlockEditor({
             <ChevronUp className="h-4 w-4 text-neutral-400" />
           )}
         </button>
-        
+
         <button
           onClick={onRemove}
           className="p-1 hover:bg-red-100 rounded transition-colors"
@@ -141,13 +140,9 @@ export function BlockEditor({
           <X className="h-4 w-4 text-neutral-400 hover:text-red-500" />
         </button>
       </div>
-      
+
       {/* Content */}
-      {!isCollapsed && (
-        <div className="p-3 pt-0">
-          {renderInput()}
-        </div>
-      )}
+      {!isCollapsed && <div className="p-3 pt-0">{renderInput()}</div>}
     </div>
   );
 }
@@ -171,7 +166,10 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
   const handleMoveUp = (index: number) => {
     if (index === 0) return;
     const newBlocks = [...blocks];
-    [newBlocks[index - 1], newBlocks[index]] = [newBlocks[index], newBlocks[index - 1]];
+    [newBlocks[index - 1], newBlocks[index]] = [
+      newBlocks[index],
+      newBlocks[index - 1],
+    ];
     newBlocks.forEach((b, i) => (b.order = i));
     onChange(newBlocks);
   };
@@ -179,7 +177,10 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
   const handleMoveDown = (index: number) => {
     if (index === blocks.length - 1) return;
     const newBlocks = [...blocks];
-    [newBlocks[index], newBlocks[index + 1]] = [newBlocks[index + 1], newBlocks[index]];
+    [newBlocks[index], newBlocks[index + 1]] = [
+      newBlocks[index + 1],
+      newBlocks[index],
+    ];
     newBlocks.forEach((b, i) => (b.order = i));
     onChange(newBlocks);
   };
@@ -214,7 +215,7 @@ interface BlockDisplayProps {
 
 export function BlockDisplay({ block, compact }: BlockDisplayProps) {
   const definition = BLOCK_DEFINITIONS[block.blockId];
-  
+
   if (!block.value && block.value !== 0) return null;
 
   const renderValue = () => {
@@ -227,24 +228,23 @@ export function BlockDisplay({ block, compact }: BlockDisplayProps) {
             {block.blockId === 'steps' && ' steps'}
           </span>
         );
-      
+
       case 'link':
         const isSpotifyLink = String(block.value).includes('spotify');
         return (
-          <span className={cn(
-            "text-sm",
-            isSpotifyLink && "text-green-600"
-          )}>
+          <span className={cn('text-sm', isSpotifyLink && 'text-green-600')}>
             {block.value}
           </span>
         );
-      
+
       default:
         return (
-          <p className={cn(
-            "text-neutral-700",
-            compact ? "text-sm line-clamp-2" : "text-base"
-          )}>
+          <p
+            className={cn(
+              'text-neutral-700',
+              compact ? 'text-sm line-clamp-2' : 'text-base'
+            )}
+          >
             {block.value}
           </p>
         );
@@ -252,10 +252,7 @@ export function BlockDisplay({ block, compact }: BlockDisplayProps) {
   };
 
   return (
-    <div className={cn(
-      "flex items-start gap-2",
-      compact ? "py-1" : "py-2"
-    )}>
+    <div className={cn('flex items-start gap-2', compact ? 'py-1' : 'py-2')}>
       <span className="text-base shrink-0">{definition.icon}</span>
       <div className="flex-1 min-w-0">
         <p className="text-xs text-muted-foreground mb-0.5">{block.label}</p>

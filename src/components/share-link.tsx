@@ -24,21 +24,24 @@ interface ShareLinkDialogProps {
 export function ShareLinkDialog({ card, trigger }: ShareLinkDialogProps) {
   const [copied, setCopied] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
-  const [expiresIn, setExpiresIn] = useState<'1h' | '24h' | '7d' | 'never'>('never');
+  const [expiresIn, setExpiresIn] = useState<'1h' | '24h' | '7d' | 'never'>(
+    'never'
+  );
+  const [shareUrl, setShareUrl] = useState('');
 
-  // Generate shareable URL
+  // Generate shareable URL when dialog opens or options change
   const generateShareUrl = () => {
     const compressed = compressCardForUrl(card);
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    
+
     // Add expiry and privacy params
     const params = new URLSearchParams();
     params.set('data', compressed);
-    
+
     if (isPrivate) {
       params.set('private', '1');
     }
-    
+
     if (expiresIn !== 'never') {
       const expiryMap = {
         '1h': 60 * 60 * 1000,
@@ -48,11 +51,9 @@ export function ShareLinkDialog({ card, trigger }: ShareLinkDialogProps) {
       const expiryTime = Date.now() + expiryMap[expiresIn];
       params.set('exp', expiryTime.toString());
     }
-    
-    return `${baseUrl}/shared?${params.toString()}`;
-  };
 
-  const shareUrl = generateShareUrl();
+    setShareUrl(`${baseUrl}/shared?${params.toString()}`);
+  };
 
   const handleCopy = async () => {
     try {
@@ -69,7 +70,9 @@ export function ShareLinkDialog({ card, trigger }: ShareLinkDialogProps) {
       try {
         await navigator.share({
           title: 'My Day Recap',
-          text: `Check out my day recap from ${new Date(card.createdAt).toLocaleDateString()}`,
+          text: `Check out my day recap from ${new Date(
+            card.createdAt
+          ).toLocaleDateString()}`,
           url: shareUrl,
         });
       } catch (error) {
@@ -80,7 +83,7 @@ export function ShareLinkDialog({ card, trigger }: ShareLinkDialogProps) {
   };
 
   return (
-    <Dialog>
+    <Dialog onOpenChange={(open) => open && generateShareUrl()}>
       <DialogTrigger asChild>
         {trigger || (
           <Button variant="outline" size="sm">
@@ -93,10 +96,11 @@ export function ShareLinkDialog({ card, trigger }: ShareLinkDialogProps) {
         <DialogHeader>
           <DialogTitle>Share This Card</DialogTitle>
           <DialogDescription>
-            Generate a shareable link to this card. The link contains the card data - no server required.
+            Generate a shareable link to this card. The link contains the card
+            data - no server required.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           {/* Privacy Toggle */}
           <div className="flex items-center justify-between">
@@ -112,17 +116,21 @@ export function ShareLinkDialog({ card, trigger }: ShareLinkDialogProps) {
               id="private-mode"
               variant={isPrivate ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setIsPrivate(!isPrivate)}
+              onClick={() => {
+                setIsPrivate(!isPrivate);
+                setTimeout(generateShareUrl, 0);
+              }}
             >
               {isPrivate ? 'On' : 'Off'}
             </Button>
           </div>
           {isPrivate && (
             <p className="text-xs text-muted-foreground pl-6">
-              Private links show a "sensitive content" warning before revealing.
+              Private links show a &quot;sensitive content&quot; warning before
+              revealing.
             </p>
           )}
-          
+
           {/* Expiry Selection */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -135,7 +143,10 @@ export function ShareLinkDialog({ card, trigger }: ShareLinkDialogProps) {
                   key={option}
                   variant={expiresIn === option ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setExpiresIn(option)}
+                  onClick={() => {
+                    setExpiresIn(option);
+                    setTimeout(generateShareUrl, 0);
+                  }}
                   className="flex-1"
                 >
                   {option === 'never' ? 'Never' : option}
@@ -143,16 +154,12 @@ export function ShareLinkDialog({ card, trigger }: ShareLinkDialogProps) {
               ))}
             </div>
           </div>
-          
+
           {/* Share URL */}
           <div className="space-y-2">
             <Label>Shareable Link</Label>
             <div className="flex gap-2">
-              <Input
-                value={shareUrl}
-                readOnly
-                className="font-mono text-xs"
-              />
+              <Input value={shareUrl} readOnly className="font-mono text-xs" />
               <Button
                 variant="outline"
                 size="icon"
@@ -168,7 +175,7 @@ export function ShareLinkDialog({ card, trigger }: ShareLinkDialogProps) {
             </div>
           </div>
         </div>
-        
+
         <div className="flex gap-2">
           <Button onClick={handleCopy} className="flex-1">
             {copied ? 'Copied!' : 'Copy Link'}

@@ -1,7 +1,13 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Dices, RefreshCw, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import {
+  Dices,
+  RefreshCw,
+  ChevronDown,
+  ChevronUp,
+  Sparkles,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Collapsible,
@@ -61,7 +67,7 @@ export function DailyQuestionCard({
               <div>
                 <div className="text-sm font-medium">Daily Prompt</div>
                 <div className="text-xs text-muted-foreground">
-                  Get inspired by today's question
+                  Get inspired by today&apos;s question
                 </div>
               </div>
             </div>

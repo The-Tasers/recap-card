@@ -3,17 +3,12 @@
 import { useState } from 'react';
 import {
   Plus,
-  Brain,
-  Lightbulb,
-  Sparkles,
   Music,
   Footprints,
   Moon,
-  PenLine,
   Heart,
   Cloud,
   Star,
-  Pin,
 } from 'lucide-react';
 import { BlockId, CardBlock, BLOCK_DEFINITIONS } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -26,20 +21,6 @@ import {
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 
-const BLOCK_ICONS: Record<BlockId, React.ReactNode> = {
-  hardMoment: <Brain className="h-4 w-4" />,
-  learned: <Lightbulb className="h-4 w-4" />,
-  unexpected: <Sparkles className="h-4 w-4" />,
-  soundtrack: <Music className="h-4 w-4" />,
-  steps: <Footprints className="h-4 w-4" />,
-  sleep: <Moon className="h-4 w-4" />,
-  oneLine: <PenLine className="h-4 w-4" />,
-  gratitude: <Heart className="h-4 w-4" />,
-  weather: <Cloud className="h-4 w-4" />,
-  highlight: <Star className="h-4 w-4" />,
-  custom: <Pin className="h-4 w-4" />,
-};
-
 interface BlockPickerProps {
   onSelect: (block: CardBlock) => void;
   existingBlockIds: string[];
@@ -51,7 +32,7 @@ export function BlockPicker({ onSelect, existingBlockIds }: BlockPickerProps) {
   const handleSelect = (blockId: BlockId) => {
     const definition = BLOCK_DEFINITIONS[blockId];
     const newBlock: CardBlock = {
-      id: `${blockId}-${Date.now()}`,
+      id: crypto.randomUUID(),
       type: definition.type,
       blockId,
       label: definition.label,
@@ -101,9 +82,7 @@ export function BlockPicker({ onSelect, existingBlockIds }: BlockPickerProps) {
 // Quick add buttons for the editor
 interface QuickAddButtonsProps {
   onAddBlock: (blockId: BlockId) => void;
-  onAddPhoto: () => void;
   existingBlockIds: string[];
-  hasPhoto: boolean;
 }
 
 const QUICK_ADD_ITEMS: { blockId: BlockId; icon: React.ReactNode }[] = [
@@ -117,26 +96,24 @@ const QUICK_ADD_ITEMS: { blockId: BlockId; icon: React.ReactNode }[] = [
 
 export function QuickAddButtons({
   onAddBlock,
-  onAddPhoto,
   existingBlockIds,
-  hasPhoto,
 }: QuickAddButtonsProps) {
   return (
     <div className="flex flex-wrap gap-2">
       {QUICK_ADD_ITEMS.map(({ blockId, icon }) => {
         const isAdded = existingBlockIds.includes(blockId);
         const def = BLOCK_DEFINITIONS[blockId];
-        
+
         return (
           <button
             key={blockId}
             onClick={() => !isAdded && onAddBlock(blockId)}
             disabled={isAdded}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors',
               isAdded
-                ? "bg-primary/10 text-primary cursor-default"
-                : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                ? 'bg-primary/10 text-primary cursor-default'
+                : 'bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary'
             )}
             title={def.label}
           >

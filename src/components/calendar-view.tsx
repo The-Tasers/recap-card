@@ -12,7 +12,11 @@ interface CalendarViewProps {
   selectedDate: Date | null;
 }
 
-export function CalendarView({ cards, onSelectDate, selectedDate }: CalendarViewProps) {
+export function CalendarView({
+  cards,
+  onSelectDate,
+  selectedDate,
+}: CalendarViewProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const cardsByDate = useMemo(() => {
@@ -46,11 +50,15 @@ export function CalendarView({ cards, onSelectDate, selectedDate }: CalendarView
   }, [currentMonth]);
 
   const goToPrevMonth = () => {
-    setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    setCurrentMonth(
+      (prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1)
+    );
   };
 
   const goToNextMonth = () => {
-    setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+    setCurrentMonth(
+      (prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1)
+    );
   };
 
   const isToday = (date: Date) => {
@@ -71,13 +79,26 @@ export function CalendarView({ cards, onSelectDate, selectedDate }: CalendarView
     <div className="bg-white rounded-2xl border p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <Button variant="ghost" size="icon" onClick={goToPrevMonth} className="rounded-full">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={goToPrevMonth}
+          className="rounded-full"
+        >
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <span className="font-medium">
-          {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          {currentMonth.toLocaleDateString('en-US', {
+            month: 'long',
+            year: 'numeric',
+          })}
         </span>
-        <Button variant="ghost" size="icon" onClick={goToNextMonth} className="rounded-full">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={goToNextMonth}
+          className="rounded-full"
+        >
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
@@ -85,7 +106,10 @@ export function CalendarView({ cards, onSelectDate, selectedDate }: CalendarView
       {/* Weekday headers */}
       <div className="grid grid-cols-7 gap-1 mb-2">
         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
-          <div key={i} className="text-center text-xs text-muted-foreground py-1">
+          <div
+            key={i}
+            className="text-center text-xs text-muted-foreground py-1"
+          >
             {day}
           </div>
         ))}
@@ -113,7 +137,11 @@ export function CalendarView({ cards, onSelectDate, selectedDate }: CalendarView
                 !isSelected(date) && !hasCard && 'hover:bg-muted/30'
               )}
             >
-              <span className={cn(isSelected(date) ? 'text-primary-foreground' : '')}>
+              <span
+                className={cn(
+                  isSelected(date) ? 'text-primary-foreground' : ''
+                )}
+              >
                 {date.getDate()}
               </span>
               {hasCard && !isSelected(date) && (
@@ -208,7 +236,9 @@ export function MoodHeatmap({ cards, months = 3 }: MoodHeatmapProps) {
                 key={dayIndex}
                 className={cn(
                   'w-3 h-3 rounded-sm',
-                  day.date.getTime() === 0 ? 'bg-transparent' : getMoodIntensity(day.card?.mood)
+                  day.date.getTime() === 0
+                    ? 'bg-transparent'
+                    : getMoodIntensity(day.card?.mood)
                 )}
                 title={
                   day.card
@@ -268,7 +298,10 @@ export function MoodStats({ cards }: MoodStatsProps) {
               <span className="text-lg w-6">{mood.emoji}</span>
               <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                 <div
-                  className={cn('h-full rounded-full transition-all', mood.color)}
+                  className={cn(
+                    'h-full rounded-full transition-all',
+                    mood.color
+                  )}
                   style={{ width: `${percentage}%` }}
                 />
               </div>

@@ -32,13 +32,17 @@ import {
 import { BlockList } from '@/components/blocks/block-editor';
 import { BlockPicker } from '@/components/blocks/block-picker';
 import { ThemeSelector } from '@/components/theme-selector';
-import { DailyQuestionCard, RandomQuestionButton } from '@/components/daily-question';
+import {
+  DailyQuestionCard,
+  RandomQuestionButton,
+} from '@/components/daily-question';
 
 const MAX_CHARS = 500;
 
 export default function CreatePage() {
   const router = useRouter();
-  const { addCard, updateCard, getCardByDate, error, setError } = useCardStore();
+  const { addCard, updateCard, getCardByDate, error, setError } =
+    useCardStore();
 
   // Basic fields
   const [text, setText] = useState('');
@@ -63,7 +67,10 @@ export default function CreatePage() {
 
   // Tag handlers
   const handleAddTag = () => {
-    const tag = tagInput.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+    const tag = tagInput
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
     if (tag && !tags.includes(tag)) {
       setTags((prev) => [...prev, tag]);
       setTagInput('');
@@ -160,7 +167,9 @@ export default function CreatePage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-xl font-semibold text-neutral-800">New Entry</h1>
+            <h1 className="text-xl font-semibold text-neutral-800">
+              New Entry
+            </h1>
             <p className="text-sm text-muted-foreground">How was your day?</p>
           </div>
         </div>
@@ -231,10 +240,7 @@ export default function CreatePage() {
           </label>
           {blocks.length > 0 && (
             <div className="mb-4">
-              <BlockList
-                blocks={blocks}
-                onChange={setBlocks}
-              />
+              <BlockList blocks={blocks} onChange={setBlocks} />
             </div>
           )}
           <BlockPicker

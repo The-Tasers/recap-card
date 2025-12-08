@@ -5,13 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Check, X, Plus } from 'lucide-react';
 import { useCardStore } from '@/lib/store';
-import {
-  Mood,
-  CardBlock,
-  TemplateId,
-  ThemeId,
-  FontPreset,
-} from '@/lib/types';
+import { Mood, CardBlock, TemplateId, ThemeId, FontPreset } from '@/lib/types';
 import { MoodSelector } from '@/components/mood-selector';
 import { PhotoUploader } from '@/components/photo-uploader';
 import { Button } from '@/components/ui/button';
@@ -66,7 +60,10 @@ export default function EditCardPage() {
 
   // Tag handlers
   const handleAddTag = () => {
-    const tag = tagInput.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+    const tag = tagInput
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
     if (tag && !tags.includes(tag)) {
       setTags((prev) => [...prev, tag]);
       setTagInput('');
@@ -132,8 +129,12 @@ export default function EditCardPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-xl font-semibold text-neutral-800">Edit Entry</h1>
-            <p className="text-sm text-muted-foreground">Update your thoughts</p>
+            <h1 className="text-xl font-semibold text-neutral-800">
+              Edit Entry
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Update your thoughts
+            </p>
           </div>
         </div>
         <ThemeSelector
@@ -197,10 +198,7 @@ export default function EditCardPage() {
           </label>
           {blocks.length > 0 && (
             <div className="mb-4">
-              <BlockList
-                blocks={blocks}
-                onChange={setBlocks}
-              />
+              <BlockList blocks={blocks} onChange={setBlocks} />
             </div>
           )}
           <BlockPicker
