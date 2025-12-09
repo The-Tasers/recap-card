@@ -186,7 +186,9 @@ export function ThemeSelector({
                   const t = STORY_TEMPLATES[templateId];
 
                   // Icon mapping for each template
-                  const iconMap: Partial<Record<StoryTemplateId, React.ReactNode>> = {
+                  const iconMap: Partial<
+                    Record<StoryTemplateId, React.ReactNode>
+                  > = {
                     photoHero: <ImageIcon className="h-6 w-6" />,
                     glassCards: <Layers className="h-6 w-6" />,
                     magazineCover: <Newspaper className="h-6 w-6" />,
