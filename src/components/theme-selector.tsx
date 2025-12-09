@@ -1,7 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Palette, Layout, Sparkles, Check, Type } from 'lucide-react';
+import {
+  Palette,
+  Layout,
+  Sparkles,
+  Check,
+  Type,
+  Image as ImageIcon,
+  Layers,
+  Newspaper,
+  Quote,
+} from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -54,14 +64,29 @@ export function ThemeSelector({
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="rounded-full relative">
-          <div
-            className="absolute inset-1 rounded-full opacity-50"
-            style={{
-              background: currentPalette.gradient,
-            }}
-          />
-          <Palette className="h-4 w-4 relative z-10" />
+        <Button
+          variant="outline"
+          className="w-full h-auto py-4 px-6 rounded-2xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{
+                background: currentPalette.gradient,
+              }}
+            >
+              <Palette className="h-5 w-5 text-white" />
+            </div>
+            <div className="text-left">
+              <div className="font-medium text-neutral-900 dark:text-neutral-100">
+                {currentPalette.name}
+              </div>
+              <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                Customize colors, layout & typography
+              </div>
+            </div>
+          </div>
+          <Sparkles className="h-4 w-4 text-neutral-400" />
         </Button>
       </SheetTrigger>
       <SheetContent
@@ -159,6 +184,15 @@ export function ThemeSelector({
               {(Object.keys(STORY_TEMPLATES) as StoryTemplateId[]).map(
                 (templateId) => {
                   const t = STORY_TEMPLATES[templateId];
+
+                  // Icon mapping for each template
+                  const iconMap: Partial<Record<StoryTemplateId, React.ReactNode>> = {
+                    photoHero: <ImageIcon className="h-6 w-6" />,
+                    glassCards: <Layers className="h-6 w-6" />,
+                    magazineCover: <Newspaper className="h-6 w-6" />,
+                    centeredQuote: <Quote className="h-6 w-6" />,
+                  };
+
                   return (
                     <button
                       key={templateId}
@@ -170,8 +204,10 @@ export function ThemeSelector({
                           : 'border-muted hover:border-muted-foreground/30'
                       )}
                     >
-                      <div className="text-2xl mb-2 font-mono leading-tight whitespace-pre text-center">
-                        {t.preview}
+                      <div className="flex flex-col items-center justify-center gap-2 mb-2">
+                        <div className="text-neutral-600 dark:text-neutral-400">
+                          {iconMap[templateId]}
+                        </div>
                       </div>
                       <div className="text-sm font-medium text-center">
                         {t.name}
@@ -328,7 +364,7 @@ export function QuickTemplatePicker({
             key={templateId}
             onClick={() => onChange(templateId)}
             className={cn(
-              'shrink-0 px-3 py-2 rounded-xl border-2 transition-all text-center min-w-[80px]',
+              'shrink-0 px-3 py-2 rounded-xl border-2 transition-all text-center min-w-20',
               selected === templateId
                 ? 'border-primary bg-primary/10'
                 : 'border-muted hover:border-muted-foreground/30'

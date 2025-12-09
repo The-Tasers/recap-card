@@ -61,7 +61,11 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
     const isExport = scale === 'export';
     const containerStyle = isExport
       ? { width: STORY_DIMENSIONS.width, height: STORY_DIMENSIONS.height }
-      : { aspectRatio: STORY_DIMENSIONS.aspectRatio };
+      : {
+          aspectRatio: STORY_DIMENSIONS.aspectRatio,
+          width: 'min(320px, 80vw)',
+          maxHeight: '80vh',
+        };
 
     const fontSize = (base: number) => `${base * (isExport ? 1 : 0.5)}px`;
 
@@ -74,7 +78,7 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
         <div
           ref={ref}
           className={cn(
-            'relative overflow-hidden flex flex-col',
+            'relative overflow-hidden flex flex-col mx-auto',
             !isExport && 'rounded-2xl shadow-xl',
             className
           )}
@@ -99,12 +103,13 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
                 <div>
                   <div
                     className={cn(
-                      'uppercase tracking-wider opacity-80',
+                      'uppercase tracking-wider',
                       typography.microClass
                     )}
                     style={{
-                      color: '#fff',
+                      color: '#ffffff',
                       fontSize: fontSize(14),
+                      opacity: 0.9,
                     }}
                   >
                     {new Date(dateValue).toLocaleDateString('en-US', {
@@ -114,7 +119,7 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
                   <div
                     className={cn('font-bold', typography.headlineClass)}
                     style={{
-                      color: '#fff',
+                      color: palette.textPrimary,
                       fontSize: fontSize(48),
                       lineHeight: 1.1,
                     }}
@@ -148,7 +153,7 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
                   typography.microClass
                 )}
                 style={{
-                  color: palette.textSecondary,
+                  color: palette.textPrimary,
                   fontSize: fontSize(14),
                 }}
               >
@@ -201,35 +206,64 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
             </p>
 
             {/* Blocks */}
-            {card.blocks && card.blocks.length > 0 && (
-              <div className="grid grid-cols-2 gap-[2%] mt-[4%]">
-                {card.blocks.slice(0, 4).map((block) => (
+            {card.blocks &&
+              card.blocks.length > 0 &&
+              (card.blocks.length === 1 ? (
+                // Single block - prominent centered display
+                <div
+                  className="rounded-2xl p-[6%] mt-[6%] text-center"
+                  style={{ background: `${palette.accent}20` }}
+                >
                   <div
-                    key={block.id}
-                    className="rounded-xl p-[8%]"
-                    style={{ background: `${palette.accent}20` }}
+                    style={{
+                      color: '#ffffff',
+                      fontSize: fontSize(14),
+                      opacity: 0.9,
+                      marginBottom: isExport ? 12 : 6,
+                    }}
                   >
-                    <div
-                      style={{
-                        color: palette.textSecondary,
-                        fontSize: fontSize(12),
-                      }}
-                    >
-                      {block.label}
-                    </div>
-                    <div
-                      style={{
-                        color: palette.textPrimary,
-                        fontSize: fontSize(18),
-                        fontWeight: 600,
-                      }}
-                    >
-                      {block.value}
-                    </div>
+                    {card.blocks[0].label}
                   </div>
-                ))}
-              </div>
-            )}
+                  <div
+                    style={{
+                      color: palette.accent,
+                      fontSize: fontSize(48),
+                      fontWeight: 700,
+                    }}
+                  >
+                    {card.blocks[0].value}
+                  </div>
+                </div>
+              ) : (
+                // Multiple blocks - 2-column grid
+                <div className="grid grid-cols-2 gap-[2%] mt-[6%]">
+                  {card.blocks.slice(0, 4).map((block) => (
+                    <div
+                      key={block.id}
+                      className="rounded-xl p-[4%]"
+                      style={{ background: `${palette.accent}20` }}
+                    >
+                      <div
+                        style={{
+                          color: '#ffffff',
+                          fontSize: fontSize(14),
+                        }}
+                      >
+                        {block.label}
+                      </div>
+                      <div
+                        style={{
+                          color: palette.textPrimary,
+                          fontSize: fontSize(22),
+                          fontWeight: 600,
+                        }}
+                      >
+                        {block.value}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
 
             {/* Tags */}
             {card.tags && card.tags.length > 0 && (
@@ -283,7 +317,7 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
         <div
           ref={ref}
           className={cn(
-            'relative overflow-hidden flex flex-col items-center justify-center',
+            'relative overflow-hidden flex flex-col items-center justify-center mx-auto',
             !isExport && 'rounded-2xl shadow-xl',
             className
           )}
@@ -317,7 +351,7 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
             <div
               className={cn('mt-[6%]', typography.microClass)}
               style={{
-                color: palette.textSecondary,
+                color: '#ffffff',
                 fontSize: fontSize(16),
               }}
             >
@@ -328,6 +362,101 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
                 year: 'numeric',
               })}
             </div>
+
+            {/* Photo if exists */}
+            {card.photoUrl && (
+              <div
+                className="rounded-2xl overflow-hidden mt-[6%] mx-auto"
+                style={{ width: '90%', height: isExport ? 400 : 200 }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={card.photoUrl}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+
+            {/* Blocks */}
+            {card.blocks &&
+              card.blocks.length > 0 &&
+              (card.blocks.length === 1 ? (
+                // Single block - prominent centered display
+                <div
+                  className="rounded-2xl p-[6%] mt-[6%] text-center max-w-[70%] mx-auto"
+                  style={{ background: `${palette.accent}20` }}
+                >
+                  <div
+                    style={{
+                      color: palette.textPrimary,
+                      fontSize: fontSize(14),
+                      opacity: 0.9,
+                      marginBottom: isExport ? 12 : 6,
+                    }}
+                  >
+                    {card.blocks[0].label}
+                  </div>
+                  <div
+                    style={{
+                      color: palette.accent,
+                      fontSize: fontSize(48),
+                      fontWeight: 700,
+                    }}
+                  >
+                    {card.blocks[0].value}
+                  </div>
+                </div>
+              ) : (
+                // Multiple blocks - 2-column grid
+                <div className="grid grid-cols-2 gap-[2%] mt-[6%]">
+                  {card.blocks.slice(0, 4).map((block) => (
+                    <div
+                      key={block.id}
+                      className="rounded-xl p-[4%]"
+                      style={{ background: `${palette.accent}20` }}
+                    >
+                      <div
+                        style={{
+                          color: palette.textPrimary,
+                          fontSize: fontSize(14),
+                        }}
+                      >
+                        {block.label}
+                      </div>
+                      <div
+                        style={{
+                          color: palette.textPrimary,
+                          fontSize: fontSize(22),
+                          fontWeight: 600,
+                        }}
+                      >
+                        {block.value}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+
+            {/* Tags */}
+            {card.tags && card.tags.length > 0 && (
+              <div className="flex flex-wrap gap-[2%] mt-[4%] justify-center">
+                {card.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full"
+                    style={{
+                      background: `${palette.accent}30`,
+                      color: palette.accent,
+                      fontSize: fontSize(14),
+                      padding: `${isExport ? 8 : 4}px ${isExport ? 16 : 8}px`,
+                    }}
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Safe zone indicator (preview only) */}
@@ -360,7 +489,7 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
         <div
           ref={ref}
           className={cn(
-            'relative overflow-hidden',
+            'relative overflow-hidden mx-auto',
             !isExport && 'rounded-2xl shadow-xl',
             className
           )}
@@ -396,7 +525,7 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
                 </div>
                 <div
                   style={{
-                    color: '#fff',
+                    color: palette.textPrimary,
                     fontSize: fontSize(16),
                     opacity: 0.8,
                   }}
@@ -410,13 +539,93 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
               <p
                 className={typography.bodyClass}
                 style={{
-                  color: '#fff',
+                  color: palette.textPrimary,
                   fontSize: fontSize(22),
                   lineHeight: 1.5,
                 }}
               >
                 {card.text || 'Write about your day...'}
               </p>
+
+              {/* Blocks */}
+              {card.blocks &&
+                card.blocks.length > 0 &&
+                (card.blocks.length === 1 ? (
+                  // Single block - prominent centered display
+                  <div
+                    className="rounded-2xl p-[6%] mt-[4%] text-center"
+                    style={{ background: `${palette.accent}20` }}
+                  >
+                    <div
+                      style={{
+                        color: '#ffffff',
+                        fontSize: fontSize(14),
+                        opacity: 0.9,
+                        marginBottom: isExport ? 12 : 6,
+                      }}
+                    >
+                      {card.blocks[0].label}
+                    </div>
+                    <div
+                      style={{
+                        color: palette.accent,
+                        fontSize: fontSize(48),
+                        fontWeight: 700,
+                      }}
+                    >
+                      {card.blocks[0].value}
+                    </div>
+                  </div>
+                ) : (
+                  // Multiple blocks - 2-column grid
+                  <div className="grid grid-cols-2 gap-[2%] mt-[4%]">
+                    {card.blocks.slice(0, 4).map((block) => (
+                      <div
+                        key={block.id}
+                        className="rounded-xl p-[4%]"
+                        style={{ background: `${palette.accent}20` }}
+                      >
+                        <div
+                          style={{
+                            color: '#ffffff',
+                            fontSize: fontSize(14),
+                          }}
+                        >
+                          {block.label}
+                        </div>
+                        <div
+                          style={{
+                            color: palette.textPrimary,
+                            fontSize: fontSize(22),
+                            fontWeight: 600,
+                          }}
+                        >
+                          {block.value}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+
+              {/* Tags */}
+              {card.tags && card.tags.length > 0 && (
+                <div className="flex flex-wrap gap-[2%] mt-[4%]">
+                  {card.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full"
+                      style={{
+                        background: `${palette.accent}30`,
+                        color: palette.accent,
+                        fontSize: fontSize(14),
+                        padding: `${isExport ? 8 : 4}px ${isExport ? 16 : 8}px`,
+                      }}
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -441,7 +650,7 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
         <div
           ref={ref}
           className={cn(
-            'relative overflow-hidden flex flex-col',
+            'relative overflow-hidden flex flex-col mx-auto',
             !isExport && 'rounded-2xl shadow-xl',
             className
           )}
@@ -519,7 +728,9 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
             {/* Blocks as metrics */}
             {card.blocks && card.blocks.length > 0 && (
               <div
-                className="grid grid-cols-2 gap-[3%] pt-[4%] mt-auto border-t"
+                className={`grid gap-[3%] pt-[4%] mt-auto border-t ${
+                  card.blocks.length === 1 ? 'grid-cols-1' : 'grid-cols-2'
+                }`}
                 style={{ borderColor: `${palette.textSecondary}20` }}
               >
                 {card.blocks.slice(0, 4).map((block) => (
@@ -536,13 +747,33 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
                     <div
                       className="uppercase tracking-wider"
                       style={{
-                        color: palette.textSecondary,
+                        color: '#ffffff',
                         fontSize: fontSize(12),
                       }}
                     >
                       {block.label}
                     </div>
                   </div>
+                ))}
+              </div>
+            )}
+
+            {/* Tags */}
+            {card.tags && card.tags.length > 0 && (
+              <div className="flex flex-wrap gap-[2%] mt-[4%]">
+                {card.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full"
+                    style={{
+                      background: `${palette.accent}30`,
+                      color: palette.accent,
+                      fontSize: fontSize(14),
+                      padding: `${isExport ? 8 : 4}px ${isExport ? 16 : 8}px`,
+                    }}
+                  >
+                    #{tag}
+                  </span>
                 ))}
               </div>
             )}
@@ -568,7 +799,7 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
       <div
         ref={ref}
         className={cn(
-          'relative overflow-hidden flex flex-col',
+          'relative overflow-hidden flex flex-col mx-auto',
           !isExport && 'rounded-2xl shadow-xl',
           className
         )}
@@ -586,7 +817,7 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
                   typography.microClass
                 )}
                 style={{
-                  color: palette.textSecondary,
+                  color: palette.textPrimary,
                   fontSize: fontSize(14),
                 }}
               >
@@ -640,6 +871,43 @@ export const StoryPreview = forwardRef<HTMLDivElement, StoryPreviewProps>(
                 alt=""
                 className="w-full h-full object-cover"
               />
+            </div>
+          )}
+
+          {/* Blocks */}
+          {card.blocks && card.blocks.length > 0 && (
+            <div
+              className={`grid gap-[2%] mt-[4%] ${
+                card.blocks.length === 1
+                  ? 'grid-cols-1 max-w-[50%] mx-auto'
+                  : 'grid-cols-2'
+              }`}
+            >
+              {card.blocks.slice(0, 4).map((block) => (
+                <div
+                  key={block.id}
+                  className="rounded-xl p-[4%]"
+                  style={{ background: `${palette.accent}20` }}
+                >
+                  <div
+                    style={{
+                      color: '#ffffff',
+                      fontSize: fontSize(14),
+                    }}
+                  >
+                    {block.label}
+                  </div>
+                  <div
+                    style={{
+                      color: palette.textPrimary,
+                      fontSize: fontSize(22),
+                      fontWeight: 600,
+                    }}
+                  >
+                    {block.value}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

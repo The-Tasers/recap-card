@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from 'next';
+import { Suspense } from 'react';
+import { ThemeProvider } from '@/components/theme-provider';
 import { Geist } from 'next/font/google';
 import './globals.css';
 import { BottomNav } from '@/components/bottom-nav';
@@ -33,12 +35,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="bg-neutral-50 dark:bg-neutral-900">
       <body
-        className={`${geistSans.variable} font-sans antialiased bg-neutral-50 min-h-screen`}
+        className={`${geistSans.variable} font-sans antialiased min-h-screen bg-neutral-50 text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100`}
       >
-        <main className="pb-20 min-h-screen">{children}</main>
-        <BottomNav />
+        <ThemeProvider>
+          <main className="pb-20 min-h-screen">{children}</main>
+          <Suspense fallback={null}>
+            <BottomNav />
+          </Suspense>
+        </ThemeProvider>
       </body>
     </html>
   );

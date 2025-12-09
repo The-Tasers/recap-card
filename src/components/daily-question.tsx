@@ -59,13 +59,15 @@ export function DailyQuestionCard({
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className={className}>
-      <div className="rounded-2xl border bg-gradient-to-br from-violet-50/80 to-amber-50/80 overflow-hidden">
+      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-linear-to-br from-violet-50/80 to-amber-50/80 dark:from-violet-950/30 dark:to-amber-950/30 overflow-hidden">
         <CollapsibleTrigger asChild>
           <button className="w-full flex items-center justify-between p-4 text-left">
             <div className="flex items-center gap-3">
-              <Sparkles className="h-5 w-5 text-violet-500" />
+              <Sparkles className="h-5 w-5 text-violet-500 dark:text-violet-400" />
               <div>
-                <div className="text-sm font-medium">Daily Prompt</div>
+                <div className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                  Daily Prompt
+                </div>
                 <div className="text-xs text-muted-foreground">
                   Get inspired by today&apos;s question
                 </div>
@@ -81,12 +83,12 @@ export function DailyQuestionCard({
 
         <CollapsibleContent>
           <div className="px-4 pb-4 space-y-4">
-            <div className="p-4 rounded-xl bg-white/60">
-              <p className="text-base leading-relaxed">
+            <div className="p-4 rounded-xl bg-white/60 dark:bg-white/5">
+              <p className="text-base leading-relaxed text-neutral-900 dark:text-neutral-100">
                 {currentQuestion.text}
               </p>
               <div className="mt-2 flex items-center gap-2">
-                <span className="text-xs px-2 py-0.5 rounded-full bg-violet-100 text-violet-700">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300">
                   {
                     QUESTION_CATEGORIES.find(
                       (c) => c.value === currentQuestion.category

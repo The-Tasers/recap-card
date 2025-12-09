@@ -72,7 +72,7 @@ export const PhotoHeroTemplate = forwardRef<HTMLDivElement, StoryCardProps>(
             />
             <div
               className={cn(
-                'absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent',
+                'absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent',
                 showVignette && 'vignette-light'
               )}
             />

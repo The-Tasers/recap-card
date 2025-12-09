@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Sparkles,
+  Sunrise,
   Camera,
   Share2,
   Smile,
   ArrowRight,
-  ChevronRight,
+  ArrowLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -46,12 +47,12 @@ function Screen1() {
         className="relative z-10"
       >
         {/* Icon */}
-        <div className="w-20 h-20 rounded-3xl bg-linear-to-br from-amber-400 to-orange-500 flex items-center justify-center mx-auto mb-8 shadow-xl shadow-orange-500/25">
-          <Sparkles className="h-10 w-10 text-white" />
+        <div className="w-20 h-20 rounded-3xl bg-linear-to-br from-amber-500 to-orange-500 flex items-center justify-center mx-auto mb-8 shadow-xl shadow-orange-500/30">
+          <Sunrise className="h-10 w-10 text-white" />
         </div>
 
         {/* Headline */}
-        <h1 className="text-3xl font-bold text-neutral-900 mb-4 leading-tight">
+        <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-4 leading-tight">
           Capture your day
           <br />
           <span className="bg-linear-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">
@@ -60,7 +61,7 @@ function Screen1() {
         </h1>
 
         {/* Subtext */}
-        <p className="text-neutral-600 text-lg mb-10 max-w-xs mx-auto leading-relaxed">
+        <p className="text-neutral-600 dark:text-neutral-400 text-lg mb-10 max-w-xs mx-auto leading-relaxed">
           A visual diary that&apos;s easy to create and beautiful to share
         </p>
 
@@ -77,18 +78,18 @@ function Screen1() {
             <div className="absolute inset-0 bg-linear-to-br from-neutral-900/20 to-neutral-900/5 rounded-3xl blur-xl transform translate-y-4 scale-95" />
 
             {/* Card */}
-            <div className="relative rounded-3xl overflow-hidden bg-linear-to-br from-amber-50 via-white to-violet-50 p-5 shadow-2xl border border-white/50">
+            <div className="relative rounded-3xl overflow-hidden bg-linear-to-br from-amber-50 via-white to-violet-50 dark:from-amber-950/30 dark:via-neutral-900 dark:to-violet-950/30 p-5 shadow-2xl border border-white/50 dark:border-neutral-700">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-medium text-neutral-500">
+                <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
                   {SAMPLE_CARD.date}
                 </span>
                 <span className="text-2xl">✨</span>
               </div>
-              <p className="text-neutral-800 text-sm leading-relaxed mb-4">
+              <p className="text-neutral-800 dark:text-neutral-200 text-sm leading-relaxed mb-4">
                 {SAMPLE_CARD.text}
               </p>
               <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">
+                <span className="px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-medium">
                   feeling great
                 </span>
               </div>
@@ -162,10 +163,10 @@ function Screen2() {
         className="relative z-10 w-full max-w-sm"
       >
         {/* Headline */}
-        <h2 className="text-2xl font-bold text-neutral-900 mb-2">
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
           Simple as 1-2-3
         </h2>
-        <p className="text-neutral-500 mb-10">
+        <p className="text-neutral-500 dark:text-neutral-400 mb-10">
           Create your daily recap in seconds
         </p>
 
@@ -177,7 +178,7 @@ function Screen2() {
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: i * 0.15 + 0.2 }}
-              className="flex items-center gap-4 p-4 rounded-2xl bg-white/80 backdrop-blur-sm border border-neutral-100 shadow-sm"
+              className="flex items-center gap-4 p-4 rounded-2xl bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm border border-neutral-100 dark:border-neutral-700 shadow-sm"
             >
               <div
                 className={cn(
@@ -188,26 +189,29 @@ function Screen2() {
                 <span className="text-2xl">{step.emoji}</span>
               </div>
               <div className="text-left flex-1">
-                <div className="font-semibold text-neutral-900">
+                <div className="font-semibold text-neutral-900 dark:text-neutral-100">
                   {step.label}
                 </div>
-                <div className="text-sm text-neutral-500">{step.desc}</div>
+                <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                  {step.desc}
+                </div>
               </div>
-              <ChevronRight className="h-5 w-5 text-neutral-300" />
             </motion.div>
           ))}
         </div>
-
-        {/* Connection lines */}
-        <div className="absolute left-11 top-46 w-0.5 h-16 bg-linear-to-b from-amber-200 to-violet-200 pointer-events-none" />
-        <div className="absolute left-11 top-66 w-0.5 h-16 bg-linear-to-b from-violet-200 to-pink-200 pointer-events-none" />
       </motion.div>
     </div>
   );
 }
 
 // Screen 3: What You Can Do Next
-function Screen3({ onComplete }: { onComplete: () => void }) {
+function Screen3({
+  onComplete,
+  onStartCreate,
+}: {
+  onComplete: () => void;
+  onStartCreate: () => void;
+}) {
   return (
     <div className="flex flex-col items-center justify-center min-h-full px-6 text-center">
       {/* Decorative background */}
@@ -221,7 +225,6 @@ function Screen3({ onComplete }: { onComplete: () => void }) {
         transition={{ duration: 0.5 }}
         className="relative z-10 w-full max-w-sm"
       >
-        {/* Large emoji cluster */}
         <motion.div
           initial={{ scale: 0.8 }}
           animate={{ scale: 1 }}
@@ -252,17 +255,19 @@ function Screen3({ onComplete }: { onComplete: () => void }) {
         </motion.div>
 
         {/* Headline */}
-        <h2 className="text-2xl font-bold text-neutral-900 mb-3">
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-3">
           You&apos;re all set!
         </h2>
-        <p className="text-neutral-600 mb-2 leading-relaxed">
-          <span className="font-medium text-neutral-800">Reflect.</span>{' '}
-          <span className="font-medium text-neutral-800">
+        <p className="text-neutral-600 dark:text-neutral-400 mb-2 leading-relaxed">
+          <span className="font-medium text-neutral-800 dark:text-neutral-200">
+            Reflect.
+          </span>{' '}
+          <span className="font-medium text-neutral-800 dark:text-neutral-200">
             Celebrate small wins.
           </span>
         </p>
-        <p className="text-neutral-600 mb-10 leading-relaxed">
-          <span className="font-medium text-neutral-800">
+        <p className="text-neutral-600 dark:text-neutral-400 mb-10 leading-relaxed">
+          <span className="font-medium text-neutral-800 dark:text-neutral-200">
             Share your story.
           </span>
         </p>
@@ -282,37 +287,41 @@ function Screen3({ onComplete }: { onComplete: () => void }) {
           ].map((feature) => (
             <span
               key={feature}
-              className="px-4 py-2 rounded-full bg-white/80 border border-neutral-100 text-sm text-neutral-600 shadow-sm"
+              className="px-4 py-2 rounded-full bg-white/80 dark:bg-neutral-800/80 border border-neutral-100 dark:border-neutral-700 text-sm text-neutral-600 dark:text-neutral-300 shadow-sm"
             >
               {feature}
             </span>
           ))}
         </motion.div>
 
-        {/* CTAs */}
-        <div className="space-y-3">
-          <Button
-            onClick={onComplete}
-            className="w-full h-14 rounded-2xl text-base font-semibold bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-lg shadow-orange-500/25"
-          >
-            Create Today&apos;s Card
-            <ArrowRight className="h-5 w-5 ml-2" />
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={onComplete}
-            className="w-full h-12 rounded-2xl text-neutral-600"
-          >
-            Explore First
-          </Button>
-        </div>
+        {/* CTA - Floating Button */}
+        <Button
+          onClick={onStartCreate}
+          className="h-12 px-6 rounded-full bg-linear-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-orange-400/30"
+        >
+          Begin your daily recap
+        </Button>
+
+        <Button
+          variant="ghost"
+          onClick={onComplete}
+          className="mt-3 text-neutral-600 dark:text-neutral-400"
+        >
+          Explore First
+        </Button>
       </motion.div>
     </div>
   );
 }
 
 export function Onboarding({ onComplete }: OnboardingProps) {
+  const router = useRouter();
   const [currentScreen, setCurrentScreen] = useState(0);
+
+  const handleStartCreate = useCallback(() => {
+    onComplete();
+    router.push('/create');
+  }, [onComplete, router]);
 
   const handleNext = useCallback(() => {
     if (currentScreen < 2) {
@@ -325,11 +334,15 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   const screens = [
     <Screen1 key="screen1" />,
     <Screen2 key="screen2" />,
-    <Screen3 key="screen3" onComplete={onComplete} />,
+    <Screen3
+      key="screen3"
+      onComplete={onComplete}
+      onStartCreate={handleStartCreate}
+    />,
   ];
 
   return (
-    <div className="fixed inset-0 bg-linear-to-b from-amber-50/50 via-white to-violet-50/50 z-50 overflow-hidden">
+    <div className="fixed inset-0 bg-linear-to-b from-amber-50 via-white to-violet-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950 z-50 overflow-hidden">
       {/* Grain texture */}
       <div className="grain-subtle absolute inset-0 pointer-events-none opacity-50" />
 
@@ -341,7 +354,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             <Button
               variant="ghost"
               onClick={onComplete}
-              className="text-neutral-500 hover:text-neutral-700"
+              className="text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
             >
               Skip
             </Button>
@@ -366,6 +379,20 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
         {/* Navigation */}
         <div className="p-6 pb-8 flex items-center justify-between">
+          {/* Back button */}
+          {currentScreen > 0 ? (
+            <Button
+              variant="ghost"
+              onClick={() => setCurrentScreen(currentScreen - 1)}
+              className="h-12 px-4 rounded-full"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          ) : (
+            <div className="w-24" />
+          )}
+
           {/* Dots */}
           <div className="flex gap-2">
             {[0, 1, 2].map((i) => (
@@ -376,21 +403,23 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                   'h-2 rounded-full transition-all duration-300',
                   i === currentScreen
                     ? 'w-8 bg-linear-to-r from-amber-500 to-orange-500'
-                    : 'w-2 bg-neutral-200 hover:bg-neutral-300'
+                    : 'w-2 bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'
                 )}
               />
             ))}
           </div>
 
           {/* Next button */}
-          {currentScreen < 2 && (
+          {currentScreen < 2 ? (
             <Button
               onClick={handleNext}
-              className="h-12 px-6 rounded-full bg-neutral-900 hover:bg-neutral-800"
+              className="h-12 px-6 rounded-full bg-neutral-900 dark:bg-neutral-100 hover:bg-neutral-800 dark:hover:bg-neutral-200 text-white dark:text-neutral-900"
             >
               Next
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
+          ) : (
+            <div className="w-24" />
           )}
         </div>
       </div>

@@ -23,7 +23,7 @@ export const VISUAL_STYLES = VISUAL_STYLES_IMPL;
 export const TYPOGRAPHY_SETS = TYPOGRAPHY_SETS_IMPL;
 
 // Block types for modular card content
-export type BlockType = 'text' | 'number' | 'link' | 'slider';
+export type BlockType = 'text' | 'number' | 'link' | 'slider' | 'weather';
 
 export type BlockId =
   | 'hardMoment'
@@ -46,6 +46,10 @@ export interface CardBlock {
   value: string | number;
   order: number;
   icon?: string;
+  // Weather-specific fields
+  weatherCondition?: string;
+  temperature?: number;
+  temperatureUnit?: 'C' | 'F';
 }
 
 // Legacy type aliases for backward compatibility
@@ -144,9 +148,9 @@ export const BLOCK_DEFINITIONS: Record<
     icon: '🙏',
   },
   weather: {
-    type: 'text',
+    type: 'weather',
     label: 'Weather',
-    placeholder: 'Sunny, Rainy...',
+    placeholder: 'Select condition...',
     icon: '🌤️',
   },
   highlight: {

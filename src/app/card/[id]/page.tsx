@@ -62,6 +62,14 @@ export default function CardDetailPage() {
     }
   }, [hydrated, cardId, getById]);
 
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/');
+    }
+  };
+
   if (!hydrated) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -74,12 +82,17 @@ export default function CardDetailPage() {
     return (
       <div className="max-w-md mx-auto px-4 py-6">
         <header className="flex items-center gap-4 mb-6">
-          <Link href="/">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <h1 className="text-xl font-semibold text-neutral-800">Not Found</h1>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            onClick={handleBack}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
+            Not Found
+          </h1>
         </header>
         <div className="text-center py-12 text-muted-foreground">
           This card doesn&apos;t exist or has been deleted.
@@ -148,13 +161,16 @@ export default function CardDetailPage() {
       {/* Header */}
       <header className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <Link href="/">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            onClick={handleBack}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
           <div>
-            <h1 className="text-xl font-semibold text-neutral-800">
+            <h1 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
               {formatFullDate(card.createdAt)}
             </h1>
           </div>
@@ -201,7 +217,7 @@ export default function CardDetailPage() {
               <Link href={`/card/${card.id}/edit`}>
                 <Button variant="ghost" className="justify-start h-12 w-full">
                   <Edit className="h-5 w-5 mr-3" />
-                  Edit Entry
+                  Edit Recap
                 </Button>
               </Link>
               <Button
@@ -210,7 +226,7 @@ export default function CardDetailPage() {
                 onClick={() => setShowDeleteDialog(true)}
               >
                 <Trash2 className="h-5 w-5 mr-3" />
-                Delete Entry
+                Delete Recap
               </Button>
             </div>
           </SheetContent>
@@ -289,9 +305,9 @@ export default function CardDetailPage() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Entry</DialogTitle>
+            <DialogTitle>Delete Recap</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this entry? This action cannot be
+              Are you sure you want to delete this recap? This action cannot be
               undone.
             </DialogDescription>
           </DialogHeader>

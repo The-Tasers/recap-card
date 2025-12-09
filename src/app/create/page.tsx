@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
@@ -11,14 +11,11 @@ import {
   Eye,
   Edit2,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useCardStore } from '@/lib/store';
 import {
   Mood,
   DailyCard,
   CardBlock,
-  BlockId,
-  BLOCK_DEFINITIONS,
   PaletteId,
   StoryTemplateId,
   TypographySetId,
@@ -40,10 +37,7 @@ import {
 import { BlockList } from '@/components/blocks/block-editor';
 import { BlockPicker } from '@/components/blocks/block-picker';
 import { ThemeSelector } from '@/components/theme-selector';
-import {
-  DailyQuestionCard,
-  RandomQuestionButton,
-} from '@/components/daily-question';
+import { DailyQuestionCard } from '@/components/daily-question';
 import { StoryPreview } from '@/components/story-preview';
 
 const MAX_CHARS = 500;
@@ -55,7 +49,7 @@ export default function CreatePage() {
 
   // Basic fields
   const [text, setText] = useState('');
-  const [mood, setMood] = useState<Mood>('neutral');
+  const [mood, setMood] = useState<Mood>('great');
   const [photoUrl, setPhotoUrl] = useState<string | undefined>();
 
   // New design system fields
@@ -81,14 +75,13 @@ export default function CreatePage() {
 
   // Tag handlers
   const handleAddTag = () => {
-    const tag = tagInput
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '');
-    if (tag && !tags.includes(tag)) {
-      setTags((prev) => [...prev, tag]);
-      setTagInput('');
-    }
+    const tag = tagInput.trim().toLowerCase();
+    if (!tag) return;
+    setTags((prev) => {
+      if (prev.includes(tag)) return prev;
+      return [...prev, tag];
+    });
+    setTagInput('');
   };
 
   const handleRemoveTag = (tag: string) => {
@@ -98,6 +91,14 @@ export default function CreatePage() {
   // Question handler
   const handleSelectQuestion = (question: string) => {
     setText((prev) => (prev ? `${prev}\n\n${question}` : question));
+  };
+
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/');
+    }
   };
 
   const handleSubmit = async () => {
@@ -153,6 +154,7 @@ export default function CreatePage() {
         }
       }
     } catch (err) {
+      console.error('Failed to save card', err);
       setError(
         'Failed to save. Try removing the photo or deleting old entries.'
       );
@@ -173,38 +175,26 @@ export default function CreatePage() {
   // Preview Mode
   if (showPreview) {
     return (
-      <div className="min-h-screen bg-neutral-950 text-white">
+      <div className="min-h-screen bg-neutral-100 text-neutral-900 dark:bg-neutral-950 dark:text-white">
         {/* Header */}
-        <header className="sticky top-0 z-10 bg-neutral-950/90 backdrop-blur-sm border-b border-white/10">
+        <header className="sticky top-0 z-10 bg-neutral-100/90 dark:bg-neutral-950/90 backdrop-blur-sm border-b border-neutral-200/60 dark:border-white/10">
           <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+            <h1 className="text-lg font-semibold">Story Preview</h1>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setShowPreview(false)}
-              className="text-white hover:bg-white/10"
+              className="text-neutral-900 hover:bg-neutral-200/60 dark:text-white dark:hover:bg-white/10"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <X className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-semibold">Story Preview</h1>
-            <ThemeSelector
-              palette={palette}
-              storyTemplate={storyTemplate}
-              typography={typography}
-              showGrain={showGrain}
-              showVignette={showVignette}
-              onPaletteChange={setPalette}
-              onTemplateChange={setStoryTemplate}
-              onTypographyChange={setTypography}
-              onGrainChange={setShowGrain}
-              onVignetteChange={setShowVignette}
-            />
           </div>
         </header>
 
         {/* Preview Area */}
-        <div className="flex flex-col items-center justify-center px-4 py-8">
+        <div className="w-full flex flex-col items-center justify-center px-4 pt-8 pb-32 min-h-[calc(100vh-120px)] gap-4">
           {/* Story Preview - 9:16 aspect ratio */}
-          <div className="w-full max-w-[270px]">
+          <div className="mx-auto">
             <StoryPreview
               card={previewCard}
               palette={palette}
@@ -217,28 +207,28 @@ export default function CreatePage() {
           </div>
 
           {/* Dimensions info */}
-          <p className="text-xs text-white/50 mt-4 text-center">
+          <p className="text-xs text-neutral-500 dark:text-white/50 text-center">
             Story format: 1080 × 1920px (9:16)
             <br />
-            <span className="text-white/30">
+            <span className="text-neutral-400 dark:text-white/30">
               Optimized for Instagram & TikTok Stories
             </span>
           </p>
         </div>
 
         {/* Action Buttons */}
-        <div className="fixed bottom-0 left-0 right-0 bg-neutral-950/95 backdrop-blur-sm border-t border-white/10 p-4 pb-safe">
+        <div className="fixed bottom-0 left-0 right-0 bg-neutral-100/95 dark:bg-neutral-950/95 backdrop-blur-sm border-t border-neutral-200/60 dark:border-white/10 p-4 pb-safe">
           <div className="max-w-md mx-auto flex gap-3">
             <Button
               variant="outline"
-              className="flex-1 rounded-full h-12 bg-white/5 border-white/20 text-white hover:bg-white/10"
+              className="flex-1 rounded-full h-12 bg-neutral-200/30 dark:bg-white/5 border-neutral-300 dark:border-white/20 text-neutral-900 dark:text-white hover:bg-neutral-200/60 dark:hover:bg-white/10"
               onClick={() => setShowPreview(false)}
             >
               <Edit2 className="h-4 w-4 mr-2" />
               Edit
             </Button>
             <Button
-              className="flex-1 rounded-full h-12 bg-white text-black hover:bg-white/90"
+              className="flex-1 rounded-full h-12 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-white/90"
               onClick={handleSubmit}
               disabled={!isValid || isSubmitting}
             >
@@ -267,30 +257,21 @@ export default function CreatePage() {
       {/* Header */}
       <header className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <Link href="/">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            onClick={handleBack}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
           <div>
-            <h1 className="text-xl font-semibold text-neutral-800">
-              New Entry
+            <h1 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
+              Capture Today
             </h1>
             <p className="text-sm text-muted-foreground">How was your day?</p>
           </div>
         </div>
-        <ThemeSelector
-          palette={palette}
-          storyTemplate={storyTemplate}
-          typography={typography}
-          showGrain={showGrain}
-          showVignette={showVignette}
-          onPaletteChange={setPalette}
-          onTemplateChange={setStoryTemplate}
-          onTypographyChange={setTypography}
-          onGrainChange={setShowGrain}
-          onVignetteChange={setShowVignette}
-        />
       </header>
 
       <div className="space-y-6">
@@ -299,7 +280,7 @@ export default function CreatePage() {
 
         {/* Mood Selector */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-3">
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
             How are you feeling?
           </label>
           <MoodSelector value={mood} onChange={setMood} />
@@ -307,11 +288,10 @@ export default function CreatePage() {
 
         {/* Text Input */}
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-neutral-700">
+          <div className="mb-2">
+            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
               What happened today?
             </label>
-            <RandomQuestionButton onQuestion={handleSelectQuestion} />
           </div>
           <Textarea
             value={text}
@@ -335,7 +315,7 @@ export default function CreatePage() {
 
         {/* Photo Upload */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
             Add a photo
           </label>
           <PhotoUploader value={photoUrl} onChange={setPhotoUrl} />
@@ -343,7 +323,7 @@ export default function CreatePage() {
 
         {/* Blocks */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-3">
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
             Add details
           </label>
           {blocks.length > 0 && (
@@ -359,7 +339,7 @@ export default function CreatePage() {
 
         {/* Tags */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
             Tags
           </label>
           <div className="flex gap-2 mb-2">
@@ -367,11 +347,12 @@ export default function CreatePage() {
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
                   e.preventDefault();
                   handleAddTag();
                 }
               }}
+              onBlur={handleAddTag}
               placeholder="Add a tag..."
               className="rounded-full"
             />
@@ -403,6 +384,27 @@ export default function CreatePage() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Visual Style */}
+        <div className="border-t border-neutral-200 dark:border-neutral-800 pt-6">
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
+            Visual Style
+          </label>
+          <div className="flex justify-center">
+            <ThemeSelector
+              palette={palette}
+              storyTemplate={storyTemplate}
+              typography={typography}
+              showGrain={showGrain}
+              showVignette={showVignette}
+              onPaletteChange={setPalette}
+              onTemplateChange={setStoryTemplate}
+              onTypographyChange={setTypography}
+              onGrainChange={setShowGrain}
+              onVignetteChange={setShowVignette}
+            />
+          </div>
         </div>
 
         {/* Action Buttons */}
@@ -439,9 +441,9 @@ export default function CreatePage() {
       <Dialog open={showOverwriteDialog} onOpenChange={setShowOverwriteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Entry Already Exists</DialogTitle>
+            <DialogTitle>Recap Already Exists</DialogTitle>
             <DialogDescription>
-              You already have an entry for today. Would you like to replace it
+              You already have a recap for today. Would you like to replace it
               with this new one?
             </DialogDescription>
           </DialogHeader>
@@ -458,7 +460,7 @@ export default function CreatePage() {
                 saveCard(true);
               }}
             >
-              Replace Entry
+              Replace Recap
             </Button>
           </DialogFooter>
         </DialogContent>

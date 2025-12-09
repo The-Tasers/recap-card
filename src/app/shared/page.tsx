@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Lock, AlertTriangle, Eye, Download } from 'lucide-react';
 import {
@@ -22,6 +22,7 @@ import {
 import { useRef } from 'react';
 
 function SharedCardContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const cardRef = useRef<HTMLDivElement>(null);
   const [card, setCard] = useState<Partial<DailyCard> | null>(null);
@@ -30,6 +31,14 @@ function SharedCardContent() {
   const [isPrivate, setIsPrivate] = useState(false);
   const [showContent, setShowContent] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/');
+    }
+  };
 
   useEffect(() => {
     const data = searchParams.get('data');
@@ -95,12 +104,15 @@ function SharedCardContent() {
     return (
       <div className="max-w-md mx-auto px-4 py-6">
         <header className="flex items-center gap-4 mb-6">
-          <Link href="/">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <h1 className="text-xl font-semibold text-neutral-800">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            onClick={handleBack}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
             Shared Card
           </h1>
         </header>
@@ -127,12 +139,15 @@ function SharedCardContent() {
     return (
       <div className="max-w-md mx-auto px-4 py-6">
         <header className="flex items-center gap-4 mb-6">
-          <Link href="/">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <h1 className="text-xl font-semibold text-neutral-800">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            onClick={handleBack}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
             Shared Card
           </h1>
         </header>
@@ -161,12 +176,15 @@ function SharedCardContent() {
     return (
       <div className="max-w-md mx-auto px-4 py-6">
         <header className="flex items-center gap-4 mb-6">
-          <Link href="/">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <h1 className="text-xl font-semibold text-neutral-800">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            onClick={handleBack}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
             Shared Card
           </h1>
         </header>
@@ -210,11 +228,14 @@ function SharedCardContent() {
     <div className="max-w-md mx-auto px-4 py-6">
       <header className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <Link href="/">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            onClick={handleBack}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
           <div>
             <h1 className="text-xl font-semibold text-neutral-800">
               Shared Card

@@ -267,12 +267,8 @@ export const VISUAL_STYLES: Record<StyleId, VisualStyle> = {
 export type StoryTemplateId =
   | 'photoHero'
   | 'glassCards'
-  | 'gridCollage'
   | 'magazineCover'
-  | 'centeredQuote'
-  | 'splitMood'
-  | 'scrapbookStyle'
-  | 'darkCinema';
+  | 'centeredQuote';
 
 export interface StoryTemplate {
   id: StoryTemplateId;
@@ -287,57 +283,29 @@ export const STORY_TEMPLATES: Record<StoryTemplateId, StoryTemplate> = {
     id: 'photoHero',
     name: 'Photo Hero',
     description: 'Large photo at top with text overlay',
-    preview: '📷\n───\n📝',
+    preview: '🖼️\n━━\n📝',
     bestFor: ['photos', 'highlights', 'memories'],
   },
   glassCards: {
     id: 'glassCards',
     name: 'Glass Cards',
     description: 'Frosted glass cards over full-bleed photo',
-    preview: '🖼️\n▓▓▓',
+    preview: '🌄\n▢▢',
     bestFor: ['photos', 'modern', 'clean'],
-  },
-  gridCollage: {
-    id: 'gridCollage',
-    name: 'Grid Collage',
-    description: '2-4 photos with text cells',
-    preview: '▢▢\n▢▢',
-    bestFor: ['multiple-photos', 'busy-days', 'variety'],
   },
   magazineCover: {
     id: 'magazineCover',
     name: 'Magazine Cover',
     description: 'Editorial style with big headline',
-    preview: 'TITLE\n▢\n"quote"',
+    preview: '📰\nTITLE\n━━━',
     bestFor: ['statements', 'milestones', 'achievements'],
   },
   centeredQuote: {
     id: 'centeredQuote',
     name: 'Centered Quote',
     description: 'Minimalist text-focused layout',
-    preview: '···\n""\n···',
+    preview: '\n💭\n"  "',
     bestFor: ['reflections', 'quotes', 'minimal'],
-  },
-  splitMood: {
-    id: 'splitMood',
-    name: 'Split Mood',
-    description: 'Two-column mood and highlights',
-    preview: '▌│▐\n━━━',
-    bestFor: ['metrics', 'tracking', 'data'],
-  },
-  scrapbookStyle: {
-    id: 'scrapbookStyle',
-    name: 'Scrapbook',
-    description: 'Taped photos, stickers, handwritten notes',
-    preview: '📎📷\n✦✦✦',
-    bestFor: ['fun', 'memories', 'creative'],
-  },
-  darkCinema: {
-    id: 'darkCinema',
-    name: 'Dark Cinema',
-    description: 'Moody poster style with dramatic lighting',
-    preview: '▓▓▓\n🎬',
-    bestFor: ['dramatic', 'evening', 'deep-thoughts'],
   },
 };
 

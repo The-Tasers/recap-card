@@ -19,6 +19,44 @@ export function CalendarView({
 }: CalendarViewProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
+  const monthOptions = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
+  const yearOptions = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const yearsFromCards = cards.map((card) =>
+      new Date(card.createdAt).getFullYear()
+    );
+    const minFromCards = yearsFromCards.length
+      ? Math.min(...yearsFromCards)
+      : currentYear;
+    const maxFromCards = yearsFromCards.length
+      ? Math.max(...yearsFromCards)
+      : currentYear;
+
+    // Give a little range even if no cards yet
+    const rangeStart = Math.min(minFromCards, currentYear - 3);
+    const rangeEnd = 2100;
+
+    const list: number[] = [];
+    for (let y = rangeStart; y <= rangeEnd; y++) {
+      list.push(y);
+    }
+    return list;
+  }, [cards]);
+
   const cardsByDate = useMemo(() => {
     const map = new Map<string, DailyCard>();
     cards.forEach((card) => {
@@ -61,6 +99,18 @@ export function CalendarView({
     );
   };
 
+  const handleMonthChange = (value: string) => {
+    const monthIndex = monthOptions.indexOf(value);
+    if (monthIndex === -1) return;
+    setCurrentMonth((prev) => new Date(prev.getFullYear(), monthIndex, 1));
+  };
+
+  const handleYearChange = (value: string) => {
+    const yearNum = Number(value);
+    if (Number.isNaN(yearNum)) return;
+    setCurrentMonth((prev) => new Date(yearNum, prev.getMonth(), 1));
+  };
+
   const isToday = (date: Date) => {
     const today = new Date();
     return date.toDateString() === today.toDateString();
@@ -76,31 +126,55 @@ export function CalendarView({
   };
 
   return (
-    <div className="bg-white rounded-2xl border p-4">
+    <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={goToPrevMonth}
-          className="rounded-full"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <span className="font-medium">
-          {currentMonth.toLocaleDateString('en-US', {
-            month: 'long',
-            year: 'numeric',
-          })}
-        </span>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={goToNextMonth}
-          className="rounded-full"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+      <div className="flex items-center justify-between mb-4 gap-2">
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={goToPrevMonth}
+            className="rounded-full"
+            aria-label="Previous month"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={goToNextMonth}
+            className="rounded-full"
+            aria-label="Next month"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="flex items-center gap-2">
+          <select
+            value={monthOptions[currentMonth.getMonth()]}
+            onChange={(e) => handleMonthChange(e.target.value)}
+            className="text-sm border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 py-1 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+            aria-label="Select month"
+          >
+            {monthOptions.map((month) => (
+              <option key={month} value={month}>
+                {month}
+              </option>
+            ))}
+          </select>
+          <select
+            value={currentMonth.getFullYear()}
+            onChange={(e) => handleYearChange(e.target.value)}
+            className="text-sm border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 py-1 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+            aria-label="Select year"
+          >
+            {yearOptions.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Weekday headers */}
@@ -226,8 +300,10 @@ export function MoodHeatmap({ cards, months = 3 }: MoodHeatmapProps) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border p-4">
-      <h3 className="text-sm font-medium mb-3">Mood History</h3>
+    <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-4">
+      <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-3">
+        Mood History
+      </h3>
       <div className="flex gap-1 overflow-x-auto pb-2">
         {heatmapData.map((week, weekIndex) => (
           <div key={weekIndex} className="flex flex-col gap-1">
@@ -287,8 +363,10 @@ export function MoodStats({ cards }: MoodStatsProps) {
   const total = cards.length || 1;
 
   return (
-    <div className="bg-white rounded-2xl border p-4">
-      <h3 className="text-sm font-medium mb-3">Mood Distribution</h3>
+    <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-4">
+      <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-3">
+        Mood Distribution
+      </h3>
       <div className="space-y-2">
         {MOODS.map((mood) => {
           const count = stats[mood.value] || 0;

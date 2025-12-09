@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { ArrowLeft, Check, X, Plus, Eye, Edit2 } from 'lucide-react';
 import { useCardStore } from '@/lib/store';
 import {
@@ -85,6 +84,14 @@ export default function EditCardPage() {
     setTags((prev) => prev.filter((t) => t !== tag));
   };
 
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/');
+    }
+  };
+
   const handleSubmit = async () => {
     if (!isValid || !card) return;
 
@@ -116,12 +123,17 @@ export default function EditCardPage() {
     return (
       <div className="max-w-md mx-auto px-4 py-6">
         <header className="flex items-center gap-4 mb-6">
-          <Link href="/">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <h1 className="text-xl font-semibold text-neutral-800">Not Found</h1>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            onClick={handleBack}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
+            Not Found
+          </h1>
         </header>
         <div className="text-center py-12 text-muted-foreground">
           This card doesn&apos;t exist or has been deleted.
@@ -143,38 +155,26 @@ export default function EditCardPage() {
   // Preview Mode
   if (showPreview) {
     return (
-      <div className="min-h-screen bg-neutral-950 text-white">
+      <div className="min-h-screen bg-neutral-100 text-neutral-900 dark:bg-neutral-950 dark:text-white">
         {/* Header */}
-        <header className="sticky top-0 z-10 bg-neutral-950/90 backdrop-blur-sm border-b border-white/10">
+        <header className="sticky top-0 z-10 bg-neutral-100/90 dark:bg-neutral-950/90 backdrop-blur-sm border-b border-neutral-200/60 dark:border-white/10">
           <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+            <h1 className="text-lg font-semibold">Story Preview</h1>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setShowPreview(false)}
-              className="text-white hover:bg-white/10"
+              className="text-neutral-900 hover:bg-neutral-200/60 dark:text-white dark:hover:bg-white/10"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <X className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-semibold">Story Preview</h1>
-            <ThemeSelector
-              palette={palette}
-              storyTemplate={storyTemplate}
-              typography={typography}
-              showGrain={showGrain}
-              showVignette={showVignette}
-              onPaletteChange={setPalette}
-              onTemplateChange={setStoryTemplate}
-              onTypographyChange={setTypography}
-              onGrainChange={setShowGrain}
-              onVignetteChange={setShowVignette}
-            />
           </div>
         </header>
 
         {/* Preview Area */}
-        <div className="flex flex-col items-center justify-center px-4 py-8">
+        <div className="w-full flex flex-col items-center justify-center px-4 pt-8 pb-32 min-h-[calc(100vh-120px)] gap-4">
           {/* Story Preview - 9:16 aspect ratio */}
-          <div className="w-full max-w-[270px]">
+          <div className="mx-auto">
             <StoryPreview
               card={previewCard}
               palette={palette}
@@ -187,28 +187,28 @@ export default function EditCardPage() {
           </div>
 
           {/* Dimensions info */}
-          <p className="text-xs text-white/50 mt-4 text-center">
+          <p className="text-xs text-neutral-500 dark:text-white/50 text-center">
             Story format: 1080 × 1920px (9:16)
             <br />
-            <span className="text-white/30">
+            <span className="text-neutral-400 dark:text-white/30">
               Optimized for Instagram & TikTok Stories
             </span>
           </p>
         </div>
 
         {/* Action Buttons */}
-        <div className="fixed bottom-0 left-0 right-0 bg-neutral-950/95 backdrop-blur-sm border-t border-white/10 p-4 pb-safe">
+        <div className="fixed bottom-0 left-0 right-0 bg-neutral-100/95 dark:bg-neutral-950/95 backdrop-blur-sm border-t border-neutral-200/60 dark:border-white/10 p-4 pb-safe">
           <div className="max-w-md mx-auto flex gap-3">
             <Button
               variant="outline"
-              className="flex-1 rounded-full h-12 bg-white/5 border-white/20 text-white hover:bg-white/10"
+              className="flex-1 rounded-full h-12 bg-neutral-200/30 dark:bg-white/5 border-neutral-300 dark:border-white/20 text-neutral-900 dark:text-white hover:bg-neutral-200/60 dark:hover:bg-white/10"
               onClick={() => setShowPreview(false)}
             >
               <Edit2 className="h-4 w-4 mr-2" />
               Edit
             </Button>
             <Button
-              className="flex-1 rounded-full h-12 bg-white text-black hover:bg-white/90"
+              className="flex-1 rounded-full h-12 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-white/90"
               onClick={handleSubmit}
               disabled={!isValid || isSubmitting}
             >
@@ -226,14 +226,17 @@ export default function EditCardPage() {
       {/* Header */}
       <header className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <Link href={`/card/${card.id}`}>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            onClick={handleBack}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
           <div>
-            <h1 className="text-xl font-semibold text-neutral-800">
-              Edit Entry
+            <h1 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
+              Edit Recap
             </h1>
             <p className="text-sm text-muted-foreground">
               Update your thoughts

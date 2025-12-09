@@ -47,7 +47,7 @@ export const DefaultTemplate = forwardRef<HTMLDivElement, CardTemplateProps>(
       >
         <CardContent
           className={cn(
-            'p-6 space-y-4 bg-gradient-to-br',
+            'p-6 space-y-4 bg-linear-to-br',
             themeClasses,
             fontClasses
           )}
@@ -123,7 +123,7 @@ export const PhotoHeaderTemplate = forwardRef<
             alt=""
             className="w-full h-full object-cover"
           />
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/60 to-transparent p-4">
             <div className="flex items-center justify-between text-white">
               <span className="text-sm font-medium">
                 {new Date(card.createdAt).toLocaleDateString('en-US', {
@@ -140,7 +140,7 @@ export const PhotoHeaderTemplate = forwardRef<
 
       <CardContent
         className={cn(
-          'p-5 space-y-3 bg-gradient-to-br',
+          'p-5 space-y-3 bg-linear-to-br',
           themeClasses,
           fontClasses
         )}
@@ -238,7 +238,7 @@ export const MixedGridTemplate = forwardRef<HTMLDivElement, CardTemplateProps>(
       >
         <CardContent
           className={cn(
-            'p-5 space-y-4 bg-gradient-to-br',
+            'p-5 space-y-4 bg-linear-to-br',
             themeClasses,
             fontClasses
           )}

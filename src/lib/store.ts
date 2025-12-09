@@ -9,9 +9,11 @@ interface CardStore {
   hydrated: boolean;
   error: string | null;
   hasSeenOnboarding: boolean;
+  theme: 'light' | 'dark' | 'system';
   setHydrated: (state: boolean) => void;
   setError: (error: string | null) => void;
   setHasSeenOnboarding: (seen: boolean) => void;
+  setTheme: (theme: 'light' | 'dark' | 'system') => void;
   addCard: (card: DailyCard) => boolean;
   updateCard: (id: string, updates: Partial<DailyCard>) => boolean;
   deleteCard: (id: string) => void;
@@ -56,9 +58,11 @@ export const useCardStore = create<CardStore>()(
       hydrated: false,
       error: null,
       hasSeenOnboarding: false,
+      theme: 'system',
       setHydrated: (state) => set({ hydrated: state }),
       setError: (error) => set({ error }),
       setHasSeenOnboarding: (seen) => set({ hasSeenOnboarding: seen }),
+      setTheme: (theme) => set({ theme }),
       addCard: (card) => {
         try {
           set((state) => ({

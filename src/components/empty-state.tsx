@@ -10,7 +10,7 @@ export function EmptyState() {
       <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
         <BookOpen className="h-10 w-10 text-primary" />
       </div>
-      <h2 className="text-xl font-semibold text-neutral-800 mb-2">
+      <h2 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100 mb-2">
         No entries yet
       </h2>
       <p className="text-muted-foreground mb-6 max-w-xs">

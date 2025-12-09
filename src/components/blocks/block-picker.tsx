@@ -11,6 +11,7 @@ import {
   Star,
 } from 'lucide-react';
 import { BlockId, CardBlock, BLOCK_DEFINITIONS } from '@/lib/types';
+import { generateId } from '@/lib/export';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -32,7 +33,7 @@ export function BlockPicker({ onSelect, existingBlockIds }: BlockPickerProps) {
   const handleSelect = (blockId: BlockId) => {
     const definition = BLOCK_DEFINITIONS[blockId];
     const newBlock: CardBlock = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       type: definition.type,
       blockId,
       label: definition.label,
@@ -66,7 +67,7 @@ export function BlockPicker({ onSelect, existingBlockIds }: BlockPickerProps) {
               <button
                 key={blockId}
                 onClick={() => handleSelect(blockId)}
-                className="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 hover:bg-neutral-50 transition-colors text-left"
+                className="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-left"
               >
                 <span className="text-xl">{def.icon}</span>
                 <span className="text-sm font-medium">{def.label}</span>

@@ -1,10 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { X, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, ChevronDown, ChevronUp, MoveUp, MoveDown } from 'lucide-react';
 import { CardBlock, BLOCK_DEFINITIONS } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 interface BlockEditorProps {
@@ -59,8 +66,16 @@ export function BlockEditor({
         return (
           <Input
             type="number"
-            value={block.value as number}
-            onChange={(e) => handleValueChange(Number(e.target.value) || 0)}
+            value={
+              block.value === 0 || block.value === ''
+                ? ''
+                : (block.value as number)
+            }
+            onChange={(e) =>
+              handleValueChange(
+                e.target.value === '' ? '' : Number(e.target.value)
+              )
+            }
             placeholder={definition.placeholder}
             className="rounded-xl w-32"
             min={0}
@@ -89,30 +104,125 @@ export function BlockEditor({
           />
         );
 
+      case 'weather':
+        return (
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">
+                Condition
+              </label>
+              <Select
+                value={block.weatherCondition || ''}
+                onValueChange={(value) => {
+                  onChange({
+                    ...block,
+                    weatherCondition: value,
+                    value: `${value}${
+                      block.temperature
+                        ? `, ${block.temperature}°${
+                            block.temperatureUnit || 'C'
+                          }`
+                        : ''
+                    }`,
+                  });
+                }}
+              >
+                <SelectTrigger className="rounded-xl">
+                  <SelectValue placeholder="Select condition..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="☀️ Sunny">☀️ Sunny</SelectItem>
+                  <SelectItem value="⛅ Partly Cloudy">
+                    ⛅ Partly Cloudy
+                  </SelectItem>
+                  <SelectItem value="☁️ Cloudy">☁️ Cloudy</SelectItem>
+                  <SelectItem value="🌧️ Rainy">🌧️ Rainy</SelectItem>
+                  <SelectItem value="⛈️ Stormy">⛈️ Stormy</SelectItem>
+                  <SelectItem value="🌨️ Snowy">🌨️ Snowy</SelectItem>
+                  <SelectItem value="🌫️ Foggy">🌫️ Foggy</SelectItem>
+                  <SelectItem value="🌬️ Windy">🌬️ Windy</SelectItem>
+                  <SelectItem value="🥵 Hot">🥵 Hot</SelectItem>
+                  <SelectItem value="🥶 Cold">🥶 Cold</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="text-xs text-muted-foreground mb-1.5 block">
+                  Temperature
+                </label>
+                <Input
+                  type="number"
+                  value={block.temperature || ''}
+                  onChange={(e) => {
+                    const temp = Number(e.target.value);
+                    onChange({
+                      ...block,
+                      temperature: temp || undefined,
+                      value: `${block.weatherCondition || ''}${
+                        temp ? `, ${temp}°${block.temperatureUnit || 'C'}` : ''
+                      }`,
+                    });
+                  }}
+                  placeholder="20"
+                  className="rounded-xl"
+                />
+              </div>
+              <div className="w-20">
+                <label className="text-xs text-muted-foreground mb-1.5 block">
+                  Unit
+                </label>
+                <Select
+                  value={block.temperatureUnit || 'C'}
+                  onValueChange={(value: 'C' | 'F') => {
+                    onChange({
+                      ...block,
+                      temperatureUnit: value,
+                      value: `${block.weatherCondition || ''}${
+                        block.temperature
+                          ? `, ${block.temperature}°${value}`
+                          : ''
+                      }`,
+                    });
+                  }}
+                >
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="C">°C</SelectItem>
+                    <SelectItem value="F">°F</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
   };
 
   return (
-    <div className="bg-white border border-neutral-200/50 rounded-2xl overflow-hidden">
+    <div className="bg-white dark:bg-neutral-800 border border-neutral-200/50 dark:border-neutral-700/60 rounded-2xl overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-2 p-3 bg-neutral-50/50">
+      <div className="flex items-center gap-2 p-3 bg-neutral-50/50 dark:bg-neutral-900/50">
         <div className="flex flex-col gap-0.5">
           {!isFirst && onMoveUp && (
             <button
               onClick={onMoveUp}
-              className="p-0.5 hover:bg-neutral-200 rounded transition-colors"
+              className="p-0.5 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded transition-colors"
             >
-              <ChevronUp className="h-3 w-3 text-neutral-400" />
+              <MoveUp className="h-3.5 w-3.5 text-neutral-400 dark:text-neutral-500" />
             </button>
           )}
           {!isLast && onMoveDown && (
             <button
               onClick={onMoveDown}
-              className="p-0.5 hover:bg-neutral-200 rounded transition-colors"
+              className="p-0.5 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded transition-colors"
             >
-              <ChevronDown className="h-3 w-3 text-neutral-400" />
+              <MoveDown className="h-3.5 w-3.5 text-neutral-400 dark:text-neutral-500" />
             </button>
           )}
         </div>
@@ -135,14 +245,18 @@ export function BlockEditor({
 
         <button
           onClick={onRemove}
-          className="p-1 hover:bg-red-100 rounded transition-colors"
+          className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
         >
-          <X className="h-4 w-4 text-neutral-400 hover:text-red-500" />
+          <X className="h-4 w-4 text-neutral-400 dark:text-neutral-500 hover:text-red-500 dark:hover:text-red-400" />
         </button>
       </div>
 
       {/* Content */}
-      {!isCollapsed && <div className="p-3 pt-0">{renderInput()}</div>}
+      {!isCollapsed && (
+        <div className="p-3 pt-3 bg-neutral-50/30 dark:bg-neutral-900/30">
+          {renderInput()}
+        </div>
+      )}
     </div>
   );
 }
@@ -237,11 +351,25 @@ export function BlockDisplay({ block, compact }: BlockDisplayProps) {
           </span>
         );
 
+      case 'weather':
+        return (
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-medium">
+              {block.weatherCondition || block.value}
+            </span>
+            {block.temperature && (
+              <span className="text-sm text-muted-foreground">
+                {block.temperature}°{block.temperatureUnit || 'C'}
+              </span>
+            )}
+          </div>
+        );
+
       default:
         return (
           <p
             className={cn(
-              'text-neutral-700',
+              'text-neutral-700 dark:text-neutral-300',
               compact ? 'text-sm line-clamp-2' : 'text-base'
             )}
           >

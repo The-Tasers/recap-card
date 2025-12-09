@@ -118,15 +118,18 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
                 alt=""
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent" />
               <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
                 <div>
                   <div
                     className={cn(
-                      'text-xs uppercase tracking-wider opacity-70 mb-1',
+                      'text-xs uppercase tracking-wider opacity-90 mb-1',
                       typography.microClass
                     )}
-                    style={{ color: palette.textSecondary }}
+                    style={{
+                      color: '#fff',
+                      textShadow: '0 1px 3px rgba(0,0,0,0.5)',
+                    }}
                   >
                     {new Date(card.createdAt).toLocaleDateString('en-US', {
                       weekday: 'long',
@@ -165,10 +168,10 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
                 <div>
                   <div
                     className={cn(
-                      'text-xs uppercase tracking-wider opacity-70',
+                      'text-xs uppercase tracking-wider opacity-80',
                       typography.microClass
                     )}
-                    style={{ color: palette.textSecondary }}
+                    style={{ color: palette.textSecondary, fontWeight: 500 }}
                   >
                     {new Date(card.createdAt).toLocaleDateString('en-US', {
                       weekday: 'long',
@@ -333,7 +336,7 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
             alt=""
             className="w-full h-[450px] object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
 
           <div className="absolute bottom-0 left-0 right-0 p-6 space-y-4">
             <div className="backdrop-blur-xl bg-white/10 rounded-2xl p-5 border border-white/20">

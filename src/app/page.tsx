@@ -1,406 +1,184 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useMemo, useState, Suspense } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Plus, Sunrise } from 'lucide-react';
+
+import { DailyCard, Mood } from '@/lib/types';
 import { useCardStore } from '@/lib/store';
-import { DailyCard, COLOR_PALETTES, STORY_TEMPLATES, PaletteId } from '@/lib/types';
-import { DailyCardView } from '@/components/daily-card-view';
 import { Onboarding } from '@/components/onboarding';
-import {
-  Sparkles,
-  Plus,
-  Calendar,
-  TrendingUp,
-  ChevronRight,
-  Share2,
-  ArrowRight,
-  Palette,
-  Layout,
-} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-// Sample cards for showcasing when user has no cards
-const SAMPLE_CARDS: Partial<DailyCard>[] = [
-  {
-    id: 'sample-1',
-    mood: 'great',
-    text: 'Perfect morning coffee and finished my project!',
-    createdAt: new Date().toISOString(),
-    palette: 'pastelDream',
-  },
-  {
-    id: 'sample-2',
-    mood: 'good',
-    text: 'Took a long walk in the park today. Feeling refreshed.',
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    palette: 'warmCinematic',
-  },
-  {
-    id: 'sample-3',
-    mood: 'neutral',
-    text: 'Regular day at work. Looking forward to the weekend.',
-    createdAt: new Date(Date.now() - 172800000).toISOString(),
-    palette: 'forestMist',
-  },
-];
-
-// Palette showcase data
-const SHOWCASE_PALETTES: PaletteId[] = [
-  'pastelDream',
-  'warmCinematic',
-  'cyberGradient',
-  'forestMist',
-  'sunsetBoulevard',
-];
-
-// Hero Section Component
-function HeroSection({ hasCards }: { hasCards: boolean }) {
+// Hero Section Component (mobile main screen)
+function HeroSection() {
   return (
-    <section className="relative mb-8 overflow-hidden">
-      {/* Decorative background blobs */}
-      <div className="absolute -top-20 -left-20 w-60 h-60 rounded-full bg-linear-to-br from-amber-200/50 to-orange-200/30 blur-3xl pointer-events-none" />
-      <div className="absolute -top-10 -right-20 w-52 h-52 rounded-full bg-linear-to-br from-violet-200/50 to-pink-200/30 blur-3xl pointer-events-none" />
-
-      <div className="relative z-10 pt-2 pb-6">
-        {/* App branding */}
-        <div className="flex items-center gap-2.5 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
-            <Sparkles className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-neutral-900">Day Recap</h1>
-            <p className="text-xs text-neutral-500">Your visual diary</p>
-          </div>
-        </div>
-
-        {/* Main headline */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900 leading-tight mb-3">
-            Create beautiful daily
-            <br />
-            <span className="bg-linear-to-r from-amber-500 via-orange-500 to-pink-500 bg-clip-text text-transparent">
-              recap cards
-            </span>{' '}
-            you&apos;ll want
-            <br />
-            to share
-          </h2>
-          <p className="text-neutral-600 text-sm leading-relaxed max-w-[280px]">
-            A personal visual diary that&apos;s easy to create and beautiful to share on stories
-          </p>
-        </motion.div>
-
-        {/* CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="mt-6"
-        >
-          <Link href="/create">
-            <Button className="h-14 px-8 rounded-2xl text-base font-semibold bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-lg shadow-orange-500/25">
-              <Plus className="h-5 w-5 mr-2" />
-              {hasCards ? "Create Today's Card" : 'Create Your First Card'}
-            </Button>
-          </Link>
-        </motion.div>
+    <section className="mb-6 text-center">
+      <div className="mx-auto mb-3 w-14 h-14 rounded-2xl bg-linear-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-400/30">
+        <Sunrise className="h-7 w-7 text-white" />
       </div>
+      <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 leading-tight">
+        Day Recap
+      </h1>
+      <p className="text-base text-neutral-800 dark:text-neutral-200 mt-3 font-medium">
+        Capture today in one beautiful card.
+      </p>
+      <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
+        Mood, notes, photo — ready to share.
+      </p>
     </section>
   );
 }
 
-// Story Mockup Component - shows card in phone frame
-function StoryMockup({ palette }: { palette: PaletteId }) {
-  const paletteData = COLOR_PALETTES[palette];
+// Dashboard status (no filters)
+function DashboardFilters({
+  cards,
+  stats,
+}: {
+  cards: DailyCard[];
+  stats: { total: number; thisMonth: number; streak: number };
+}) {
+  const now = new Date();
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - 7);
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  const todayCount = cards.filter(
+    (c) => new Date(c.createdAt).toDateString() === startOfToday.toDateString()
+  ).length;
+
+  const weekCount = cards.filter(
+    (c) => new Date(c.createdAt) >= startOfWeek
+  ).length;
+
+  const moodCounts = cards.reduce<Record<string, number>>((acc, card) => {
+    acc[card.mood] = (acc[card.mood] || 0) + 1;
+    return acc;
+  }, {});
+
+  const moodOrder = ['great', 'good', 'neutral', 'bad', 'terrible'] as const;
+  type MoodCount = { mood: Mood; count: number };
+  const topMood = moodOrder.reduce<MoodCount>(
+    (best, mood) => {
+      const count = moodCounts[mood] || 0;
+      if (count > best.count) return { mood, count };
+      return best;
+    },
+    { mood: 'neutral', count: 0 }
+  );
+
+  const moodMeta: Record<
+    Mood,
+    { label: string; emoji: string; accent: string }
+  > = {
+    great: {
+      label: 'Overall great',
+      emoji: '😊',
+      accent: 'from-amber-500 to-orange-500',
+    },
+    good: {
+      label: 'Overall good',
+      emoji: '🙂',
+      accent: 'from-green-500 to-emerald-500',
+    },
+    neutral: {
+      label: 'Steady',
+      emoji: '😌',
+      accent: 'from-slate-500 to-slate-600',
+    },
+    bad: {
+      label: 'Tough stretch',
+      emoji: '😕',
+      accent: 'from-orange-500 to-amber-600',
+    },
+    terrible: {
+      label: 'Rough patch',
+      emoji: '😞',
+      accent: 'from-rose-500 to-red-600',
+    },
+  };
+
+  const moodTile = moodMeta[topMood.mood] || moodMeta.neutral;
+
+  const tiles = [
+    {
+      label: moodTile.label,
+      value: `${topMood.count || 'No'} recent card${
+        topMood.count === 1 ? '' : 's'
+      }`,
+      accent: moodTile.accent,
+      foot:
+        topMood.count > 0
+          ? 'Based on your latest mood entries'
+          : 'Add a card to see your mood',
+      emoji: moodTile.emoji,
+    },
+    {
+      label: 'Streak',
+      value: `${stats.streak} day${stats.streak === 1 ? '' : 's'}`,
+      accent: 'from-neutral-900 to-neutral-700',
+      foot: 'Keep the chain going',
+      emoji: '🔥',
+    },
+    {
+      label: 'This week',
+      value: `${weekCount} card${weekCount === 1 ? '' : 's'}`,
+      accent: 'from-violet-500 to-purple-600',
+      foot:
+        todayCount > 0
+          ? 'Logged today already'
+          : 'Log today to boost your week',
+      emoji: '📅',
+    },
+    {
+      label: 'Life recap',
+      value: `${stats.total || 0} card${stats.total === 1 ? '' : 's'}`,
+      accent: 'from-teal-500 to-emerald-600',
+      foot: stats.total > 0 ? 'Your story so far' : 'Start your streak today',
+      emoji: '🧭',
+    },
+  ];
 
   return (
-    <div className="relative">
-      {/* Phone frame */}
-      <div className="relative w-28 h-48 rounded-2xl bg-neutral-900 p-1 shadow-xl">
-        {/* Screen */}
-        <div
-          className="w-full h-full rounded-xl overflow-hidden flex items-center justify-center"
-          style={{ background: paletteData.gradient }}
-        >
-          {/* Mini card content */}
-          <div className="w-[85%] aspect-9/16 rounded-lg p-2 flex flex-col justify-end" style={{ background: paletteData.surface }}>
-            <div className="space-y-1">
-              <div className="h-1 w-8 rounded-full" style={{ background: paletteData.textSecondary }} />
-              <div className="h-1 w-12 rounded-full" style={{ background: paletteData.textSecondary }} />
-              <div className="h-1.5 w-6 rounded-full" style={{ background: paletteData.accent }} />
+    <div className="mb-6 space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-neutral-900 dark:text-neutral-100">
+          Your recap
+        </h3>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {tiles.map((item) => (
+          <div
+            key={item.label}
+            className={cn(
+              'rounded-2xl p-4 text-white shadow-lg shadow-black/10 bg-linear-to-br min-h-[120px] flex flex-col justify-between',
+              item.accent
+            )}
+          >
+            <div className="flex items-center gap-2 text-sm opacity-90">
+              <span>{item.emoji}</span>
+              <span>{item.label}</span>
             </div>
+            <div className="text-2xl font-semibold leading-tight">
+              {item.value}
+            </div>
+            <div className="text-xs opacity-80">{item.foot}</div>
           </div>
-        </div>
-        {/* Notch */}
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-8 h-1.5 rounded-full bg-neutral-800" />
+        ))}
       </div>
     </div>
   );
 }
 
-// Templates Carousel
-function TemplatesCarousel() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const templates = Object.entries(STORY_TEMPLATES).slice(0, 6);
-
-  return (
-    <section className="mb-8">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="font-semibold text-neutral-900 flex items-center gap-2">
-            <Layout className="h-4 w-4 text-violet-500" />
-            Card Templates
-          </h3>
-          <p className="text-xs text-neutral-500 mt-0.5">
-            8 beautiful layouts for your stories
-          </p>
-        </div>
-        <Link href="/create">
-          <Button variant="ghost" size="sm" className="text-neutral-500 hover:text-neutral-700 -mr-2">
-            See all
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
-        </Link>
-      </div>
-
-      <div
-        ref={containerRef}
-        className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory scrollbar-hide"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
-        {templates.map(([id, template]) => (
-          <motion.div
-            key={id}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="shrink-0 snap-start"
-          >
-            <Link href="/create">
-              <div className="w-24 h-36 rounded-xl bg-linear-to-br from-neutral-100 to-neutral-50 border border-neutral-100 flex flex-col items-center justify-center p-3 cursor-pointer hover:border-amber-200 transition-colors">
-                <div className="w-full aspect-9/16 rounded-lg bg-linear-to-br from-amber-50 to-violet-50 mb-2 flex items-end p-1.5">
-                  <div className="w-full space-y-0.5">
-                    <div className="h-0.5 w-6 rounded-full bg-neutral-300" />
-                    <div className="h-0.5 w-4 rounded-full bg-neutral-200" />
-                  </div>
-                </div>
-                <span className="text-[10px] text-neutral-600 text-center line-clamp-1">
-                  {template.name}
-                </span>
-              </div>
-            </Link>
-          </motion.div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-// Color Themes Showcase
-function ThemesShowcase() {
-  return (
-    <section className="mb-8">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="font-semibold text-neutral-900 flex items-center gap-2">
-            <Palette className="h-4 w-4 text-amber-500" />
-            Color Themes
-          </h3>
-          <p className="text-xs text-neutral-500 mt-0.5">
-            7 cinematic palettes to match your mood
-          </p>
-        </div>
-        <Link href="/create">
-          <Button variant="ghost" size="sm" className="text-neutral-500 hover:text-neutral-700 -mr-2">
-            Explore
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
-        </Link>
-      </div>
-
-      <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4" style={{ scrollbarWidth: 'none' }}>
-        {SHOWCASE_PALETTES.map((paletteId) => {
-          const palette = COLOR_PALETTES[paletteId];
-          return (
-            <motion.div
-              key={paletteId}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="shrink-0"
-            >
-              <Link href="/create">
-                <div className="w-20 cursor-pointer group">
-                  <div
-                    className="w-20 h-20 rounded-2xl shadow-md group-hover:shadow-lg transition-shadow border border-white/50"
-                    style={{ background: palette.gradient }}
-                  >
-                    <div className="w-full h-full rounded-2xl flex items-end p-2">
-                      <div className="flex gap-1">
-                        <div className="w-2 h-2 rounded-full" style={{ background: palette.accent }} />
-                        <div className="w-2 h-2 rounded-full" style={{ background: palette.textSecondary }} />
-                      </div>
-                    </div>
-                  </div>
-                  <span className="text-[10px] text-neutral-600 mt-1.5 block text-center">
-                    {palette.name}
-                  </span>
-                </div>
-              </Link>
-            </motion.div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-// Shareability Showcase
-function ShareabilitySection() {
-  return (
-    <section className="mb-8">
-      <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-violet-500 to-purple-600 p-6 text-white">
-        {/* Background decoration */}
-        <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/10 blur-2xl transform translate-x-10 -translate-y-10" />
-        <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-white/10 blur-xl transform -translate-x-6 translate-y-6" />
-
-        <div className="relative z-10 flex items-center gap-4">
-          <div className="shrink-0">
-            <StoryMockup palette="cyberGradient" />
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <Share2 className="h-4 w-4" />
-              <span className="text-xs font-medium uppercase tracking-wide opacity-80">
-                Story-Ready
-              </span>
-            </div>
-            <h3 className="font-bold text-lg leading-tight mb-1">
-              Perfect for Instagram & TikTok
-            </h3>
-            <p className="text-xs opacity-80 leading-relaxed">
-              Cards export in 9:16 format, optimized for stories
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// Stats Bar Component
-function StatsBar({ stats }: { stats: { total: number; thisMonth: number; streak: number } }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="grid grid-cols-3 gap-3 mb-6"
-    >
-      <div className="text-center p-3 rounded-2xl bg-linear-to-br from-amber-50 to-orange-50 border border-amber-100">
-        <div className="text-2xl font-bold text-neutral-900">{stats.total}</div>
-        <div className="text-[10px] text-neutral-500 uppercase tracking-wide">Total</div>
-      </div>
-      <div className="text-center p-3 rounded-2xl bg-linear-to-br from-violet-50 to-purple-50 border border-violet-100">
-        <div className="text-2xl font-bold text-neutral-900 flex items-center justify-center gap-1">
-          <Calendar className="h-4 w-4" />
-          {stats.thisMonth}
-        </div>
-        <div className="text-[10px] text-neutral-500 uppercase tracking-wide">This Month</div>
-      </div>
-      <div className="text-center p-3 rounded-2xl bg-linear-to-br from-pink-50 to-rose-50 border border-pink-100">
-        <div className="text-2xl font-bold text-neutral-900 flex items-center justify-center gap-1">
-          <TrendingUp className="h-4 w-4" />
-          {stats.streak}
-        </div>
-        <div className="text-[10px] text-neutral-500 uppercase tracking-wide">Day Streak</div>
-      </div>
-    </motion.div>
-  );
-}
-
-// Recent Cards Timeline
-function RecentTimeline({ cards, onCardClick }: { cards: DailyCard[]; onCardClick: (id: string) => void }) {
-  const recentCards = cards.slice(0, 5);
-
-  return (
-    <section className="mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-neutral-900">Your Timeline</h3>
-        {cards.length > 5 && (
-          <Link href="/?view=timeline">
-            <Button variant="ghost" size="sm" className="text-neutral-500 hover:text-neutral-700 -mr-2">
-              View all
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </Link>
-        )}
-      </div>
-
-      <div className="space-y-3">
-        {recentCards.map((card, index) => (
-          <motion.div
-            key={card.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-          >
-            <DailyCardView
-              card={card}
-              variant="compact"
-              onClick={() => onCardClick(card.id)}
-            />
-          </motion.div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-// Empty State - New User Experience
-function NewUserExperience() {
-  return (
-    <>
-      {/* Sample cards showcase */}
-      <section className="mb-8">
-        <h3 className="font-semibold text-neutral-900 mb-4 flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-amber-500" />
-          Example Cards
-        </h3>
-        <div className="space-y-3">
-          {SAMPLE_CARDS.map((card, index) => (
-            <motion.div
-              key={card.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="opacity-80"
-            >
-              <DailyCardView
-                card={card as DailyCard}
-                variant="compact"
-              />
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      <TemplatesCarousel />
-      <ThemesShowcase />
-      <ShareabilitySection />
-    </>
-  );
-}
-
 // Main Home Page Component
-export default function HomePage() {
-  const router = useRouter();
-  const { cards, hydrated, hasSeenOnboarding, setHasSeenOnboarding } = useCardStore();
-  const [showOnboarding, setShowOnboarding] = useState(false);
+function HomePageInner() {
+  const { cards, hydrated, hasSeenOnboarding, setHasSeenOnboarding } =
+    useCardStore();
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -433,17 +211,16 @@ export default function HomePage() {
     return { total: cards.length, thisMonth: cardsThisMonth, streak };
   }, [cards]);
 
-  // Show onboarding for new users
-  useEffect(() => {
-    if (hydrated && !hasSeenOnboarding && cards.length === 0) {
-      setShowOnboarding(true);
-    }
-  }, [hydrated, hasSeenOnboarding, cards.length]);
-
   const handleOnboardingComplete = () => {
     setHasSeenOnboarding(true);
-    setShowOnboarding(false);
+    setOnboardingDismissed(true);
   };
+
+  const showOnboarding =
+    hydrated &&
+    !hasSeenOnboarding &&
+    cards.length === 0 &&
+    !onboardingDismissed;
 
   if (!hydrated) {
     return (
@@ -460,59 +237,53 @@ export default function HomePage() {
   }
 
   const hasCards = cards.length > 0;
+  const effectiveCards = hasCards ? cards : [];
+  const placeholderStats = hasCards
+    ? stats
+    : { total: 0, thisMonth: 0, streak: 0 };
 
   return (
     <>
       {/* Onboarding */}
       <AnimatePresence>
-        {showOnboarding && (
-          <Onboarding onComplete={handleOnboardingComplete} />
-        )}
+        {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
       </AnimatePresence>
 
       {/* Main content */}
       <div className="max-w-md mx-auto px-4 py-6 pb-24">
-        {/* Grain texture overlay */}
-        <div className="grain-subtle fixed inset-0 pointer-events-none opacity-30" />
-
         {/* Hero Section */}
-        <HeroSection hasCards={hasCards} />
+        <HeroSection />
 
-        {hasCards ? (
-          <>
-            {/* Stats */}
-            <StatsBar stats={stats} />
+        <DashboardFilters cards={effectiveCards} stats={placeholderStats} />
 
-            {/* Recent cards */}
-            <RecentTimeline
-              cards={cards}
-              onCardClick={(id) => router.push(`/card/${id}`)}
-            />
-
-            {/* Templates and themes for existing users */}
-            <TemplatesCarousel />
-            <ThemesShowcase />
-          </>
-        ) : (
-          <NewUserExperience />
-        )}
-
-        {/* Floating CTA for returning users with cards */}
-        {hasCards && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40"
-          >
-            <Link href="/create">
-              <Button className="h-14 px-6 rounded-full bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-xl shadow-orange-500/30 text-base font-semibold">
-                <Plus className="h-5 w-5 mr-2" />
-                Add Today&apos;s Card
-              </Button>
-            </Link>
-          </motion.div>
-        )}
+        {/* Floating CTA for both new and returning users */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40"
+        >
+          <Link href="/create">
+            <Button className="h-12 px-6 rounded-full bg-linear-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-orange-400/30">
+              <Plus className="h-5 w-5 mr-2" />
+              {hasCards ? 'Log today’s mood' : 'Begin your daily recap'}
+            </Button>
+          </Link>
+        </motion.div>
       </div>
     </>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen text-muted-foreground">
+          Loading...
+        </div>
+      }
+    >
+      <HomePageInner />
+    </Suspense>
   );
 }
