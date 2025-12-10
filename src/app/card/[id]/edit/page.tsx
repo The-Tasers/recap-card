@@ -45,7 +45,8 @@ export default function EditCardPage() {
   }, [card]);
 
   const charCount = text.length;
-  const isValid = text.trim().length > 0 && charCount <= MAX_CHARS && tags.length > 0;
+  const isValid =
+    text.trim().length > 0 && charCount <= MAX_CHARS && tags.length > 0;
 
   // Tag handlers
   const handleToggleTag = (tag: string) => {

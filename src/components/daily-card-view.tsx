@@ -7,11 +7,8 @@ import {
   COLOR_PALETTES,
   TYPOGRAPHY_SETS,
   PaletteId,
-  StoryTemplateId,
   TypographySetId,
 } from '@/lib/types';
-import { MoodBadge } from './mood-selector';
-import { DateBadge } from './date-badge';
 import { BlockDisplay } from './blocks/block-editor';
 import { cn } from '@/lib/utils';
 
@@ -34,15 +31,6 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
     const moodColor = palette.moodColors[card.mood];
     const showGrain = card.showGrain ?? true;
     const showVignette = card.showVignette ?? false;
-
-    // Determine if dark palette
-    const isDark = [
-      'warmCinematic',
-      'cyberGradient',
-      'infraredNeon',
-      'forestMist',
-      'sunsetBoulevard',
-    ].includes(card.palette || 'warmCinematic');
 
     // Mood-based gradients
     const moodGradients = {
@@ -92,13 +80,13 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
               {card.tags.slice(0, 2).map((tag) => (
                 <span
                   key={tag}
-                  className="text-sm bg-neutral-900/20 dark:bg-white/20 px-3 py-1 rounded-full text-neutral-900 dark:text-white font-semibold"
+                  className="text-sm bg-white/50 dark:bg-black/40 px-3 py-1 rounded-full text-neutral-900 dark:text-white font-semibold backdrop-blur-sm"
                 >
                   #{tag}
                 </span>
               ))}
               {card.tags.length > 2 && (
-                <span className="text-sm bg-neutral-900/20 dark:bg-white/20 px-3 py-1 rounded-full text-neutral-900 dark:text-white font-semibold">
+                <span className="text-sm bg-white/50 dark:bg-black/40 px-3 py-1 rounded-full text-neutral-900 dark:text-white font-semibold backdrop-blur-sm">
                   +{card.tags.length - 2}
                 </span>
               )}
@@ -173,7 +161,7 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
           )}
 
           {/* Content Section */}
-          <div className="p-6 space-y-4 bg-white/40 dark:bg-black/20">
+          <div className="p-6 space-y-4">
             {!card.photoUrl && (
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -217,14 +205,9 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
                 {card.blocks.map((block) => (
                   <div
                     key={block.id}
-                    className="p-3 rounded-xl bg-white/30 dark:bg-black/20"
+                    className="p-3 rounded-xl bg-white/20 dark:bg-black/30"
                   >
-                    <div className="text-xs text-neutral-900/60 dark:text-white/70 mb-1">
-                      {block.label}
-                    </div>
-                    <div className="text-sm font-semibold text-neutral-900 dark:text-white">
-                      {block.value}
-                    </div>
+                    <BlockDisplay block={block} compact />
                   </div>
                 ))}
               </div>
@@ -235,7 +218,7 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
                 {card.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="px-3 py-1 rounded-full text-xs bg-white/40 dark:bg-black/30 text-neutral-900 dark:text-white font-medium"
+                    className="px-3 py-1 rounded-full text-xs bg-white/50 dark:bg-black/40 text-neutral-900 dark:text-white font-medium backdrop-blur-sm"
                   >
                     #{tag}
                   </span>
@@ -431,12 +414,7 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
               <div className="grid grid-cols-2 gap-3 pt-4 border-t border-neutral-900/20 dark:border-white/20">
                 {card.blocks.slice(0, 4).map((block) => (
                   <div key={block.id} className="text-center p-3">
-                    <div className="text-2xl font-bold text-neutral-900 dark:text-white">
-                      {block.value}
-                    </div>
-                    <div className="text-xs uppercase tracking-wider text-neutral-900/60 dark:text-white/70">
-                      {block.label}
-                    </div>
+                    <BlockDisplay block={block} />
                   </div>
                 ))}
               </div>
@@ -522,18 +500,7 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
                   className="p-3 rounded-xl"
                   style={{ background: `${palette.surface}` }}
                 >
-                  <div
-                    className="text-xs opacity-60 mb-1"
-                    style={{ color: palette.textSecondary }}
-                  >
-                    {block.label}
-                  </div>
-                  <div
-                    className="text-sm font-medium"
-                    style={{ color: palette.textPrimary }}
-                  >
-                    {block.value}
-                  </div>
+                  <BlockDisplay block={block} compact />
                 </div>
               ))}
             </div>
@@ -544,11 +511,7 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
               {card.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="px-3 py-1 rounded-full text-xs"
-                  style={{
-                    background: `${palette.accent}30`,
-                    color: palette.accent,
-                  }}
+                  className="px-3 py-1 rounded-full text-xs bg-white/50 dark:bg-black/40 text-neutral-900 dark:text-white font-medium backdrop-blur-sm"
                 >
                   #{tag}
                 </span>

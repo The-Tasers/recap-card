@@ -326,7 +326,7 @@ export function BlockDisplay({ block, compact }: BlockDisplayProps) {
     switch (block.type) {
       case 'number':
         return (
-          <span className="text-lg font-semibold">
+          <span className="text-lg font-semibold text-neutral-900 dark:text-white">
             {block.value}
             {block.blockId === 'sleep' && ' hrs'}
             {block.blockId === 'steps' && ' steps'}
@@ -335,8 +335,22 @@ export function BlockDisplay({ block, compact }: BlockDisplayProps) {
 
       case 'link':
         const isSpotifyLink = String(block.value).includes('spotify');
-        return (
-          <span className={cn('text-sm', isSpotifyLink && 'text-green-600')}>
+        const linkValue = String(block.value);
+        const isUrl =
+          linkValue.startsWith('http://') || linkValue.startsWith('https://');
+
+        return isUrl ? (
+          <a
+            href={linkValue}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm underline hover:no-underline transition-all text-neutral-900 dark:text-white hover:text-neutral-700 dark:hover:text-white/80 font-medium"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {linkValue}
+          </a>
+        ) : (
+          <span className="text-sm text-neutral-900 dark:text-white font-medium">
             {block.value}
           </span>
         );
@@ -344,11 +358,11 @@ export function BlockDisplay({ block, compact }: BlockDisplayProps) {
       case 'weather':
         return (
           <div className="flex items-center gap-2">
-            <span className="text-lg font-medium">
+            <span className="text-lg font-medium text-neutral-900 dark:text-white">
               {block.weatherCondition || block.value}
             </span>
             {block.temperature && (
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-neutral-600 dark:text-white/70">
                 {block.temperature}°{block.temperatureUnit || 'C'}
               </span>
             )}
@@ -373,7 +387,7 @@ export function BlockDisplay({ block, compact }: BlockDisplayProps) {
     <div className={cn('flex items-start gap-2', compact ? 'py-1' : 'py-2')}>
       <span className="text-base shrink-0">{definition.icon}</span>
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-muted-foreground mb-0.5">{block.label}</p>
+        <p className="text-xs text-neutral-600 dark:text-white/70 mb-0.5 font-medium">{block.label}</p>
         {renderValue()}
       </div>
     </div>

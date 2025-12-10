@@ -148,7 +148,7 @@ function TimelineContent() {
   }
 
   return (
-    <div className="max-w-md mx-auto pb-24">
+    <div className="max-w-md mx-auto pb-24 min-h-screen bg-neutral-50 dark:bg-neutral-950">
       <header className="sticky top-0 z-10 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-sm border-b border-neutral-200 dark:border-neutral-800 px-4 py-4 mb-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">

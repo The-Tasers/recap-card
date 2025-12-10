@@ -127,7 +127,7 @@ function HomePageInner() {
       </AnimatePresence>
 
       {/* Main content */}
-      <div className="max-w-md mx-auto px-5 py-6 pb-24">
+      <div className="max-w-md mx-auto px-5 py-6 pb-24 min-h-screen bg-neutral-50 dark:bg-neutral-950">
         {/* Header */}
         <Header userName={userName} />
 
