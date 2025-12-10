@@ -91,7 +91,7 @@ function SharedCardContent() {
       const date = card?.createdAt
         ? new Date(card.createdAt).toLocaleDateString().replace(/\//g, '-')
         : 'shared';
-      downloadImage(dataUrl, `recap-${date}.png`);
+      downloadImage(dataUrl, `recap-${date}.jpg`);
     } catch (error) {
       console.error('Download failed:', error);
     } finally {

@@ -114,7 +114,7 @@ export default function CardDetailPage() {
       const filename = `recap-${formatFullDate(card.createdAt).replace(
         /\s/g,
         '-'
-      )}${suffix}.png`;
+      )}${suffix}.jpg`;
 
       // Try native share first (mobile)
       const shared = await shareImage(dataUrl, 'My Day Recap');
@@ -142,7 +142,7 @@ export default function CardDetailPage() {
       const filename = `recap-${formatFullDate(card.createdAt).replace(
         /\s/g,
         '-'
-      )}${suffix}.png`;
+      )}${suffix}.jpg`;
       downloadImage(dataUrl, filename);
     } catch (error) {
       console.error('Download failed:', error);

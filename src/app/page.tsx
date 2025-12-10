@@ -1,15 +1,14 @@
 'use client';
 
 import { useMemo, useState, Suspense } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Plus, Sunrise } from 'lucide-react';
+import { Sunrise } from 'lucide-react';
 
-import { DailyCard, Mood } from '@/lib/types';
+import { DailyCard } from '@/lib/types';
 import { useCardStore } from '@/lib/store';
 import { Onboarding } from '@/components/onboarding';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { DailyCardView } from '@/components/daily-card-view';
 
 // Hero Section Component (mobile main screen)
 function HeroSection() {
@@ -40,135 +39,46 @@ function DashboardFilters({
   stats: { total: number; thisMonth: number; streak: number };
 }) {
   const now = new Date();
-  const startOfToday = new Date(now);
-  startOfToday.setHours(0, 0, 0, 0);
-
   const startOfWeek = new Date(now);
   startOfWeek.setDate(now.getDate() - 7);
   startOfWeek.setHours(0, 0, 0, 0);
-
-  const todayCount = cards.filter(
-    (c) => new Date(c.createdAt).toDateString() === startOfToday.toDateString()
-  ).length;
 
   const weekCount = cards.filter(
     (c) => new Date(c.createdAt) >= startOfWeek
   ).length;
 
-  const moodCounts = cards.reduce<Record<string, number>>((acc, card) => {
-    acc[card.mood] = (acc[card.mood] || 0) + 1;
-    return acc;
-  }, {});
-
-  const moodOrder = ['great', 'good', 'neutral', 'bad', 'terrible'] as const;
-  type MoodCount = { mood: Mood; count: number };
-  const topMood = moodOrder.reduce<MoodCount>(
-    (best, mood) => {
-      const count = moodCounts[mood] || 0;
-      if (count > best.count) return { mood, count };
-      return best;
-    },
-    { mood: 'neutral', count: 0 }
-  );
-
-  const moodMeta: Record<
-    Mood,
-    { label: string; emoji: string; accent: string }
-  > = {
-    great: {
-      label: 'Overall great',
-      emoji: '😊',
-      accent: 'from-amber-500 to-orange-500',
-    },
-    good: {
-      label: 'Overall good',
-      emoji: '🙂',
-      accent: 'from-green-500 to-emerald-500',
-    },
-    neutral: {
-      label: 'Steady',
-      emoji: '😌',
-      accent: 'from-slate-500 to-slate-600',
-    },
-    bad: {
-      label: 'Tough stretch',
-      emoji: '😕',
-      accent: 'from-orange-500 to-amber-600',
-    },
-    terrible: {
-      label: 'Rough patch',
-      emoji: '😞',
-      accent: 'from-rose-500 to-red-600',
-    },
-  };
-
-  const moodTile = moodMeta[topMood.mood] || moodMeta.neutral;
-
-  const tiles = [
-    {
-      label: moodTile.label,
-      value: `${topMood.count || 'No'} recent card${
-        topMood.count === 1 ? '' : 's'
-      }`,
-      accent: moodTile.accent,
-      foot:
-        topMood.count > 0
-          ? 'Based on your latest mood entries'
-          : 'Add a card to see your mood',
-      emoji: moodTile.emoji,
-    },
-    {
-      label: 'Streak',
-      value: `${stats.streak} day${stats.streak === 1 ? '' : 's'}`,
-      accent: 'from-neutral-900 to-neutral-700',
-      foot: 'Keep the chain going',
-      emoji: '🔥',
-    },
-    {
-      label: 'This week',
-      value: `${weekCount} card${weekCount === 1 ? '' : 's'}`,
-      accent: 'from-violet-500 to-purple-600',
-      foot:
-        todayCount > 0
-          ? 'Logged today already'
-          : 'Log today to boost your week',
-      emoji: '📅',
-    },
-    {
-      label: 'Life recap',
-      value: `${stats.total || 0} card${stats.total === 1 ? '' : 's'}`,
-      accent: 'from-teal-500 to-emerald-600',
-      foot: stats.total > 0 ? 'Your story so far' : 'Start your streak today',
-      emoji: '🧭',
-    },
-  ];
-
   return (
     <div className="mb-6 space-y-3">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-neutral-900 dark:text-neutral-100">
-          Your recap
-        </h3>
+      {/* Primary stats - larger tiles */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-2xl p-5 bg-linear-to-br from-amber-500 to-orange-500 text-white shadow-lg">
+          <div className="text-4xl font-bold mb-1">{stats.total}</div>
+          <div className="text-sm opacity-90">Total Recaps</div>
+        </div>
+        <div className="rounded-2xl p-5 bg-linear-to-br from-violet-500 to-purple-600 text-white shadow-lg">
+          <div className="text-4xl font-bold mb-1">{stats.streak}</div>
+          <div className="text-sm opacity-90">Day Streak 🔥</div>
+        </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {tiles.map((item) => (
-          <div
-            key={item.label}
-            className={cn(
-              'rounded-2xl p-4 text-white shadow-lg shadow-black/10 bg-linear-to-br min-h-[120px] flex flex-col justify-between',
-              item.accent
-            )}
-          >
-            <div className="flex items-center gap-2 text-sm opacity-90">
-              <span>{item.emoji}</span>
-              <span>{item.label}</span>
-            </div>
-            <div className="text-2xl font-semibold leading-tight">
-              {item.value}
-            </div>
-            <div className="text-xs opacity-80">{item.foot}</div>
+
+      {/* Secondary stats - compact */}
+      <div className="flex gap-3">
+        <div className="flex-1 rounded-xl p-4 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+          <div className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
+            {weekCount}
           </div>
-        ))}
+          <div className="text-xs text-neutral-600 dark:text-neutral-400">
+            This Week
+          </div>
+        </div>
+        <div className="flex-1 rounded-xl p-4 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+          <div className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
+            {stats.thisMonth}
+          </div>
+          <div className="text-xs text-neutral-600 dark:text-neutral-400">
+            This Month
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -176,6 +86,7 @@ function DashboardFilters({
 
 // Main Home Page Component
 function HomePageInner() {
+  const router = useRouter();
   const { cards, hydrated, hasSeenOnboarding, setHasSeenOnboarding } =
     useCardStore();
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
@@ -256,19 +167,32 @@ function HomePageInner() {
 
         <DashboardFilters cards={effectiveCards} stats={placeholderStats} />
 
-        {/* Floating CTA for both new and returning users */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40"
-        >
-          <Link href="/create">
-            <Button className="h-12 px-6 rounded-full bg-linear-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-orange-400/30">
-              <Plus className="h-5 w-5 mr-2" />
-              {hasCards ? 'Log today’s mood' : 'Begin your daily recap'}
-            </Button>
-          </Link>
-        </motion.div>
+        {/* Recent Cards */}
+        {hasCards && (
+          <div className="mb-4">
+            <h3 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
+              Recent
+            </h3>
+          </div>
+        )}
+
+        {/* Cards Display */}
+        {!hasCards ? (
+          <div className="text-center py-12 text-neutral-500 dark:text-neutral-400 text-sm">
+            No cards yet. Tap the 📓 Recap button to create your first one.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {effectiveCards.map((card) => (
+              <DailyCardView
+                key={card.id}
+                card={card}
+                variant="compact"
+                onClick={() => router.push(`/card/${card.id}`)}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </>
   );

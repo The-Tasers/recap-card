@@ -87,12 +87,11 @@ interface QuickAddButtonsProps {
 }
 
 const QUICK_ADD_ITEMS: { blockId: BlockId; icon: React.ReactNode }[] = [
-  { blockId: 'weather', icon: <Cloud className="h-4 w-4" /> },
-  { blockId: 'highlight', icon: <Star className="h-4 w-4" /> },
+  { blockId: 'custom', icon: <Star className="h-4 w-4" /> },
+  { blockId: 'soundtrack', icon: <Music className="h-4 w-4" /> },
   { blockId: 'steps', icon: <Footprints className="h-4 w-4" /> },
   { blockId: 'sleep', icon: <Moon className="h-4 w-4" /> },
-  { blockId: 'soundtrack', icon: <Music className="h-4 w-4" /> },
-  { blockId: 'gratitude', icon: <Heart className="h-4 w-4" /> },
+  { blockId: 'weather', icon: <Cloud className="h-4 w-4" /> },
 ];
 
 export function QuickAddButtons({

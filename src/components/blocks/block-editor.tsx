@@ -43,16 +43,6 @@ export function BlockEditor({
   const renderInput = () => {
     switch (block.type) {
       case 'text':
-        if (block.blockId === 'oneLine' || block.blockId === 'gratitude') {
-          return (
-            <Input
-              value={block.value as string}
-              onChange={(e) => handleValueChange(e.target.value)}
-              placeholder={definition.placeholder}
-              className="rounded-xl"
-            />
-          );
-        }
         return (
           <Textarea
             value={block.value as string}

@@ -1,4 +1,4 @@
-import { toPng } from 'html-to-image';
+import { toJpeg } from 'html-to-image';
 import { DailyCard } from './types';
 
 // Story dimensions for Instagram/TikTok (9:16)
@@ -12,7 +12,7 @@ export const STORY_EXPORT_CONFIG = {
 export const exportCardImage = async (
   element: HTMLElement
 ): Promise<string> => {
-  const dataUrl = await toPng(element, {
+  const dataUrl = await toJpeg(element, {
     quality: 0.95,
     pixelRatio: 2,
     backgroundColor: '#ffffff',
@@ -24,7 +24,7 @@ export const exportCardImage = async (
 export const exportStoryImage = async (
   element: HTMLElement
 ): Promise<string> => {
-  const dataUrl = await toPng(element, {
+  const dataUrl = await toJpeg(element, {
     quality: STORY_EXPORT_CONFIG.quality,
     pixelRatio: STORY_EXPORT_CONFIG.pixelRatio,
     width: STORY_EXPORT_CONFIG.width,
@@ -44,7 +44,7 @@ export const downloadImage = (dataUrl: string, filename: string) => {
 export const shareImage = async (dataUrl: string, title: string) => {
   try {
     const blob = await (await fetch(dataUrl)).blob();
-    const file = new File([blob], `${title}.png`, { type: 'image/png' });
+    const file = new File([blob], `${title}.jpg`, { type: 'image/jpeg' });
 
     if (navigator.share && navigator.canShare({ files: [file] })) {
       await navigator.share({
@@ -59,7 +59,7 @@ export const shareImage = async (dataUrl: string, title: string) => {
   return false;
 };
 
-// Export card as JSON for backup
+// Export cards as JSON for backup
 export const exportCardsAsJson = (cards: DailyCard[]): string => {
   return JSON.stringify(cards, null, 2);
 };
@@ -100,7 +100,7 @@ export const exportCardsAsZip = async (
           const filename = `${formatFullDate(card.createdAt).replace(
             /\s/g,
             '-'
-          )}.png`;
+          )}.jpg`;
           imagesFolder.file(filename, base64Data, { base64: true });
         } catch (error) {
           console.error(`Failed to export card ${card.id}:`, error);

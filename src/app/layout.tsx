@@ -35,15 +35,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="bg-neutral-50 dark:bg-neutral-900">
+    <html lang="en" className="bg-neutral-100 dark:bg-neutral-950">
       <body
-        className={`${geistSans.variable} font-sans antialiased min-h-screen bg-neutral-50 text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100`}
+        className={`${geistSans.variable} font-sans antialiased min-h-screen bg-neutral-100 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100`}
       >
         <ThemeProvider>
-          <main className="pb-20 min-h-screen">{children}</main>
-          <Suspense fallback={null}>
-            <BottomNav />
-          </Suspense>
+          <div className="max-w-md mx-auto bg-neutral-50 dark:bg-neutral-900 shadow-2xl shadow-black/10 min-h-screen relative">
+            <main className="pb-20 min-h-screen">{children}</main>
+            <Suspense fallback={null}>
+              <BottomNav />
+            </Suspense>
+          </div>
         </ThemeProvider>
       </body>
     </html>

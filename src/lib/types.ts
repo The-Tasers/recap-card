@@ -25,18 +25,7 @@ export const TYPOGRAPHY_SETS = TYPOGRAPHY_SETS_IMPL;
 // Block types for modular card content
 export type BlockType = 'text' | 'number' | 'link' | 'slider' | 'weather';
 
-export type BlockId =
-  | 'hardMoment'
-  | 'learned'
-  | 'unexpected'
-  | 'soundtrack'
-  | 'steps'
-  | 'sleep'
-  | 'oneLine'
-  | 'gratitude'
-  | 'weather'
-  | 'highlight'
-  | 'custom';
+export type BlockId = 'custom' | 'soundtrack' | 'steps' | 'sleep' | 'weather';
 
 export interface CardBlock {
   id: string;
@@ -104,66 +93,35 @@ export const BLOCK_DEFINITIONS: Record<
   BlockId,
   { type: BlockType; label: string; placeholder: string; icon: string }
 > = {
-  hardMoment: {
+  custom: {
     type: 'text',
-    label: 'What made today hard',
-    placeholder: 'Describe a challenge...',
-    icon: '💪',
-  },
-  learned: {
-    type: 'text',
-    label: 'What I learned today',
-    placeholder: 'Something new I discovered...',
-    icon: '💡',
-  },
-  unexpected: {
-    type: 'text',
-    label: 'Unexpected moment',
-    placeholder: 'Something surprising...',
-    icon: '✨',
+    label: 'Text note',
+    placeholder: 'Write anything...',
+    icon: '📝',
   },
   soundtrack: {
     type: 'link',
-    label: "Today's soundtrack",
-    placeholder: 'Song name or Spotify link...',
+    label: 'Music / Link',
+    placeholder: 'Song name, Spotify link, or any URL...',
     icon: '🎵',
   },
   steps: {
     type: 'number',
-    label: 'Steps walked',
+    label: 'Steps',
     placeholder: '0',
     icon: '👟',
   },
-  sleep: { type: 'number', label: 'Sleep hours', placeholder: '0', icon: '😴' },
-  oneLine: {
-    type: 'text',
-    label: 'One line memory',
-    placeholder: 'A brief memory...',
-    icon: '📝',
-  },
-  gratitude: {
-    type: 'text',
-    label: 'Gratitude item',
-    placeholder: "Something I'm grateful for...",
-    icon: '🙏',
+  sleep: {
+    type: 'number',
+    label: 'Sleep (hours)',
+    placeholder: '0',
+    icon: '😴',
   },
   weather: {
     type: 'weather',
     label: 'Weather',
     placeholder: 'Select condition...',
     icon: '🌤️',
-  },
-  highlight: {
-    type: 'text',
-    label: 'Highlight',
-    placeholder: 'Best part of the day...',
-    icon: '⭐',
-  },
-  custom: {
-    type: 'text',
-    label: 'Custom note',
-    placeholder: 'Write anything...',
-    icon: '📌',
   },
 };
 

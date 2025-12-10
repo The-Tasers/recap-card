@@ -342,85 +342,93 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   ];
 
   return (
-    <div className="fixed inset-0 bg-linear-to-b from-amber-50 via-white to-violet-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950 z-50 overflow-hidden">
-      {/* Grain texture */}
-      <div className="grain-subtle absolute inset-0 pointer-events-none opacity-50" />
+    <div className="fixed inset-0 z-100 flex items-center justify-center">
+      {/* Background overlay - full screen */}
+      <div className="absolute inset-0 bg-neutral-100 dark:bg-neutral-950" />
 
-      {/* Content */}
-      <div className="relative h-full flex flex-col safe-area-inset">
-        {/* Skip button */}
-        {currentScreen < 2 && (
-          <div className="absolute top-4 right-4 z-20">
-            <Button
-              variant="ghost"
-              onClick={onComplete}
-              className="text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
-            >
-              Skip
-            </Button>
-          </div>
-        )}
+      {/* Onboarding container - constrained */}
+      <div className="relative max-w-md w-full h-full bg-linear-to-b from-amber-50 via-white to-violet-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950 shadow-2xl shadow-black/20 overflow-hidden">
+        {/* Grain texture */}
+        <div className="grain-subtle absolute inset-0 pointer-events-none opacity-50" />
 
-        {/* Screens */}
-        <div className="flex-1 relative">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentScreen}
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              transition={{ duration: 0.3 }}
-              className="absolute inset-0"
-            >
-              {screens[currentScreen]}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* Navigation */}
-        <div className="p-6 pb-8 flex items-center justify-between">
-          {/* Back button */}
-          {currentScreen > 0 ? (
-            <Button
-              variant="ghost"
-              onClick={() => setCurrentScreen(currentScreen - 1)}
-              className="h-12 px-4 rounded-full"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-          ) : (
-            <div className="w-24" />
+        {/* Content */}
+        <div className="relative h-full flex flex-col safe-area-inset">
+          {/* Skip button */}
+          {currentScreen < 2 && (
+            <div className="absolute top-4 right-4 z-20">
+              <Button
+                variant="ghost"
+                onClick={onComplete}
+                className="text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+              >
+                Skip
+              </Button>
+            </div>
           )}
 
-          {/* Dots */}
-          <div className="flex gap-2">
-            {[0, 1, 2].map((i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentScreen(i)}
-                className={cn(
-                  'h-2 rounded-full transition-all duration-300',
-                  i === currentScreen
-                    ? 'w-8 bg-linear-to-r from-amber-500 to-orange-500'
-                    : 'w-2 bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'
-                )}
-              />
-            ))}
+          {/* Screens */}
+          <div className="flex-1 relative">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentScreen}
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ duration: 0.3 }}
+                className="absolute inset-0"
+              >
+                {screens[currentScreen]}
+              </motion.div>
+            </AnimatePresence>
           </div>
 
-          {/* Next button */}
-          {currentScreen < 2 ? (
-            <Button
-              onClick={handleNext}
-              className="h-12 px-6 rounded-full bg-neutral-900 dark:bg-neutral-100 hover:bg-neutral-800 dark:hover:bg-neutral-200 text-white dark:text-neutral-900"
-            >
-              Next
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          ) : (
-            <div className="w-24" />
-          )}
+          {/* Navigation */}
+          <div className="p-6 pb-8">
+            <div className="flex items-center justify-between gap-4">
+              {/* Back button - left side */}
+              {currentScreen > 0 ? (
+                <Button
+                  variant="ghost"
+                  onClick={() => setCurrentScreen(currentScreen - 1)}
+                  className="h-12 px-5 rounded-full text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100/80 dark:hover:bg-neutral-800/80"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+              ) : (
+                <div className="w-24" />
+              )}
+
+              {/* Dots - center */}
+              <div className="flex gap-2">
+                {[0, 1, 2].map((i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentScreen(i)}
+                    className={cn(
+                      'h-2 rounded-full transition-all duration-300',
+                      i === currentScreen
+                        ? 'w-8 bg-linear-to-r from-amber-500 to-orange-500'
+                        : 'w-2 bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'
+                    )}
+                  />
+                ))}
+              </div>
+
+              {/* Next button - right side */}
+              {currentScreen < 2 ? (
+                <Button
+                  onClick={handleNext}
+                  className="h-12 px-6 rounded-full bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-orange-400/30"
+                >
+                  Next
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              ) : (
+                <div className="w-24" />
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
