@@ -3,14 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Sunrise,
-  Camera,
-  Share2,
-  Smile,
-  ArrowRight,
-  ArrowLeft,
-} from 'lucide-react';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useCardStore } from '@/lib/store';
@@ -47,11 +40,6 @@ function Screen1() {
         transition={{ duration: 0.6, ease: 'easeOut' }}
         className="relative z-10"
       >
-        {/* Icon */}
-        <div className="w-20 h-20 rounded-3xl bg-linear-to-br from-amber-500 to-orange-500 flex items-center justify-center mx-auto mb-8 shadow-xl shadow-orange-500/30">
-          <Sunrise className="h-10 w-10 text-white" />
-        </div>
-
         {/* Headline */}
         <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-4 leading-tight">
           Capture your day

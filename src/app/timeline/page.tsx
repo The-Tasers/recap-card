@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, CalendarDays, List, NotebookPen } from 'lucide-react';
+import { ArrowLeft, CalendarDays, List } from 'lucide-react';
 import { useCardStore } from '@/lib/store';
 import { DailyCard } from '@/lib/types';
 import { SearchBar, SearchFilters } from '@/components/search-filter';
@@ -106,22 +106,37 @@ function TimelineContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { cards, hydrated } = useCardStore();
-  const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
-  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  // Initialize filters from search params on mount
-  useEffect(() => {
-    setFilters(filtersFromParams(searchParams));
+  // Derive filters and view mode from search params
+  const filters = useMemo(
+    () => filtersFromParams(searchParams),
+    [searchParams]
+  );
+  const viewModeFromParams = useMemo(() => {
+    const view = searchParams.get('view');
+    return view === 'calendar' || view === 'list' ? view : 'list';
   }, [searchParams]);
 
+  const [localFilters, setLocalFilters] = useState<SearchFilters>(filters);
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>(
+    viewModeFromParams
+  );
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  // Update local state when URL params change
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLocalFilters(filters);
+    setViewMode(viewModeFromParams);
+  }, [filters, viewModeFromParams]);
+
   const filteredCards = useMemo(() => {
-    const result = filterCards(cards, filters);
+    const result = filterCards(cards, localFilters);
     return [...result].sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-  }, [cards, filters]);
+  }, [cards, localFilters]);
 
   const handleBack = () => {
     if (typeof window !== 'undefined' && window.history.length > 1) {
@@ -148,8 +163,8 @@ function TimelineContent() {
   }
 
   return (
-    <div className="max-w-md mx-auto pb-24 min-h-screen bg-neutral-50 dark:bg-neutral-950">
-      <header className="sticky top-0 z-10 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-sm border-b border-neutral-200 dark:border-neutral-800 px-4 py-4 mb-4">
+    <div className="max-w-md mx-auto pb-24 min-h-screen bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-10 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-200 dark:border-neutral-800 px-4 py-4 mb-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Button
@@ -202,15 +217,12 @@ function TimelineContent() {
 
       <div className="px-4">
         <div className="mb-6">
-          <SearchBar filters={filters} onFiltersChange={setFilters} />
+          <SearchBar filters={localFilters} onFiltersChange={setLocalFilters} />
         </div>
 
         {viewMode === 'list' ? (
           filteredCards.length === 0 ? (
             <div className="text-center py-16">
-              <div className="w-16 h-16 rounded-3xl bg-amber-500/10 dark:bg-amber-500/20 flex items-center justify-center mx-auto mb-4">
-                <NotebookPen className="h-8 w-8 text-amber-600 dark:text-amber-400" />
-              </div>
               <p className="text-sm text-neutral-500 dark:text-neutral-400">
                 {cards.length === 0
                   ? 'No recaps yet.'
@@ -239,9 +251,6 @@ function TimelineContent() {
 
             {cardsForSelectedDate.length === 0 ? (
               <div className="text-center py-10">
-                <div className="w-16 h-16 rounded-3xl bg-amber-500/10 dark:bg-amber-500/20 flex items-center justify-center mx-auto mb-4">
-                  <NotebookPen className="h-8 w-8 text-amber-600 dark:text-amber-400" />
-                </div>
                 <p className="text-sm text-neutral-500 dark:text-neutral-400">
                   {selectedDate
                     ? 'No recap on this day.'
