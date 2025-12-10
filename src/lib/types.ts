@@ -1,5 +1,27 @@
 export type Mood = 'great' | 'good' | 'neutral' | 'bad' | 'terrible';
 
+// Predefined tags for categorizing daily recaps
+export const PREDEFINED_TAGS = [
+  'work',
+  'family',
+  'friends',
+  'health',
+  'exercise',
+  'food',
+  'travel',
+  'learning',
+  'creative',
+  'achievement',
+  'gratitude',
+  'reflection',
+  'challenge',
+  'milestone',
+  'fun',
+  'relax',
+] as const;
+
+export type PredefinedTag = (typeof PREDEFINED_TAGS)[number];
+
 // Import design system types
 import {
   type PaletteId as PaletteIdType,
@@ -64,6 +86,7 @@ export interface DailyCard {
   mood: Mood;
   photoUrl?: string;
   createdAt: string;
+  isPinned?: boolean;
 
   // New optional fields
   blocks?: CardBlock[];

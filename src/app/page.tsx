@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Flame, Calendar, Sparkles, NotebookPen } from 'lucide-react';
 
-import { DailyCard } from '@/lib/types';
 import { useCardStore } from '@/lib/store';
 import { Onboarding } from '@/components/onboarding';
 import { DailyCardView } from '@/components/daily-card-view';
@@ -110,10 +109,15 @@ function HomePageInner() {
   }
 
   const hasCards = cards.length > 0;
-  const effectiveCards = hasCards ? cards : [];
-  const placeholderStats = hasCards
-    ? stats
-    : { total: 0, thisMonth: 0, streak: 0 };
+  // Sort cards: pinned first, then by date
+  const sortedCards = [...cards].sort((a, b) => {
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+  const effectiveCards = hasCards ? sortedCards : [];
+  const pinnedCards = effectiveCards.filter((card) => card.isPinned);
+  const hasPinnedCards = pinnedCards.length > 0;
 
   return (
     <>
@@ -195,6 +199,40 @@ function HomePageInner() {
           </div>
         </div>
 
+        {/* Pinned Cards Section */}
+        {hasPinnedCards && (
+          <>
+            <div className="mb-4">
+              <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                Pinned Recaps
+              </h2>
+            </div>
+            <div className="relative -mx-4 mb-8">
+              <div
+                className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide px-4 pb-4"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
+                {pinnedCards.map((card, index) => (
+                  <motion.div
+                    key={card.id}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="snap-start shrink-0 w-[65%] first:ml-0 relative"
+                  >
+                    <DailyCardView
+                      card={card}
+                      variant="compact"
+                      onClick={() => router.push(`/card/${card.id}`)}
+                      className="min-h-[180px] flex flex-col"
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
         {/* Recent Recaps Section */}
         {hasCards && (
           <div className="mb-4">
@@ -230,24 +268,15 @@ function HomePageInner() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="snap-start shrink-0 w-[85%] first:ml-0"
+                  className="snap-start shrink-0 w-[65%] first:ml-0 relative"
                 >
                   <DailyCardView
                     card={card}
                     variant="compact"
                     onClick={() => router.push(`/card/${card.id}`)}
-                    className="h-full"
+                    className="min-h-[180px] flex flex-col"
                   />
                 </motion.div>
-              ))}
-            </div>
-            {/* Scroll indicator dots */}
-            <div className="flex justify-center gap-1.5 mt-4">
-              {effectiveCards.slice(0, 5).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-1.5 w-1.5 rounded-full bg-neutral-300 dark:bg-neutral-700"
-                />
               ))}
             </div>
           </div>

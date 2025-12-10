@@ -19,8 +19,15 @@ import { useState } from 'react';
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { cards, hydrated, theme, setTheme, setHasSeenOnboarding, userName, setUserName } =
-    useCardStore();
+  const {
+    cards,
+    hydrated,
+    theme,
+    setTheme,
+    setHasSeenOnboarding,
+    userName,
+    setUserName,
+  } = useCardStore();
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [nameInput, setNameInput] = useState(userName || '');
 
@@ -81,7 +88,10 @@ export default function SettingsPage() {
           </h2>
           <div className="space-y-3">
             <div>
-              <label htmlFor="userName" className="text-sm text-neutral-600 dark:text-neutral-400 mb-1.5 block">
+              <label
+                htmlFor="userName"
+                className="text-sm text-neutral-600 dark:text-neutral-400 mb-1.5 block"
+              >
                 Your Name
               </label>
               <div className="flex gap-2">

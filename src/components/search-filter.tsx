@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { DailyCard, Mood, MOODS } from '@/lib/types';
+import { DailyCard, Mood, MOODS, PREDEFINED_TAGS } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 export interface SearchFilters {
@@ -47,14 +47,9 @@ const DEFAULT_FILTERS: SearchFilters = {
 interface SearchBarProps {
   filters: SearchFilters;
   onFiltersChange: (filters: SearchFilters) => void;
-  availableTags: string[];
 }
 
-export function SearchBar({
-  filters,
-  onFiltersChange,
-  availableTags,
-}: SearchBarProps) {
+export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const hasActiveFilters =
@@ -105,7 +100,18 @@ export function SearchBar({
           </SheetTrigger>
           <SheetContent side="bottom" className="rounded-t-3xl">
             <SheetHeader>
-              <SheetTitle>Filters</SheetTitle>
+              <div className="flex items-center justify-between pr-8">
+                <SheetTitle>Filters</SheetTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearFilters}
+                  disabled={!hasActiveFilters}
+                  className="text-sm border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 disabled:opacity-0"
+                >
+                  Clear All
+                </Button>
+              </div>
             </SheetHeader>
             <div className="space-y-6 py-4">
               {/* Mood Filter */}
@@ -158,7 +164,7 @@ export function SearchBar({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All cards</SelectItem>
+                    <SelectItem value="all">All recaps</SelectItem>
                     <SelectItem value="yes">With photo</SelectItem>
                     <SelectItem value="no">Without photo</SelectItem>
                   </SelectContent>
@@ -191,46 +197,33 @@ export function SearchBar({
               </div>
 
               {/* Tags Filter */}
-              {availableTags.length > 0 && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2">
-                    <Tag className="h-4 w-4" />
-                    Tags
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {availableTags.map((tag) => (
-                      <button
-                        key={tag}
-                        onClick={() => {
-                          const newTags = filters.tags.includes(tag)
-                            ? filters.tags.filter((t) => t !== tag)
-                            : [...filters.tags, tag];
-                          onFiltersChange({ ...filters, tags: newTags });
-                        }}
-                        className={cn(
-                          'px-3 py-1.5 rounded-full text-sm',
-                          filters.tags.includes(tag)
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted'
-                        )}
-                      >
-                        #{tag}
-                      </button>
-                    ))}
-                  </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Tag className="h-4 w-4" />
+                  Tags
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {PREDEFINED_TAGS.map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() => {
+                        const newTags = filters.tags.includes(tag)
+                          ? filters.tags.filter((t) => t !== tag)
+                          : [...filters.tags, tag];
+                        onFiltersChange({ ...filters, tags: newTags });
+                      }}
+                      className={cn(
+                        'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
+                        filters.tags.includes(tag)
+                          ? 'bg-linear-to-r from-violet-500 to-purple-600 text-white'
+                          : 'bg-muted hover:bg-muted/80'
+                      )}
+                    >
+                      #{tag}
+                    </button>
+                  ))}
                 </div>
-              )}
-
-              {/* Clear Filters Button */}
-              {hasActiveFilters && (
-                <Button
-                  variant="outline"
-                  onClick={clearFilters}
-                  className="w-full rounded-full"
-                >
-                  Clear All Filters
-                </Button>
-              )}
+              </div>
             </div>
           </SheetContent>
         </Sheet>

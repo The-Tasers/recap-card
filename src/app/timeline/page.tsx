@@ -115,14 +115,6 @@ function TimelineContent() {
     setFilters(filtersFromParams(searchParams));
   }, [searchParams]);
 
-  const availableTags = useMemo(() => {
-    const set = new Set<string>();
-    cards.forEach((card) => {
-      card.tags?.forEach((tag) => set.add(tag));
-    });
-    return Array.from(set);
-  }, [cards]);
-
   const filteredCards = useMemo(() => {
     const result = filterCards(cards, filters);
     return [...result].sort(
@@ -183,7 +175,8 @@ function TimelineContent() {
               size="icon"
               className={cn(
                 'rounded-full h-10 w-10',
-                viewMode === 'list' && 'bg-primary/10 text-primary border-primary'
+                viewMode === 'list' &&
+                  'bg-primary/10 text-primary border-primary'
               )}
               onClick={() => setViewMode('list')}
               aria-pressed={viewMode === 'list'}
@@ -209,12 +202,9 @@ function TimelineContent() {
 
       <div className="px-4">
         <div className="mb-6">
-          <SearchBar
-            filters={filters}
-            onFiltersChange={setFilters}
-            availableTags={availableTags}
-          />
+          <SearchBar filters={filters} onFiltersChange={setFilters} />
         </div>
+
         {viewMode === 'list' ? (
           filteredCards.length === 0 ? (
             <div className="text-center py-16">
@@ -229,40 +219,7 @@ function TimelineContent() {
             </div>
           ) : (
             <div className="space-y-3">
-            {filteredCards.map((card) => (
-              <DailyCardView
-                key={card.id}
-                card={card}
-                variant="compact"
-                onClick={() => router.push(`/card/${card.id}`)}
-              />
-            ))}
-          </div>
-        )
-      ) : (
-        <div className="space-y-4">
-          <CalendarView
-            cards={filteredCards}
-            selectedDate={selectedDate}
-            onSelectDate={setSelectedDate}
-          />
-
-          {cardsForSelectedDate.length === 0 ? (
-            <div className="text-center py-10">
-              <div className="w-16 h-16 rounded-3xl bg-amber-500/10 dark:bg-amber-500/20 flex items-center justify-center mx-auto mb-4">
-                <NotebookPen className="h-8 w-8 text-amber-600 dark:text-amber-400" />
-              </div>
-              <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                {selectedDate
-                  ? 'No recap on this day.'
-                  : cards.length === 0
-                  ? 'No recaps yet.'
-                  : 'No recaps match your filters.'}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {cardsForSelectedDate.map((card) => (
+              {filteredCards.map((card) => (
                 <DailyCardView
                   key={card.id}
                   card={card}
@@ -271,9 +228,42 @@ function TimelineContent() {
                 />
               ))}
             </div>
-          )}
-        </div>
-      )}
+          )
+        ) : (
+          <div className="space-y-4">
+            <CalendarView
+              cards={filteredCards}
+              selectedDate={selectedDate}
+              onSelectDate={setSelectedDate}
+            />
+
+            {cardsForSelectedDate.length === 0 ? (
+              <div className="text-center py-10">
+                <div className="w-16 h-16 rounded-3xl bg-amber-500/10 dark:bg-amber-500/20 flex items-center justify-center mx-auto mb-4">
+                  <NotebookPen className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+                </div>
+                <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                  {selectedDate
+                    ? 'No recap on this day.'
+                    : cards.length === 0
+                    ? 'No recaps yet.'
+                    : 'No recaps match your filters.'}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {cardsForSelectedDate.map((card) => (
+                  <DailyCardView
+                    key={card.id}
+                    card={card}
+                    variant="compact"
+                    onClick={() => router.push(`/card/${card.id}`)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
