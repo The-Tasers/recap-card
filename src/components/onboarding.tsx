@@ -183,88 +183,6 @@ function Screen2({
   );
 }
 
-// Screen 3: How It Works
-function Screen3() {
-  const steps = [
-    {
-      icon: Smile,
-      label: 'Choose your mood',
-      desc: 'Track how you feel',
-      color: 'from-amber-400 to-orange-500',
-      emoji: '😊',
-    },
-    {
-      icon: Camera,
-      label: 'Write & attach photo',
-      desc: 'Capture your day',
-      color: 'from-violet-400 to-purple-500',
-      emoji: '📝',
-    },
-    {
-      icon: Share2,
-      label: 'Share as image',
-      desc: 'Export and share',
-      color: 'from-pink-400 to-rose-500',
-      emoji: '🖼️',
-    },
-  ];
-
-  return (
-    <div className="flex flex-col items-center justify-center min-h-full px-6 text-center">
-      {/* Decorative background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-48 h-48 rounded-full bg-linear-to-br from-violet-200/40 to-purple-300/30 blur-3xl" />
-        <div className="absolute bottom-40 right-10 w-56 h-56 rounded-full bg-linear-to-br from-pink-200/40 to-rose-300/30 blur-3xl" />
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-sm"
-      >
-        {/* Headline */}
-        <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
-          Simple as 1-2-3
-        </h2>
-        <p className="text-neutral-500 dark:text-neutral-400 mb-10">
-          Create your daily recap in seconds
-        </p>
-
-        {/* Steps */}
-        <div className="space-y-4">
-          {steps.map((step, i) => (
-            <motion.div
-              key={step.label}
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: i * 0.15 + 0.2 }}
-              className="flex items-center gap-4 p-4 rounded-2xl bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm border border-neutral-100 dark:border-neutral-700 shadow-sm"
-            >
-              <div
-                className={cn(
-                  'w-14 h-14 rounded-2xl bg-linear-to-br flex items-center justify-center text-white shrink-0',
-                  step.color
-                )}
-              >
-                <span className="text-2xl">{step.emoji}</span>
-              </div>
-              <div className="text-left flex-1">
-                <div className="font-semibold text-neutral-900 dark:text-neutral-100">
-                  {step.label}
-                </div>
-                <div className="text-sm text-neutral-500 dark:text-neutral-400">
-                  {step.desc}
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
 // Screen 4: What You Can Do Next
 function Screen4({
   onComplete,
@@ -327,11 +245,6 @@ function Screen4({
             Celebrate small wins.
           </span>
         </p>
-        <p className="text-neutral-600 dark:text-neutral-400 mb-10 leading-relaxed">
-          <span className="font-medium text-neutral-800 dark:text-neutral-200">
-            Share your story.
-          </span>
-        </p>
 
         {/* Feature pills */}
         <motion.div
@@ -340,12 +253,7 @@ function Screen4({
           transition={{ delay: 0.3 }}
           className="flex flex-wrap gap-2 justify-center mb-10"
         >
-          {[
-            'Mood tracking',
-            'Photo upload',
-            'Export as image',
-            'Privacy-first',
-          ].map((feature) => (
+          {['Mood tracking', 'Photo upload', 'Privacy-first'].map((feature) => (
             <span
               key={feature}
               className="px-4 py-2 rounded-full bg-white/80 dark:bg-neutral-800/80 border border-neutral-100 dark:border-neutral-700 text-sm text-neutral-600 dark:text-neutral-300 shadow-sm"

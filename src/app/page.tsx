@@ -8,19 +8,30 @@ import { Flame, Calendar, Sparkles, NotebookPen } from 'lucide-react';
 import { useCardStore } from '@/lib/store';
 import { Onboarding } from '@/components/onboarding';
 import { DailyCardView } from '@/components/daily-card-view';
+import Image from 'next/image';
 
 // Header Component
 function Header({ userName }: { userName: string }) {
   return (
-    <header className="mb-8">
-      <h1 className="text-4xl font-black text-neutral-900 dark:text-neutral-100 mb-1 tracking-tight">
-        RECAPP
-      </h1>
-      {userName && (
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">
-          Welcome back, {userName}
-        </p>
-      )}
+    <header className="fixed top-0 left-0 right-0 z-50 bg-neutral-50 dark:bg-neutral-950">
+      <div className="max-w-md mx-auto flex flex-col gap-1 px-5 py-4">
+        <div className="flex gap-2 items-center">
+          <Image
+            src="/web-app-manifest-192x192.png"
+            alt="RECAPP Logo"
+            width={50}
+            height={50}
+          />
+          <h1 className="text-4xl font-black text-neutral-900 dark:text-neutral-100 tracking-tight">
+            RECAPP
+          </h1>
+        </div>
+        {userName && (
+          <p className="text-md text-neutral-600 dark:text-neutral-400">
+            Welcome back, {userName}
+          </p>
+        )}
+      </div>
     </header>
   );
 }
@@ -126,11 +137,11 @@ function HomePageInner() {
         {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
       </AnimatePresence>
 
-      {/* Main content */}
-      <div className="max-w-md mx-auto px-5 py-6 pb-24 min-h-screen bg-neutral-50 dark:bg-neutral-950">
-        {/* Header */}
-        <Header userName={userName} />
+      {/* Header */}
+      <Header userName={userName} />
 
+      {/* Main content */}
+      <div className="max-w-md mx-auto px-5 pt-32 pb-24 min-h-screen bg-neutral-50 dark:bg-neutral-950">
         {/* Weekly Progress Block */}
         <div className="mb-6 bg-linear-to-br from-violet-500 to-purple-600 dark:from-violet-600 dark:to-purple-700 rounded-3xl p-6 shadow-sm">
           <div className="mb-4">

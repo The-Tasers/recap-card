@@ -43,6 +43,7 @@ export default function CreatePage() {
   const [existingCard, setExistingCard] = useState<DailyCard | null>(null);
 
   const charCount = text.length;
+
   const isValid =
     text.trim().length > 0 && charCount <= MAX_CHARS && tags.length > 0;
 
@@ -84,11 +85,28 @@ export default function CreatePage() {
     setIsSubmitting(true);
     setError(null);
 
+    const nonEmptyBlocks = blocks.filter((block) => {
+      if (block.type === 'text' || block.type === 'link') {
+        return (block.value as string).trim().length > 0;
+      } else if (block.type === 'number') {
+        return block.value !== null && block.value !== undefined;
+      } else if (block.type === 'weather') {
+        return (
+          block.value !== null &&
+          block.value !== undefined &&
+          block.temperature !== undefined &&
+          block.weatherCondition !== undefined
+        );
+      }
+
+      return false;
+    });
+
     const cardData = {
       text: text.trim(),
       mood,
       photoUrl,
-      blocks: blocks.length > 0 ? blocks : undefined,
+      blocks: nonEmptyBlocks.length > 0 ? nonEmptyBlocks : undefined,
       tags: tags.length > 0 ? tags : undefined,
       createdAt: new Date().toISOString(),
     };

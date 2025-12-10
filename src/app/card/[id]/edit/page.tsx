@@ -2,14 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Check, X, Plus } from 'lucide-react';
+import { ArrowLeft, Check } from 'lucide-react';
 import { useCardStore } from '@/lib/store';
-import { Mood, CardBlock, PREDEFINED_TAGS, PredefinedTag } from '@/lib/types';
+import { Mood, CardBlock, PREDEFINED_TAGS } from '@/lib/types';
 import { MoodSelector } from '@/components/mood-selector';
 import { PhotoUploader } from '@/components/photo-uploader';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 import { BlockList } from '@/components/blocks/block-editor';
 import { BlockPicker } from '@/components/blocks/block-picker';
 

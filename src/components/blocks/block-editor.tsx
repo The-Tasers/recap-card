@@ -45,6 +45,7 @@ export function BlockEditor({
       case 'text':
         return (
           <Textarea
+            autoFocus
             value={block.value as string}
             onChange={(e) => handleValueChange(e.target.value)}
             placeholder={definition.placeholder}
@@ -55,6 +56,7 @@ export function BlockEditor({
       case 'number':
         return (
           <Input
+            autoFocus
             type="number"
             value={
               block.value === 0 || block.value === ''
@@ -75,6 +77,7 @@ export function BlockEditor({
       case 'link':
         return (
           <Input
+            autoFocus
             value={block.value as string}
             onChange={(e) => handleValueChange(e.target.value)}
             placeholder={definition.placeholder}
@@ -88,6 +91,7 @@ export function BlockEditor({
             type="range"
             min={0}
             max={10}
+            autoFocus
             value={block.value as number}
             onChange={(e) => handleValueChange(Number(e.target.value))}
             className="w-full"
@@ -218,7 +222,7 @@ export function BlockEditor({
         </div>
 
         <span className="text-lg">{definition.icon}</span>
-        <span className="text-sm font-medium text-neutral-700 flex-1">
+        <span className="text-sm font-medium text-neutral-400 dark:text-neutral-500 flex-1">
           {block.label}
         </span>
 
@@ -334,7 +338,6 @@ export function BlockDisplay({ block, compact }: BlockDisplayProps) {
         );
 
       case 'link':
-        const isSpotifyLink = String(block.value).includes('spotify');
         const linkValue = String(block.value);
         const isUrl =
           linkValue.startsWith('http://') || linkValue.startsWith('https://');

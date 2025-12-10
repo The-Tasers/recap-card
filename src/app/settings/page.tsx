@@ -107,8 +107,8 @@ export default function SettingsPage() {
                   />
                 </div>
                 <Button
-                  onClick={() => setUserName(nameInput)}
-                  disabled={nameInput === userName}
+                  onClick={() => setUserName(nameInput.trim())}
+                  disabled={nameInput === userName || nameInput.trim() === ''}
                   size="default"
                 >
                   Save
@@ -171,7 +171,7 @@ export default function SettingsPage() {
           <div className="space-y-2">
             <Button
               variant="outline"
-              className="w-full justify-start"
+              className="w-full"
               onClick={handleExportJson}
             >
               <FileJson className="h-4 w-4 mr-2" />
