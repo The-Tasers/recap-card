@@ -1,95 +1,38 @@
 'use client';
 
-import { useMemo, useState, Suspense } from 'react';
+import { useMemo, useState, Suspense, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Sunrise } from 'lucide-react';
+import { Flame, Calendar, Sparkles } from 'lucide-react';
 
 import { DailyCard } from '@/lib/types';
 import { useCardStore } from '@/lib/store';
 import { Onboarding } from '@/components/onboarding';
 import { DailyCardView } from '@/components/daily-card-view';
 
-// Hero Section Component (mobile main screen)
-function HeroSection() {
+// Header Component
+function Header({ userName }: { userName: string }) {
   return (
-    <section className="mb-6 text-center">
-      <div className="mx-auto mb-3 w-14 h-14 rounded-2xl bg-linear-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-400/30">
-        <Sunrise className="h-7 w-7 text-white" />
-      </div>
-      <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 leading-tight">
-        Day Recap
+    <header className="mb-8">
+      <h1 className="text-4xl font-black text-neutral-900 dark:text-neutral-100 mb-1 tracking-tight">
+        RECAPP
       </h1>
-      <p className="text-base text-neutral-800 dark:text-neutral-200 mt-3 font-medium">
-        Capture today in one beautiful card.
-      </p>
-      <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
-        Mood, notes, photo — ready to share.
-      </p>
-    </section>
-  );
-}
-
-// Dashboard status (no filters)
-function DashboardFilters({
-  cards,
-  stats,
-}: {
-  cards: DailyCard[];
-  stats: { total: number; thisMonth: number; streak: number };
-}) {
-  const now = new Date();
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - 7);
-  startOfWeek.setHours(0, 0, 0, 0);
-
-  const weekCount = cards.filter(
-    (c) => new Date(c.createdAt) >= startOfWeek
-  ).length;
-
-  return (
-    <div className="mb-6 space-y-3">
-      {/* Primary stats - larger tiles */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl p-5 bg-linear-to-br from-amber-500 to-orange-500 text-white shadow-lg">
-          <div className="text-4xl font-bold mb-1">{stats.total}</div>
-          <div className="text-sm opacity-90">Total Recaps</div>
-        </div>
-        <div className="rounded-2xl p-5 bg-linear-to-br from-violet-500 to-purple-600 text-white shadow-lg">
-          <div className="text-4xl font-bold mb-1">{stats.streak}</div>
-          <div className="text-sm opacity-90">Day Streak 🔥</div>
-        </div>
-      </div>
-
-      {/* Secondary stats - compact */}
-      <div className="flex gap-3">
-        <div className="flex-1 rounded-xl p-4 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
-          <div className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-            {weekCount}
-          </div>
-          <div className="text-xs text-neutral-600 dark:text-neutral-400">
-            This Week
-          </div>
-        </div>
-        <div className="flex-1 rounded-xl p-4 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
-          <div className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-            {stats.thisMonth}
-          </div>
-          <div className="text-xs text-neutral-600 dark:text-neutral-400">
-            This Month
-          </div>
-        </div>
-      </div>
-    </div>
+      {userName && (
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          Welcome back, {userName}
+        </p>
+      )}
+    </header>
   );
 }
 
 // Main Home Page Component
 function HomePageInner() {
   const router = useRouter();
-  const { cards, hydrated, hasSeenOnboarding, setHasSeenOnboarding } =
+  const { cards, hydrated, hasSeenOnboarding, userName, setHasSeenOnboarding } =
     useCardStore();
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -119,7 +62,26 @@ function HomePageInner() {
       }
     }
 
-    return { total: cards.length, thisMonth: cardsThisMonth, streak };
+    // Calculate this week's progress (Mon-Sun)
+    const startOfWeek = new Date(today);
+    const dayOfWeek = startOfWeek.getDay();
+    const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Adjust to Monday
+    startOfWeek.setDate(startOfWeek.getDate() + diff);
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const cardsThisWeek = cards.filter(
+      (c) => new Date(c.createdAt) >= startOfWeek
+    ).length;
+
+    const weekProgress = Math.round((cardsThisWeek / 7) * 100);
+
+    return { 
+      total: cards.length, 
+      thisMonth: cardsThisMonth, 
+      streak, 
+      thisWeek: cardsThisWeek,
+      weekProgress 
+    };
   }, [cards]);
 
   const handleOnboardingComplete = () => {
@@ -161,36 +123,131 @@ function HomePageInner() {
       </AnimatePresence>
 
       {/* Main content */}
-      <div className="max-w-md mx-auto px-4 py-6 pb-24">
-        {/* Hero Section */}
-        <HeroSection />
+      <div className="max-w-md mx-auto px-5 py-6 pb-28">
+        {/* Header */}
+        <Header userName={userName} />
 
-        <DashboardFilters cards={effectiveCards} stats={placeholderStats} />
-
-        {/* Recent Cards */}
+        {/* Weekly Progress Block */}
         {hasCards && (
-          <div className="mb-4">
-            <h3 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
-              Recent
-            </h3>
+          <div className="mb-6 bg-linear-to-br from-violet-500 to-purple-600 dark:from-violet-600 dark:to-purple-700 rounded-3xl p-6 shadow-sm">
+            <div className="mb-4">
+              <p className="text-sm text-violet-100 mb-1">
+                Weekly recaps
+              </p>
+              <h2 className="text-2xl font-black text-white tracking-tight">
+                {stats.thisWeek} OF 7 DAYS
+              </h2>
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="mb-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs text-violet-100 flex items-center gap-1">
+                  {stats.thisWeek === 7 ? (
+                    <>
+                      Perfect week! <Sparkles className="h-3 w-3" />
+                    </>
+                  ) : (
+                    `${7 - stats.thisWeek} ${7 - stats.thisWeek === 1 ? 'recap' : 'recaps'} to go`
+                  )}
+                </span>
+                <span className="text-xs font-semibold text-white">
+                  {stats.weekProgress}%
+                </span>
+              </div>
+              <div className="h-3 bg-white/20 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-white rounded-full transition-all duration-500"
+                  style={{ width: `${stats.weekProgress}%` }}
+                />
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Cards Display */}
+        {/* Quick Stats Grid */}
+        {hasCards && (
+          <div className="mb-6 grid grid-cols-2 gap-3">
+            <div className="bg-linear-to-br from-orange-500 to-red-500 dark:from-orange-600 dark:to-red-600 rounded-2xl p-5 shadow-sm">
+              <p className="text-sm text-orange-100 mb-1 flex items-center gap-1.5">
+                <Flame className="h-4 w-4" />
+                Streak
+              </p>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-black text-white">
+                  {stats.streak}
+                </span>
+                <span className="text-sm text-orange-100 font-medium">{stats.streak === 1 ? 'recap' : 'recaps'}</span>
+              </div>
+            </div>
+            <div className="bg-linear-to-br from-emerald-500 to-teal-600 dark:from-emerald-600 dark:to-teal-700 rounded-2xl p-5 shadow-sm">
+              <p className="text-sm text-emerald-100 mb-1 flex items-center gap-1.5">
+                <Calendar className="h-4 w-4" />
+                This Month
+              </p>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-black text-white">
+                  {stats.thisMonth}
+                </span>
+                <span className="text-sm text-emerald-100 font-medium">{stats.thisMonth === 1 ? 'recap' : 'recaps'}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Recent Recaps Section */}
+        {hasCards && (
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+              Recent Recaps
+            </h2>
+          </div>
+        )}
+
+        {/* Cards Carousel */}
         {!hasCards ? (
-          <div className="text-center py-12 text-neutral-500 dark:text-neutral-400 text-sm">
-            No cards yet. Tap the 📓 Recap button to create your first one.
+          <div className="text-center py-16">
+            <div className="text-6xl mb-4">📓</div>
+            <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
+              No recaps yet
+            </h3>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+              Tap the button below to create your first daily recap
+            </p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {effectiveCards.map((card) => (
-              <DailyCardView
-                key={card.id}
-                card={card}
-                variant="compact"
-                onClick={() => router.push(`/card/${card.id}`)}
-              />
-            ))}
+          <div className="relative -mx-4">
+            <div
+              ref={scrollRef}
+              className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide px-4 pb-4"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {effectiveCards.map((card, index) => (
+                <motion.div
+                  key={card.id}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="snap-start shrink-0 w-[85%] first:ml-0"
+                >
+                  <DailyCardView
+                    card={card}
+                    variant="compact"
+                    onClick={() => router.push(`/card/${card.id}`)}
+                    className="h-full"
+                  />
+                </motion.div>
+              ))}
+            </div>
+            {/* Scroll indicator dots */}
+            <div className="flex justify-center gap-1.5 mt-4">
+              {effectiveCards.slice(0, 5).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-1.5 w-1.5 rounded-full bg-neutral-300 dark:bg-neutral-700"
+                />
+              ))}
+            </div>
           </div>
         )}
       </div>

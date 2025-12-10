@@ -224,43 +224,29 @@ export default function EditCardPage() {
   return (
     <div className="max-w-md mx-auto px-4 py-6 pb-32">
       {/* Header */}
-      <header className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full"
-            onClick={handleBack}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
-              Edit Recap
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Update your thoughts
-            </p>
-          </div>
+      <header className="flex items-center gap-4 mb-6">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-full"
+          onClick={handleBack}
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div>
+          <h1 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
+            Edit Recap
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Update your thoughts
+          </p>
         </div>
-        <ThemeSelector
-          palette={palette}
-          storyTemplate={storyTemplate}
-          typography={typography}
-          showGrain={showGrain}
-          showVignette={showVignette}
-          onPaletteChange={setPalette}
-          onTemplateChange={setStoryTemplate}
-          onTypographyChange={setTypography}
-          onGrainChange={setShowGrain}
-          onVignetteChange={setShowVignette}
-        />
       </header>
 
       <div className="space-y-6">
         {/* Mood Selector */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-3">
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-3">
             How are you feeling?
           </label>
           <MoodSelector value={mood} onChange={setMood} />
@@ -268,7 +254,7 @@ export default function EditCardPage() {
 
         {/* Text Input */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
             What happened today?
           </label>
           <Textarea
@@ -293,7 +279,7 @@ export default function EditCardPage() {
 
         {/* Photo Upload */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
             Photo
           </label>
           <PhotoUploader value={photoUrl} onChange={setPhotoUrl} />
@@ -301,7 +287,7 @@ export default function EditCardPage() {
 
         {/* Blocks */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-3">
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-3">
             Details
           </label>
           {blocks.length > 0 && (
@@ -317,7 +303,7 @@ export default function EditCardPage() {
 
         {/* Tags */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
             Tags
           </label>
           <div className="flex gap-2 mb-2">
@@ -361,6 +347,25 @@ export default function EditCardPage() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Theme Customization */}
+        <div>
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-3">
+            Story Theme
+          </label>
+          <ThemeSelector
+            palette={palette}
+            storyTemplate={storyTemplate}
+            typography={typography}
+            showGrain={showGrain}
+            showVignette={showVignette}
+            onPaletteChange={setPalette}
+            onTemplateChange={setStoryTemplate}
+            onTypographyChange={setTypography}
+            onGrainChange={setShowGrain}
+            onVignetteChange={setShowVignette}
+          />
         </div>
 
         {/* Action Buttons */}

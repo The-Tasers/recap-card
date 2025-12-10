@@ -11,7 +11,7 @@ export function EmptyState() {
         <BookOpen className="h-10 w-10 text-primary" />
       </div>
       <h2 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100 mb-2">
-        No entries yet
+        No recaps yet
       </h2>
       <p className="text-muted-foreground mb-6 max-w-xs">
         Start capturing your daily moments. Create your first recap card!

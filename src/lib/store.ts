@@ -9,10 +9,12 @@ interface CardStore {
   hydrated: boolean;
   error: string | null;
   hasSeenOnboarding: boolean;
+  userName: string;
   theme: 'light' | 'dark' | 'system';
   setHydrated: (state: boolean) => void;
   setError: (error: string | null) => void;
   setHasSeenOnboarding: (seen: boolean) => void;
+  setUserName: (name: string) => void;
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
   addCard: (card: DailyCard) => boolean;
   updateCard: (id: string, updates: Partial<DailyCard>) => boolean;
@@ -58,10 +60,12 @@ export const useCardStore = create<CardStore>()(
       hydrated: false,
       error: null,
       hasSeenOnboarding: false,
+      userName: '',
       theme: 'system',
       setHydrated: (state) => set({ hydrated: state }),
       setError: (error) => set({ error }),
       setHasSeenOnboarding: (seen) => set({ hasSeenOnboarding: seen }),
+      setUserName: (name) => set({ userName: name }),
       setTheme: (theme) => set({ theme }),
       addCard: (card) => {
         try {
@@ -73,7 +77,7 @@ export const useCardStore = create<CardStore>()(
         } catch (error) {
           set({
             error:
-              'Storage quota exceeded. Try removing some old entries or photos.',
+              'Storage quota exceeded. Try removing some old recaps or photos.',
           });
           return false;
         }
@@ -90,7 +94,7 @@ export const useCardStore = create<CardStore>()(
         } catch (error) {
           set({
             error:
-              'Storage quota exceeded. Try removing the photo or some old entries.',
+              'Storage quota exceeded. Try removing the photo or some old recaps.',
           });
           return false;
         }

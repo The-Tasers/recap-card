@@ -155,7 +155,7 @@ export default function SettingsPage() {
               <DialogHeader>
                 <DialogTitle>Clear All Data</DialogTitle>
                 <DialogDescription>
-                  This will permanently delete all your entries. This action
+                  This will permanently delete all your recaps. This action
                   cannot be undone.
                 </DialogDescription>
               </DialogHeader>

@@ -156,7 +156,7 @@ export default function CreatePage() {
     } catch (err) {
       console.error('Failed to save card', err);
       setError(
-        'Failed to save. Try removing the photo or deleting old entries.'
+        'Failed to save. Try removing the photo or deleting old recaps.'
       );
       setIsSubmitting(false);
     }
@@ -233,7 +233,7 @@ export default function CreatePage() {
               disabled={!isValid || isSubmitting}
             >
               <Check className="h-4 w-4 mr-2" />
-              {isSubmitting ? 'Saving...' : 'Save Entry'}
+              {isSubmitting ? 'Saving...' : 'Save Recap'}
             </Button>
           </div>
         </div>
