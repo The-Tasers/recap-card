@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, CalendarDays, List } from 'lucide-react';
+import { ArrowLeft, CalendarDays, List, NotebookPen } from 'lucide-react';
 import { useCardStore } from '@/lib/store';
 import { DailyCard } from '@/lib/types';
 import { SearchBar, SearchFilters } from '@/components/search-filter';
@@ -150,78 +150,85 @@ function TimelineContent() {
   if (!hydrated) {
     return (
       <div className="flex items-center justify-center min-h-screen text-muted-foreground">
-        Loading your cards...
+        Loading your recaps...
       </div>
     );
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6 pb-24">
-      <header className="mb-4 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full"
-            onClick={handleBack}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-              Timeline
-            </h1>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              All your cards, in one place
-            </p>
+    <div className="max-w-md mx-auto pb-24">
+      <header className="sticky top-0 z-10 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-sm border-b border-neutral-200 dark:border-neutral-800 px-4 py-4 mb-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+              onClick={handleBack}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                Timeline
+              </h1>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                All your recaps, in one place
+              </p>
+            </div>
           </div>
-        </div>
-        <div className="flex gap-2" aria-label="View mode">
-          <Button
-            variant="outline"
-            size="icon"
-            className={cn(
-              'rounded-full h-10 w-10',
-              viewMode === 'list' && 'bg-primary/10 text-primary border-primary'
-            )}
-            onClick={() => setViewMode('list')}
-            aria-pressed={viewMode === 'list'}
-          >
-            <List className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className={cn(
-              'rounded-full h-10 w-10',
-              viewMode === 'calendar' &&
-                'bg-primary/10 text-primary border-primary'
-            )}
-            onClick={() => setViewMode('calendar')}
-            aria-pressed={viewMode === 'calendar'}
-          >
-            <CalendarDays className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-2" aria-label="View mode">
+            <Button
+              variant="outline"
+              size="icon"
+              className={cn(
+                'rounded-full h-10 w-10',
+                viewMode === 'list' && 'bg-primary/10 text-primary border-primary'
+              )}
+              onClick={() => setViewMode('list')}
+              aria-pressed={viewMode === 'list'}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className={cn(
+                'rounded-full h-10 w-10',
+                viewMode === 'calendar' &&
+                  'bg-primary/10 text-primary border-primary'
+              )}
+              onClick={() => setViewMode('calendar')}
+              aria-pressed={viewMode === 'calendar'}
+            >
+              <CalendarDays className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </header>
 
-      <div className="mb-6">
-        <SearchBar
-          filters={filters}
-          onFiltersChange={setFilters}
-          availableTags={availableTags}
-        />
-      </div>
-
-      {viewMode === 'list' ? (
-        filteredCards.length === 0 ? (
-          <div className="text-center text-sm text-neutral-500 dark:text-neutral-400 py-16">
-            {cards.length === 0
-              ? 'No cards yet. Start your first recap.'
-              : 'No cards match your filters.'}
-          </div>
-        ) : (
-          <div className="space-y-3">
+      <div className="px-4">
+        <div className="mb-6">
+          <SearchBar
+            filters={filters}
+            onFiltersChange={setFilters}
+            availableTags={availableTags}
+          />
+        </div>
+        {viewMode === 'list' ? (
+          filteredCards.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="w-16 h-16 rounded-3xl bg-amber-500/10 dark:bg-amber-500/20 flex items-center justify-center mx-auto mb-4">
+                <NotebookPen className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+              </div>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                {cards.length === 0
+                  ? 'No recaps yet.'
+                  : 'No recaps match your filters.'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
             {filteredCards.map((card) => (
               <DailyCardView
                 key={card.id}
@@ -241,12 +248,17 @@ function TimelineContent() {
           />
 
           {cardsForSelectedDate.length === 0 ? (
-            <div className="text-center text-sm text-neutral-500 dark:text-neutral-400 py-10">
-              {selectedDate
-                ? 'No card on this day.'
-                : cards.length === 0
-                ? 'No cards yet. Start your first recap.'
-                : 'No cards match your filters.'}
+            <div className="text-center py-10">
+              <div className="w-16 h-16 rounded-3xl bg-amber-500/10 dark:bg-amber-500/20 flex items-center justify-center mx-auto mb-4">
+                <NotebookPen className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+              </div>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                {selectedDate
+                  ? 'No recap on this day.'
+                  : cards.length === 0
+                  ? 'No recaps yet.'
+                  : 'No recaps match your filters.'}
+              </p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -262,6 +274,7 @@ function TimelineContent() {
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -271,7 +284,7 @@ export default function TimelinePage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-screen text-muted-foreground">
-          Loading your cards...
+          Loading your recaps...
         </div>
       }
     >

@@ -117,7 +117,7 @@ export default function CardDetailPage() {
       )}${suffix}.jpg`;
 
       // Try native share first (mobile)
-      const shared = await shareImage(dataUrl, 'My Day Recap');
+      const shared = await shareImage(dataUrl, 'My Recapp');
       if (!shared) {
         // Fallback to download
         downloadImage(dataUrl, filename);

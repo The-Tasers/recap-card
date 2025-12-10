@@ -612,7 +612,7 @@ export function BrandingFooter({
         className={cn('text-story-micro', className)}
         style={{ color: colors.textSecondary }}
       >
-        AI DAY RECAP
+        RECAPP
       </div>
     );
   }
@@ -623,7 +623,7 @@ export function BrandingFooter({
         className={cn('text-sm', className)}
         style={{ color: colors.textSecondary }}
       >
-        ～ ai day recap ♡ ～
+        ～ recapp ♡ ～
       </div>
     );
   }
@@ -638,7 +638,7 @@ export function BrandingFooter({
         className="text-story-micro"
         style={{ color: colors.textSecondary }}
       >
-        AI DAY RECAP
+        RECAPP
       </span>
       <div
         className="h-px flex-1"

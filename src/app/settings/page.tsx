@@ -1,10 +1,11 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Trash2, Info, FileJson } from 'lucide-react';
+import { ArrowLeft, Trash2, Info, FileJson, User } from 'lucide-react';
 import { useCardStore } from '@/lib/store';
 import { downloadJson } from '@/lib/export';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -18,9 +19,10 @@ import { useState } from 'react';
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { cards, hydrated, theme, setTheme, setHasSeenOnboarding } =
+  const { cards, hydrated, theme, setTheme, setHasSeenOnboarding, userName, setUserName } =
     useCardStore();
   const [showClearDialog, setShowClearDialog] = useState(false);
+  const [nameInput, setNameInput] = useState(userName || '');
 
   const handleBack = () => {
     if (typeof window !== 'undefined' && window.history.length > 1) {
@@ -53,23 +55,59 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6 pb-24">
+    <div className="max-w-md mx-auto pb-24">
       {/* Header */}
-      <header className="flex items-center gap-4 mb-6">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-full"
-          onClick={handleBack}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
-          Settings
-        </h1>
+      <header className="sticky top-0 z-10 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-200/50 dark:border-neutral-700/50 px-4 py-4 mb-6">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            onClick={handleBack}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
+            Settings
+          </h1>
+        </div>
       </header>
 
-      <div className="space-y-6">
+      <div className="space-y-6 px-4">
+        {/* Profile */}
+        <div className="bg-white dark:bg-neutral-800 rounded-2xl p-4 border border-neutral-200/50 dark:border-neutral-700/60">
+          <h2 className="text-sm font-medium text-neutral-500 dark:text-neutral-300 mb-3">
+            Profile
+          </h2>
+          <div className="space-y-3">
+            <div>
+              <label htmlFor="userName" className="text-sm text-neutral-600 dark:text-neutral-400 mb-1.5 block">
+                Your Name
+              </label>
+              <div className="flex gap-2">
+                <div className="flex-1 relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                  <Input
+                    id="userName"
+                    type="text"
+                    value={nameInput}
+                    onChange={(e) => setNameInput(e.target.value)}
+                    placeholder="Enter your name"
+                    className="pl-9"
+                  />
+                </div>
+                <Button
+                  onClick={() => setUserName(nameInput)}
+                  disabled={nameInput === userName}
+                  size="default"
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Theme */}
         <div className="bg-white dark:bg-neutral-800 rounded-2xl p-4 border border-neutral-200/50 dark:border-neutral-700/60">
           <h2 className="text-sm font-medium text-neutral-500 dark:text-neutral-300 mb-3">
@@ -182,10 +220,10 @@ export default function SettingsPage() {
           <div className="flex items-start gap-3">
             <Info className="h-5 w-5 text-muted-foreground mt-0.5" />
             <div>
-              <p className="text-sm font-medium">Day Recap</p>
+              <p className="text-sm font-medium">Recapp</p>
               <p className="text-xs text-muted-foreground">
                 A minimalist daily journaling app. Capture your moments in
-                beautiful, shareable cards.
+                beautiful, shareable recaps.
               </p>
               <p className="text-xs text-muted-foreground mt-2">
                 Version 0.0.1

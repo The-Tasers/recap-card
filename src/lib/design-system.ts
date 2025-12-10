@@ -1,4 +1,4 @@
-// AI Day Recap - Visual Design System
+// Recapp - Visual Design System
 // Premium, share-ready card styles for Instagram/TikTok Stories
 
 // ============================================

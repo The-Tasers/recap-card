@@ -7,7 +7,9 @@ import { cn } from '@/lib/utils';
 
 export function BottomNav() {
   const pathname = usePathname();
-  const isCreatePage = pathname === '/create' || pathname.startsWith('/card/') && pathname.endsWith('/edit');
+  const isCreatePage =
+    pathname === '/create' ||
+    (pathname.startsWith('/card/') && pathname.endsWith('/edit'));
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 pb-safe z-50 pointer-events-none">

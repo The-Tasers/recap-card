@@ -69,8 +69,8 @@ export function ShareLinkDialog({ card, trigger }: ShareLinkDialogProps) {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'My Day Recap',
-          text: `Check out my day recap from ${new Date(
+          title: 'My Recapp',
+          text: `Check out my recapp from ${new Date(
             card.createdAt
           ).toLocaleDateString()}`,
           url: shareUrl,

@@ -11,13 +11,13 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: 'AI Day Recap',
-  description: 'Capture your daily moments in beautiful shareable cards',
+  title: 'Recapp',
+  description: 'Capture your daily moments in beautiful shareable recaps',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Day Recap',
+    title: 'Recapp',
   },
 };
 
@@ -41,7 +41,7 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <div className="max-w-md mx-auto bg-neutral-50 dark:bg-neutral-900 shadow-2xl shadow-black/10 min-h-screen relative">
-            <main className="pb-20 min-h-screen">{children}</main>
+            <main className="min-h-screen">{children}</main>
             <Suspense fallback={null}>
               <BottomNav />
             </Suspense>

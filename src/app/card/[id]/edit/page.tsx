@@ -237,9 +237,7 @@ export default function EditCardPage() {
           <h1 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
             Edit Recap
           </h1>
-          <p className="text-sm text-muted-foreground">
-            Update your thoughts
-          </p>
+          <p className="text-sm text-muted-foreground">Update your thoughts</p>
         </div>
       </header>
 

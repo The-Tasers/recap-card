@@ -138,7 +138,7 @@ export const PhotoHeroTemplate = forwardRef<HTMLDivElement, StoryCardProps>(
             className="text-story-micro pt-4"
             style={{ color: colors.textSecondary }}
           >
-            AI DAY RECAP
+            RECAPP
           </div>
         </div>
       </div>
@@ -222,7 +222,7 @@ export const GlassCardsTemplate = forwardRef<HTMLDivElement, StoryCardProps>(
 
           {/* Branding */}
           <div className="text-center text-white/40 text-story-micro">
-            AI DAY RECAP
+            RECAPP
           </div>
         </div>
       </div>
@@ -423,7 +423,7 @@ export const CenteredQuoteTemplate = forwardRef<HTMLDivElement, StoryCardProps>(
           className="absolute bottom-8 text-story-micro"
           style={{ color: colors.textSecondary }}
         >
-          AI DAY RECAP
+          RECAPP
         </div>
       </div>
     );
@@ -562,7 +562,7 @@ export const SplitMoodTemplate = forwardRef<HTMLDivElement, StoryCardProps>(
             className="text-center text-story-micro mt-4"
             style={{ color: colors.textSecondary }}
           >
-            AI DAY RECAP
+            RECAPP
           </div>
         </div>
       </div>
@@ -736,7 +736,7 @@ export const ScrapbookTemplate = forwardRef<HTMLDivElement, StoryCardProps>(
           className="text-center mt-auto"
           style={{ color: colors.textSecondary }}
         >
-          <span className="text-sm">～ ai day recap ♡ ～</span>
+          <span className="text-sm">～ recapp ♡ ～</span>
         </div>
       </div>
     );
@@ -883,7 +883,7 @@ export const DarkCinemaTemplate = forwardRef<HTMLDivElement, StoryCardProps>(
             className="text-center text-story-micro mt-6"
             style={{ color: colors.textSecondary }}
           >
-            AI DAY RECAP
+            RECAPP
           </div>
         </div>
       </div>
@@ -1017,7 +1017,7 @@ export const GridCollageTemplate = forwardRef<HTMLDivElement, StoryCardProps>(
                 className="text-story-micro"
                 style={{ color: colors.textSecondary }}
               >
-                AI DAY RECAP
+                RECAPP
               </span>
             </div>
           )}

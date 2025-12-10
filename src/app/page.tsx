@@ -3,7 +3,7 @@
 import { useMemo, useState, Suspense, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Flame, Calendar, Sparkles } from 'lucide-react';
+import { Flame, Calendar, Sparkles, NotebookPen } from 'lucide-react';
 
 import { DailyCard } from '@/lib/types';
 import { useCardStore } from '@/lib/store';
@@ -75,12 +75,12 @@ function HomePageInner() {
 
     const weekProgress = Math.round((cardsThisWeek / 7) * 100);
 
-    return { 
-      total: cards.length, 
-      thisMonth: cardsThisMonth, 
-      streak, 
+    return {
+      total: cards.length,
+      thisMonth: cardsThisMonth,
+      streak,
       thisWeek: cardsThisWeek,
-      weekProgress 
+      weekProgress,
     };
   }, [cards]);
 
@@ -123,77 +123,77 @@ function HomePageInner() {
       </AnimatePresence>
 
       {/* Main content */}
-      <div className="max-w-md mx-auto px-5 py-6 pb-28">
+      <div className="max-w-md mx-auto px-5 py-6 pb-24">
         {/* Header */}
         <Header userName={userName} />
 
         {/* Weekly Progress Block */}
-        {hasCards && (
-          <div className="mb-6 bg-linear-to-br from-violet-500 to-purple-600 dark:from-violet-600 dark:to-purple-700 rounded-3xl p-6 shadow-sm">
-            <div className="mb-4">
-              <p className="text-sm text-violet-100 mb-1">
-                Weekly recaps
-              </p>
-              <h2 className="text-2xl font-black text-white tracking-tight">
-                {stats.thisWeek} OF 7 DAYS
-              </h2>
+        <div className="mb-6 bg-linear-to-br from-violet-500 to-purple-600 dark:from-violet-600 dark:to-purple-700 rounded-3xl p-6 shadow-sm">
+          <div className="mb-4">
+            <p className="text-sm text-violet-100 mb-1">Weekly recaps</p>
+            <h2 className="text-2xl font-black text-white tracking-tight">
+              {stats.thisWeek} OF 7 DAYS
+            </h2>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="mb-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs text-violet-100 flex items-center gap-1">
+                {stats.thisWeek === 7 ? (
+                  <>
+                    Perfect week! <Sparkles className="h-3 w-3" />
+                  </>
+                ) : (
+                  `${7 - stats.thisWeek} ${
+                    7 - stats.thisWeek === 1 ? 'recap' : 'recaps'
+                  } to go`
+                )}
+              </span>
+              <span className="text-xs font-semibold text-white">
+                {stats.weekProgress}%
+              </span>
             </div>
-            
-            {/* Progress Bar */}
-            <div className="mb-4">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-xs text-violet-100 flex items-center gap-1">
-                  {stats.thisWeek === 7 ? (
-                    <>
-                      Perfect week! <Sparkles className="h-3 w-3" />
-                    </>
-                  ) : (
-                    `${7 - stats.thisWeek} ${7 - stats.thisWeek === 1 ? 'recap' : 'recaps'} to go`
-                  )}
-                </span>
-                <span className="text-xs font-semibold text-white">
-                  {stats.weekProgress}%
-                </span>
-              </div>
-              <div className="h-3 bg-white/20 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-white rounded-full transition-all duration-500"
-                  style={{ width: `${stats.weekProgress}%` }}
-                />
-              </div>
+            <div className="h-3 bg-white/20 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-white rounded-full transition-all duration-500"
+                style={{ width: `${stats.weekProgress}%` }}
+              />
             </div>
           </div>
-        )}
+        </div>
 
         {/* Quick Stats Grid */}
-        {hasCards && (
-          <div className="mb-6 grid grid-cols-2 gap-3">
-            <div className="bg-linear-to-br from-orange-500 to-red-500 dark:from-orange-600 dark:to-red-600 rounded-2xl p-5 shadow-sm">
-              <p className="text-sm text-orange-100 mb-1 flex items-center gap-1.5">
-                <Flame className="h-4 w-4" />
-                Streak
-              </p>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black text-white">
-                  {stats.streak}
-                </span>
-                <span className="text-sm text-orange-100 font-medium">{stats.streak === 1 ? 'recap' : 'recaps'}</span>
-              </div>
-            </div>
-            <div className="bg-linear-to-br from-emerald-500 to-teal-600 dark:from-emerald-600 dark:to-teal-700 rounded-2xl p-5 shadow-sm">
-              <p className="text-sm text-emerald-100 mb-1 flex items-center gap-1.5">
-                <Calendar className="h-4 w-4" />
-                This Month
-              </p>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black text-white">
-                  {stats.thisMonth}
-                </span>
-                <span className="text-sm text-emerald-100 font-medium">{stats.thisMonth === 1 ? 'recap' : 'recaps'}</span>
-              </div>
+        <div className="mb-6 grid grid-cols-2 gap-3">
+          <div className="bg-linear-to-br from-orange-500 to-red-500 dark:from-orange-600 dark:to-red-600 rounded-2xl p-5 shadow-sm">
+            <p className="text-sm text-orange-100 mb-1 flex items-center gap-1.5">
+              <Flame className="h-4 w-4" />
+              Streak
+            </p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-black text-white">
+                {stats.streak}
+              </span>
+              <span className="text-sm text-orange-100 font-medium">
+                {stats.streak === 1 ? 'recap' : 'recaps'}
+              </span>
             </div>
           </div>
-        )}
+          <div className="bg-linear-to-br from-emerald-500 to-teal-600 dark:from-emerald-600 dark:to-teal-700 rounded-2xl p-5 shadow-sm">
+            <p className="text-sm text-emerald-100 mb-1 flex items-center gap-1.5">
+              <Calendar className="h-4 w-4" />
+              This Month
+            </p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-black text-white">
+                {stats.thisMonth}
+              </span>
+              <span className="text-sm text-emerald-100 font-medium">
+                {stats.thisMonth === 1 ? 'recap' : 'recaps'}
+              </span>
+            </div>
+          </div>
+        </div>
 
         {/* Recent Recaps Section */}
         {hasCards && (
@@ -206,12 +206,14 @@ function HomePageInner() {
 
         {/* Cards Carousel */}
         {!hasCards ? (
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">📓</div>
-            <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
+          <div className="text-center py-8">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 flex items-center justify-center mx-auto mb-3">
+              <NotebookPen className="h-7 w-7 text-amber-600 dark:text-amber-400" />
+            </div>
+            <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-1">
               No recaps yet
             </h3>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            <p className="text-xs text-neutral-600 dark:text-neutral-400">
               Tap the button below to create your first daily recap
             </p>
           </div>

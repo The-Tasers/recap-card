@@ -46,7 +46,7 @@ export function CalendarView({
       ? Math.max(...yearsFromCards)
       : currentYear;
 
-    // Give a little range even if no cards yet
+    // Give a little range even if no recaps yet
     const rangeStart = Math.min(minFromCards, currentYear - 3);
     const rangeEnd = 2100;
 

@@ -1,4 +1,4 @@
-# AI Day Recap - Copilot Instructions
+# Recapp - Copilot Instructions
 
 ## Project Overview
 

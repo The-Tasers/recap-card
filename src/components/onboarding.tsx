@@ -124,7 +124,13 @@ function Screen1() {
 }
 
 // Screen 2: Name Input
-function Screen2({ userName, setUserName }: { userName: string; setUserName: (name: string) => void }) {
+function Screen2({
+  userName,
+  setUserName,
+}: {
+  userName: string;
+  setUserName: (name: string) => void;
+}) {
   return (
     <div className="flex flex-col items-center justify-center min-h-full px-6 text-center">
       {/* Decorative background */}

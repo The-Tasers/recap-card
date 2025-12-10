@@ -1,7 +1,7 @@
 {
-  "name": "AI Day Recap",
-  "short_name": "Day Recap",
-  "description": "Capture your daily moments in beautiful shareable cards",
+  "name": "Recapp",
+  "short_name": "Recapp",
+  "description": "Capture your daily moments in beautiful shareable recaps",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#fafaf9",
