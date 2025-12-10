@@ -387,7 +387,9 @@ export function BlockDisplay({ block, compact }: BlockDisplayProps) {
     <div className={cn('flex items-start gap-2', compact ? 'py-1' : 'py-2')}>
       <span className="text-base shrink-0">{definition.icon}</span>
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-neutral-600 dark:text-white/70 mb-0.5 font-medium">{block.label}</p>
+        <p className="text-xs text-neutral-600 dark:text-white/70 mb-0.5 font-medium">
+          {block.label}
+        </p>
         {renderValue()}
       </div>
     </div>
