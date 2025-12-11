@@ -347,7 +347,7 @@ export function BlockDisplay({ block, compact }: BlockDisplayProps) {
             href={linkValue}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm underline hover:no-underline transition-all text-neutral-900 dark:text-white hover:text-neutral-700 dark:hover:text-white/80 font-medium"
+            className="text-sm underline block truncate hover:no-underline transition-all text-neutral-900 dark:text-white hover:text-neutral-700 dark:hover:text-white/80 font-medium"
             onClick={(e) => e.stopPropagation()}
           >
             {linkValue}
@@ -376,7 +376,7 @@ export function BlockDisplay({ block, compact }: BlockDisplayProps) {
         return (
           <p
             className={cn(
-              'text-neutral-700 dark:text-neutral-300',
+              'text-neutral-600 dark:text-white/70',
               compact ? 'text-sm line-clamp-2' : 'text-base'
             )}
           >

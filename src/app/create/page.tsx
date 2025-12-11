@@ -143,7 +143,7 @@ export default function CreatePage() {
   return (
     <div className="max-w-md mx-auto pb-32">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-sm border-b border-neutral-200 dark:border-neutral-800 px-4 py-4 mb-6">
+      <header className="sticky top-0 z-10 h-20 bg-neutral-50 dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 px-4 py-4 mb-6">
         {error && (
           <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />

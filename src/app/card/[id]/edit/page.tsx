@@ -114,7 +114,7 @@ export default function EditCardPage() {
   return (
     <div className="max-w-md mx-auto pb-32">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-sm border-b border-neutral-200 dark:border-neutral-800 px-4 py-4 mb-6">
+      <header className="sticky top-0 z-10 h-20 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-sm border-b border-neutral-200 dark:border-neutral-800 px-4 py-4 mb-6">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"

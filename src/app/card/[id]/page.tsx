@@ -96,9 +96,8 @@ export default function CardDetailPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6 min-h-screen bg-neutral-50 dark:bg-neutral-950">
-      {/* Header */}
-      <header className="flex items-center justify-between mb-6">
+    <div className="max-w-md mx-auto pb-32">
+      <header className="sticky top-0 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 z-10 flex items-center h-20 justify-between mb-6 px-4 py-4">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -171,33 +170,34 @@ export default function CardDetailPage() {
           </Sheet>
         </div>
       </header>
+      <div className="px-4">
+        {/* Card View */}
+        <DailyCardView card={card} />
 
-      {/* Card View */}
-      <DailyCardView card={card} />
-
-      {/* Delete Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Recap</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this recap? This action cannot be
-              undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleteDialog(false)}
-            >
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        {/* Delete Dialog */}
+        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Recap</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this recap? This action cannot
+                be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleDelete}>
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }
