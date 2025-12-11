@@ -6,7 +6,10 @@ const withPWA = withPWAInit({
   cacheOnFrontEndNav: true,
   aggressiveFrontEndNavCaching: true,
   reloadOnOnline: true,
-  disable: process.env.NODE_ENV === 'development',
+  // Enable offline mode in development with DEBUG_OFFLINE=true
+  disable:
+    process.env.NODE_ENV === 'development' &&
+    process.env.DEBUG_OFFLINE !== 'true',
   workboxOptions: {
     disableDevLogs: true,
     runtimeCaching: [
@@ -22,6 +25,12 @@ const withPWA = withPWAInit({
           networkTimeoutSeconds: 10,
         },
       },
+    ],
+    // Configure offline fallback
+    navigateFallback: '/offline',
+    navigateFallbackDenylist: [
+      /^\/_next\//, // Don't fallback for Next.js internal routes
+      /^\/api\//, // Don't fallback for API routes
     ],
   },
 });

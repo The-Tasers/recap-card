@@ -20,6 +20,29 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Testing Offline Mode
+
+By default, the service worker is disabled in development. To test offline functionality locally:
+
+```bash
+# Enable PWA in development mode
+DEBUG_OFFLINE=true npm run dev
+```
+
+Once the app is running with offline mode enabled:
+
+1. Open DevTools → Application → Service Workers
+2. Check "Offline" to simulate offline mode
+3. Navigate through the app - you should see the offline fallback page when trying to load new pages
+4. Existing cached pages should still work
+
+The offline page is available at `/offline` and will automatically be shown when:
+- Network requests fail
+- User is offline
+- Navigation to uncached pages occurs
+
+Note: Make sure to unregister old service workers and clear cache when testing to see fresh changes.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
