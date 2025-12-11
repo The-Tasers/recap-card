@@ -186,30 +186,26 @@ function TimelineContent() {
           </div>
           <div className="flex gap-2" aria-label="View mode">
             <Button
-              variant="outline"
+              variant={viewMode === 'list' ? 'default' : 'outline'}
               size="icon"
               className={cn(
-                'rounded-full h-10 w-10',
-                viewMode === 'list' &&
-                  'bg-primary/10 text-primary border-primary'
+                'rounded-full h-10 w-10 transition-all duration-200'
               )}
               onClick={() => setViewMode('list')}
               aria-pressed={viewMode === 'list'}
             >
-              <List className="h-4 w-4" />
+              <List className={cn('h-4 w-4 transition-colors')} />
             </Button>
             <Button
-              variant="outline"
+              variant={viewMode === 'calendar' ? 'default' : 'outline'}
               size="icon"
               className={cn(
-                'rounded-full h-10 w-10',
-                viewMode === 'calendar' &&
-                  'bg-primary/10 text-primary border-primary'
+                'rounded-full h-10 w-10 transition-all duration-200'
               )}
               onClick={() => setViewMode('calendar')}
               aria-pressed={viewMode === 'calendar'}
             >
-              <CalendarDays className="h-4 w-4" />
+              <CalendarDays className={cn('h-4 w-4 transition-colors')} />
             </Button>
           </div>
         </div>

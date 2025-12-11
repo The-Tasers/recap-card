@@ -12,10 +12,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { BlockList } from '@/components/blocks/block-editor';
 import { BlockPicker } from '@/components/blocks/block-picker';
 
-// Enable static export for offline support
-export const dynamic = 'force-static';
-export const dynamicParams = true;
-
 const MAX_CHARS = 500;
 
 export default function EditCardPage() {

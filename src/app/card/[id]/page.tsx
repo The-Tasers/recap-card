@@ -14,10 +14,6 @@ import { useCardStore } from '@/lib/store';
 
 import { DailyCardView } from '@/components/daily-card-view';
 import { Button } from '@/components/ui/button';
-
-// Enable static export for offline support
-export const dynamic = 'force-static';
-export const dynamicParams = true;
 import {
   Dialog,
   DialogContent,

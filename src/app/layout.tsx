@@ -13,12 +13,6 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: 'Recapp',
   description: 'Capture your daily moments in beautiful shareable recaps',
-  manifest: '/manifest.json',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'Recapp',
-  },
 };
 
 export const viewport: Viewport = {

@@ -49,7 +49,7 @@ export default function SettingsPage() {
   const handleExportJson = () => {
     downloadJson(
       cards,
-      `recap-backup-${new Date().toISOString().split('T')[0]}.json`
+      `recapp-backup-${new Date().toISOString().split('T')[0]}.json`
     );
   };
 
