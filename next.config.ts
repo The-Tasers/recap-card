@@ -1,16 +1,33 @@
 import type { NextConfig } from 'next';
-// @ts-expect-error next-pwa doesn't have types
-import withPWA from 'next-pwa';
+import withPWAInit from '@ducanh2912/next-pwa';
+
+const withPWA = withPWAInit({
+  dest: 'public',
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  reloadOnOnline: true,
+  disable: process.env.NODE_ENV === 'development',
+  workboxOptions: {
+    disableDevLogs: true,
+    runtimeCaching: [
+      {
+        urlPattern: /^https?.*/,
+        handler: 'NetworkFirst',
+        options: {
+          cacheName: 'offlineCache',
+          expiration: {
+            maxEntries: 200,
+            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+          },
+          networkTimeoutSeconds: 10,
+        },
+      },
+    ],
+  },
+});
 
 const nextConfig: NextConfig = {
   turbopack: {},
 };
 
-const pwaConfig = withPWA({
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
-});
-
-export default pwaConfig(nextConfig);
+export default withPWA(nextConfig);
