@@ -94,7 +94,7 @@ export function DesktopNav() {
           href="/"
           className={cn(
             'flex items-center mt-10 gap-3 rounded-xl',
-            pathname === '/timeline'
+            pathname === '/'
               ? 'bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 font-semibold'
               : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white',
             isCollapsed ? 'h-12 w-12 mx-auto justify-center' : 'h-12 px-4'
