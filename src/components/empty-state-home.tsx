@@ -130,7 +130,7 @@ function DashboardTile({ variant, delay = 0 }: DashboardTileProps) {
       description: 'Track your consistency',
     },
     streak: {
-      title: 'Your Streak',
+      title: 'Streak',
       icon: <Flame className="h-5 w-5" />,
       content: (
         <div className="flex flex-col items-center justify-center h-20">
@@ -181,7 +181,9 @@ function DashboardTile({ variant, delay = 0 }: DashboardTileProps) {
       className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-neutral-200 dark:border-neutral-800 hover:shadow-md transition-shadow"
     >
       <div className="flex items-center gap-2 mb-3">
-        <div className="text-neutral-500 dark:text-neutral-400">{config.icon}</div>
+        <div className="text-neutral-500 dark:text-neutral-400">
+          {config.icon}
+        </div>
         <h3 className="font-semibold text-neutral-900 dark:text-neutral-100">
           {config.title}
         </h3>

@@ -48,7 +48,7 @@ export function MoodMapTile({ moodData }: MoodMapTileProps) {
     >
       <div className="flex items-center gap-2 mb-3">
         <Sparkles className="h-5 w-5 text-violet-500" />
-        <h3 className="font-semibold text-neutral-900 dark:text-neutral-100">
+        <h3 className="font-semibold lg:text-2xl text-neutral-900 dark:text-neutral-100">
           Mood Map
         </h3>
       </div>

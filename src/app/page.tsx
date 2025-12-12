@@ -208,7 +208,7 @@ function Dashboard({
             <div className="flex items-center gap-2 mb-3">
               <Flame className="h-5 w-5 text-orange-500" />
               <h3 className="font-semibold text-neutral-900 dark:text-neutral-100">
-                Your Streak
+                Streak
               </h3>
             </div>
             <div className="flex flex-col items-center justify-center h-20">
@@ -250,7 +250,7 @@ function Dashboard({
             <div className="flex items-center gap-2 mb-3">
               <CalendarDays className="h-5 w-5 text-blue-500" />
               <h3 className="font-semibold text-neutral-900 dark:text-neutral-100">
-                Total Recaps
+                Total
               </h3>
             </div>
             <div className="flex flex-col items-center justify-center h-20">
@@ -431,7 +431,7 @@ function HomePageInner() {
             >
               <div className="flex items-center gap-2">
                 <Flame className="h-5 w-5 text-orange-500" />
-                <p className="font-semibold text-neutral-900 dark:text-neutral-100">
+                <p className="font-semibold text-2xl text-neutral-900 dark:text-neutral-100">
                   Streak
                 </p>
               </div>
@@ -456,8 +456,8 @@ function HomePageInner() {
             >
               <div className="flex items-center gap-2">
                 <CalendarDays className="h-5 w-5 text-blue-500" />
-                <p className="font-semibold text-neutral-900 dark:text-neutral-100">
-                  Total Recaps
+                <p className="font-semibold text-2xl text-neutral-900 dark:text-neutral-100">
+                  Total
                 </p>
               </div>
               <div className="flex flex-col items-center justify-center flex-1">
