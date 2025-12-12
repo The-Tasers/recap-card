@@ -3,7 +3,7 @@
 import { useMemo, useState, Suspense, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Flame, Clock } from 'lucide-react';
+import { Flame, Clock, CalendarDays, Pin } from 'lucide-react';
 
 import { useCardStore } from '@/lib/store';
 import { Onboarding } from '@/components/onboarding';
@@ -12,19 +12,20 @@ import {
   getGreeting,
   getTodayDateFormatted,
   getTodayRecap,
-  getLast7DaysMoodData,
+  getLastNDaysMoodData,
+  type MoodDayData,
 } from '@/lib/daily-utils';
 import { MoodMapTile } from '@/components/mood-map-tile';
 import { DailyCard } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 // Countdown Timer with CTA Component
-function DayCountdown({
+export function DayCountdown({
   hasRecapToday,
   onCreateClick,
 }: {
   hasRecapToday: boolean;
-  onCreateClick: () => void;
+  onCreateClick?: () => void;
 }) {
   const [timeLeft, setTimeLeft] = useState('');
   const [message, setMessage] = useState('');
@@ -91,21 +92,23 @@ function DayCountdown({
         </p>
 
         {/* CTA Button */}
-        <button
-          onClick={onCreateClick}
-          className="relative w-full mt-1 h-11 bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold text-sm rounded-xl shadow-md hover:shadow-lg transition-all duration-200 hover:scale-[1.02]"
-        >
-          Capture Today&apos;s Moment
-        </button>
+        {onCreateClick && (
+          <button
+            onClick={onCreateClick}
+            className="relative w-full mt-1 h-11 bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold text-sm rounded-xl shadow-md hover:shadow-lg transition-all duration-200 hover:scale-[1.02]"
+          >
+            Capture Today&apos;s Moment
+          </button>
+        )}
       </div>
     </motion.div>
   );
 }
 
-// Header Component (Simplified - no greeting/username)
+// Header Component (Mobile only - desktop has sidebar)
 function Header() {
   return (
-    <header className="sticky top-0 left-0 right-0 z-50 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm">
+    <header className="lg:hidden sticky top-0 left-0 right-0 z-50 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-200/50 dark:border-neutral-800/50">
       <div className="max-w-md mx-auto px-5 py-4">
         <h1 className="text-4xl font-black text-neutral-900 dark:text-neutral-100 tracking-tight">
           RECAP<span className="text-amber-500">P</span>
@@ -127,8 +130,8 @@ function Dashboard({
   userName: string;
   hasRecapToday: boolean;
   isEmptyState?: boolean;
-  stats: { streak: number };
-  moodData: (number | null)[];
+  stats: { streak: number; total: number };
+  moodData: MoodDayData[];
   todayRecap: DailyCard | undefined | null;
 }) {
   const router = useRouter();
@@ -142,6 +145,10 @@ function Dashboard({
     } else {
       router.push('/create');
     }
+  };
+
+  const handleTotalClick = () => {
+    router.push('/timeline?view=list');
   };
 
   const handleCreateClick = () => {
@@ -230,12 +237,36 @@ function Dashboard({
                   : 'days'}
               </p>
             </div>
-            <p className="text-xs text-neutral-500 dark:text-neutral-500 mt-3">
+            <p className="text-xs text-center text-neutral-500 dark:text-neutral-500 mt-3">
               Build momentum daily
             </p>
           </div>
 
-          {/* Mood Map Tile */}
+          {/* Total Recaps Tile */}
+          <div
+            onClick={handleTotalClick}
+            className="rounded-2xl p-5 shadow-sm border bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <CalendarDays className="h-5 w-5 text-blue-500" />
+              <h3 className="font-semibold text-neutral-900 dark:text-neutral-100">
+                Total Recaps
+              </h3>
+            </div>
+            <div className="flex flex-col items-center justify-center h-20">
+              <div className="text-5xl font-black text-blue-500">
+                {stats.total}
+              </div>
+              <p className="text-xs text-blue-500 mt-1">all time</p>
+            </div>
+            <p className="text-xs text-center text-neutral-500 dark:text-neutral-500 mt-3">
+              Every moment counts
+            </p>
+          </div>
+        </div>
+
+        {/* Mood Map - Full width */}
+        <div className="mt-4">
           <MoodMapTile moodData={moodData} />
         </div>
 
@@ -248,8 +279,8 @@ function Dashboard({
             className="mt-8 text-center"
           >
             <p className="text-sm text-neutral-500 dark:text-neutral-500 max-w-sm mx-auto leading-relaxed">
-              Start building a habit of reflection. Just a few minutes each day to
-              capture what matters.
+              Start building a habit of reflection. Just a few minutes each day
+              to capture what matters.
             </p>
           </motion.div>
         )}
@@ -321,8 +352,16 @@ function HomePageInner() {
     setOnboardingDismissed(true);
   };
 
-  // Get mood data for last 7 days (before early return)
-  const moodData = useMemo(() => getLast7DaysMoodData(cards), [cards]);
+  const handleStreakClick = () => {
+    router.push('/timeline?view=calendar');
+  };
+
+  const handleTotalClick = () => {
+    router.push('/timeline?view=list');
+  };
+
+  // Get mood data for last 28 days (4 weeks) - before early return
+  const moodData = useMemo(() => getLastNDaysMoodData(cards, 28), [cards]);
 
   const showOnboarding =
     hydrated &&
@@ -362,92 +401,161 @@ function HomePageInner() {
         {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
       </AnimatePresence>
 
-      {/* Header (no username/greeting) */}
+      {/* Mobile Header */}
       <Header />
 
+      {/* Desktop Page Header */}
+      <div className="hidden lg:block sticky top-0 z-10 h-20 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-200/50 dark:border-neutral-800/50">
+        <div className="px-8 h-full flex items-center justify-between">
+          <div>
+            <h1 className="text-xl lg:text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+              {getGreeting(userName)}
+            </h1>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+              {getTodayDateFormatted()}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Main Content */}
-      <div className="max-w-md mx-auto px-5 pb-24">
-        {/* Dashboard with greeting and progress */}
-        <Dashboard
-          userName={userName}
-          hasRecapToday={hasCards ? !!getTodayRecap(cards) : false}
-          stats={stats}
-          moodData={moodData}
-          todayRecap={hasCards ? getTodayRecap(cards) : null}
-          isEmptyState={!hasCards}
-        />
-
-        {/* Cards Content - Only show when user has cards */}
-        {hasCards && (
-          <>
-            {/* Pinned Cards Section */}
-            {hasPinnedCards && (
-              <div>
-                <div className="mb-4">
-                  <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                    Pinned Recaps
-                  </h2>
-                </div>
-                <div className="relative -mx-4 mb-8">
-                  <div
-                    className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide px-4 pb-4"
-                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                  >
-                    {pinnedCards.map((card, index) => (
-                      <motion.div
-                        key={card.id}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="snap-start shrink-0 w-[65%] first:ml-0 relative"
-                      >
-                        <DailyCardView
-                          card={card}
-                          variant="compact"
-                          onClick={() => router.push(`/card/${card.id}`)}
-                          className="min-h-[180px] flex flex-col"
-                        />
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
+      <div className="px-5 lg:px-8 pb-24 lg:py-8">
+        {/* Desktop: Dashboard Grid Layout */}
+        <div className="lg:grid lg:grid-cols-12 lg:gap-6">
+          {/* Top Stats Bar - Desktop Only */}
+          <div className="hidden lg:flex lg:col-span-12 lg:gap-4 lg:mb-6 lg:items-stretch">
+            {/* Streak Card */}
+            <div
+              onClick={handleStreakClick}
+              className="flex-1 rounded-2xl flex flex-col gap-2 p-5 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Flame className="h-5 w-5 text-orange-500" />
+                <p className="font-semibold text-neutral-900 dark:text-neutral-100">
+                  Streak
+                </p>
               </div>
-            )}
-
-            {/* Recent Recaps Section */}
-            <div className="mb-4">
-              <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                Recent Recaps
-              </h2>
-            </div>
-
-            {/* Cards Carousel */}
-            <div className="relative -mx-4">
-              <div
-                ref={scrollRef}
-                className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide px-4 pb-4"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-              >
-                {effectiveCards.map((card, index) => (
-                  <motion.div
-                    key={card.id}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="snap-start shrink-0 w-[65%] first:ml-0 relative"
-                  >
-                    <DailyCardView
-                      card={card}
-                      variant="compact"
-                      onClick={() => router.push(`/card/${card.id}`)}
-                      className="min-h-[180px] flex flex-col"
-                    />
-                  </motion.div>
-                ))}
+              <div className="flex flex-col items-center justify-center flex-1">
+                <p className="text-9xl font-black text-orange-500">
+                  {stats.streak}
+                </p>
+                <p className="text-3xl text-orange-500 mt-1">
+                  {stats.streak === 0
+                    ? 'days yet'
+                    : stats.streak === 1
+                    ? 'day'
+                    : 'days'}
+                </p>
               </div>
             </div>
-          </>
-        )}
+
+            {/* Total Recaps Card */}
+            <div
+              onClick={handleTotalClick}
+              className="flex-1 rounded-2xl flex flex-col gap-2 p-5 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <CalendarDays className="h-5 w-5 text-blue-500" />
+                <p className="font-semibold text-neutral-900 dark:text-neutral-100">
+                  Total Recaps
+                </p>
+              </div>
+              <div className="flex flex-col items-center justify-center flex-1">
+                <p className="text-9xl font-black text-blue-500">
+                  {stats.total}
+                </p>
+                <p className="text-3xl mt-1 text-blue-500">all time</p>
+              </div>
+            </div>
+
+            {/* Mood Map - constrained width */}
+            <div className="flex-1">
+              <MoodMapTile moodData={moodData} />
+            </div>
+          </div>
+
+          {/* Mobile Dashboard */}
+          <div className="lg:hidden">
+            <Dashboard
+              userName={userName}
+              hasRecapToday={hasCards ? !!getTodayRecap(cards) : false}
+              stats={stats}
+              moodData={moodData}
+              todayRecap={hasCards ? getTodayRecap(cards) : null}
+              isEmptyState={!hasCards}
+            />
+          </div>
+
+          {/* Pinned Cards - Full Width on Desktop */}
+          {hasCards && hasPinnedCards && (
+            <div className="lg:col-span-12 mb-6 lg:mb-0">
+              <div className="mb-4 flex items-center gap-2">
+                <Pin className="size-5 -rotate-45" />
+                <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                  Pinned Recaps
+                </h2>
+              </div>
+              <div className="relative -mr-4 lg:mx-0">
+                <div
+                  className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pr-4 lg:px-0 pb-4 lg:grid lg:grid-cols-4 lg:overflow-visible"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
+                  {pinnedCards.map((card, index) => (
+                    <motion.div
+                      key={card.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="snap-start h-full shrink-0 w-[65%] lg:w-auto first:ml-0"
+                    >
+                      <DailyCardView
+                        card={card}
+                        variant="compact"
+                        onClick={() => router.push(`/card/${card.id}`)}
+                        className="flex flex-col"
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Recent Recaps - Full Width on Desktop */}
+          {hasCards && (
+            <div className="lg:col-span-12 mt-6 lg:mt-0">
+              <div className="mb-4">
+                <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                  Recent Recaps
+                </h2>
+              </div>
+              <div className="relative -mr-4 lg:mx-0">
+                <div
+                  ref={scrollRef}
+                  className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pr-4 lg:px-0 pb-4 lg:grid lg:grid-cols-2 xl:grid-cols-4 lg:overflow-visible"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
+                  {effectiveCards.slice(0, 12).map((card, index) => (
+                    <motion.div
+                      key={card.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="snap-start shrink-0 h-full w-[65%] lg:w-auto first:ml-0"
+                    >
+                      <DailyCardView
+                        card={card}
+                        variant="compact"
+                        onClick={() => router.push(`/card/${card.id}`)}
+                        className="flex flex-col"
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

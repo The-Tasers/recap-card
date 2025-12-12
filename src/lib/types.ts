@@ -18,6 +18,7 @@ export const PREDEFINED_TAGS = [
   'milestone',
   'fun',
   'relax',
+  'other',
 ] as const;
 
 export type PredefinedTag = (typeof PREDEFINED_TAGS)[number];

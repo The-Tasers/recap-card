@@ -108,10 +108,10 @@ export default function EditCardPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto pb-32">
+    <div className="max-w-md lg:max-w-3xl mx-auto pb-32">
       {/* Header */}
-      <header className="sticky top-0 z-10 h-20 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-sm border-b border-neutral-200 dark:border-neutral-800 px-4 py-4 mb-6">
-        <div className="flex items-center gap-4">
+      <header className="sticky top-0 z-10 h-20 bg-neutral-50 dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 mb-6">
+        <div className="px-4 lg:px-8 h-full flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
@@ -131,11 +131,11 @@ export default function EditCardPage() {
         </div>
       </header>
 
-      <div className="space-y-6 px-4">
+      <div className="space-y-6 px-4 lg:px-8">
         {/* Mood Selector */}
         <div>
           <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-3">
-            How are you feeling?
+            How are you feeling? <span className="text-destructive">*</span>
           </label>
           <MoodSelector value={mood} onChange={setMood} />
         </div>
@@ -143,13 +143,13 @@ export default function EditCardPage() {
         {/* Text Input */}
         <div>
           <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
-            What happened today?
+            What happened today? <span className="text-destructive">*</span>
           </label>
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Write about your day..."
-            className="min-h-[150px] rounded-2xl resize-none text-base"
+            className="min-h-[150px] lg:min-h-[200px] rounded-2xl resize-none text-base lg:text-lg"
             maxLength={MAX_CHARS + 50}
           />
           <div className="flex justify-end mt-2">
@@ -167,8 +167,8 @@ export default function EditCardPage() {
 
         {/* Photo Upload */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
-            Photo of the Day
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-3">
+            Picture of the Day
           </label>
           <PhotoUploader value={photoUrl} onChange={setPhotoUrl} />
         </div>
@@ -191,9 +191,12 @@ export default function EditCardPage() {
 
         {/* Tags */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-3">
-            Tags
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
+            Tags <span className="text-destructive">*</span>
           </label>
+          <p className="text-xs text-muted-foreground mb-3">
+            Select at least one tag to categorize your recap
+          </p>
 
           <div className="flex flex-wrap gap-2">
             {PREDEFINED_TAGS.map((tag) => (

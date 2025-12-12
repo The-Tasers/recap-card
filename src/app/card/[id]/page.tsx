@@ -29,6 +29,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 export default function CardDetailPage() {
   const params = useParams();
@@ -57,7 +62,7 @@ export default function CardDetailPage() {
 
   if (!card) {
     return (
-      <div className="max-w-md mx-auto px-4 py-6">
+      <div className="max-w-md lg:max-w-3xl mx-auto px-4 lg:px-8 py-6">
         <header className="flex items-center gap-4 mb-6">
           <Button
             variant="ghost"
@@ -92,30 +97,31 @@ export default function CardDetailPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto pb-32">
-      <header className="sticky top-0 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 z-10 flex items-center h-20 justify-between mb-6 px-4 py-4">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full"
-            onClick={handleBack}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
-              {new Date(card.createdAt).toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </h1>
+    <div className="max-w-md lg:max-w-3xl mx-auto pb-32">
+      <header className="sticky top-0 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 z-10 h-20 mb-6">
+        <div className="px-4 lg:px-8 h-full flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+              onClick={handleBack}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
+                {new Date(card.createdAt).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </h1>
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="icon"
@@ -125,9 +131,56 @@ export default function CardDetailPage() {
             <Edit className="h-5 w-5" />
           </Button>
 
+          {/* Desktop: Popover */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full hidden lg:flex"
+              >
+                <MoreVertical className="h-5 w-5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56" align="end">
+              <div className="grid gap-1">
+                <Button
+                  variant="ghost"
+                  className="justify-start h-10"
+                  onClick={handleTogglePin}
+                >
+                  {card.isPinned ? (
+                    <>
+                      <PinOff className="h-4 w-4 mr-2" />
+                      Unpin from Home
+                    </>
+                  ) : (
+                    <>
+                      <Pin className="h-4 w-4 mr-2" />
+                      Pin to Home
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="justify-start h-10 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Recap
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Mobile: Sheet */}
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full lg:hidden"
+              >
                 <MoreVertical className="h-5 w-5" />
               </Button>
             </SheetTrigger>
@@ -164,9 +217,10 @@ export default function CardDetailPage() {
               </div>
             </SheetContent>
           </Sheet>
+          </div>
         </div>
       </header>
-      <div className="px-4">
+      <div className="px-4 lg:px-8 lg:max-w-4xl lg:mx-auto">
         {/* Card View */}
         <DailyCardView card={card} />
 

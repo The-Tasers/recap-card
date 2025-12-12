@@ -163,56 +163,66 @@ function TimelineContent() {
   }
 
   return (
-    <div className="max-w-md mx-auto pb-24 min-h-screen bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm">
-      <header className="sticky top-0 z-10 h-20 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-200 dark:border-neutral-800 px-4 py-4 mb-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full"
-              onClick={handleBack}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                Timeline
-              </h1>
-              <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                All your recaps, in one place
-              </p>
+    <div className="pb-24 min-h-screen">
+      {/* Page Header */}
+      <header className="sticky top-0 z-10 h-20 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-200 dark:border-neutral-800">
+        <div className="px-4 lg:px-8 h-full flex items-center">
+          <div className="flex items-center justify-between gap-3 w-full">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full lg:hidden"
+                onClick={handleBack}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div>
+                <h1 className="text-xl lg:text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+                  Timeline
+                </h1>
+                <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                  {filteredCards.length}{' '}
+                  {filteredCards.length === 1 ? 'recap' : 'recaps'}
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="flex gap-2" aria-label="View mode">
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'outline'}
-              size="icon"
-              className={cn(
-                'rounded-full h-10 w-10 transition-all duration-200'
-              )}
-              onClick={() => setViewMode('list')}
-              aria-pressed={viewMode === 'list'}
-            >
-              <List className={cn('h-4 w-4 transition-colors')} />
-            </Button>
-            <Button
-              variant={viewMode === 'calendar' ? 'default' : 'outline'}
-              size="icon"
-              className={cn(
-                'rounded-full h-10 w-10 transition-all duration-200'
-              )}
-              onClick={() => setViewMode('calendar')}
-              aria-pressed={viewMode === 'calendar'}
-            >
-              <CalendarDays className={cn('h-4 w-4 transition-colors')} />
-            </Button>
+            <div className="flex gap-2" aria-label="View mode">
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                size="icon"
+                className={cn(
+                  'rounded-full h-10 w-10 lg:h-11 lg:w-11 transition-all duration-200'
+                )}
+                onClick={() => setViewMode('list')}
+                aria-pressed={viewMode === 'list'}
+              >
+                <List
+                  className={cn('h-4 w-4 lg:h-5 lg:w-5 transition-colors')}
+                />
+              </Button>
+              <Button
+                variant={viewMode === 'calendar' ? 'default' : 'outline'}
+                size="icon"
+                className={cn(
+                  'rounded-full h-10 w-10 lg:h-11 lg:w-11 transition-all duration-200'
+                )}
+                onClick={() => setViewMode('calendar')}
+                aria-pressed={viewMode === 'calendar'}
+              >
+                <CalendarDays
+                  className={cn('h-4 w-4 lg:h-5 lg:w-5 transition-colors')}
+                />
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="px-4">
-        <div className="mb-6">
+      {/* Content */}
+      <div className="px-4 lg:px-8 py-6 lg:py-8">
+        {/* Search Bar */}
+        <div className="mb-6 lg:mb-8">
           <SearchBar filters={localFilters} onFiltersChange={setLocalFilters} />
         </div>
 
@@ -226,7 +236,7 @@ function TimelineContent() {
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredCards.map((card) => (
                 <DailyCardView
                   key={card.id}
@@ -238,35 +248,39 @@ function TimelineContent() {
             </div>
           )
         ) : (
-          <div className="space-y-4">
-            <CalendarView
-              cards={filteredCards}
-              selectedDate={selectedDate}
-              onSelectDate={setSelectedDate}
-            />
+          <div className="lg:grid lg:grid-cols-[400px_1fr] lg:gap-8 space-y-4 lg:space-y-0">
+            <div className="lg:sticky lg:top-32 lg:h-fit">
+              <CalendarView
+                cards={filteredCards}
+                selectedDate={selectedDate}
+                onSelectDate={setSelectedDate}
+              />
+            </div>
 
-            {cardsForSelectedDate.length === 0 ? (
-              <div className="text-center py-10">
-                <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                  {selectedDate
-                    ? 'No recap on this day.'
-                    : cards.length === 0
-                    ? 'No recaps yet.'
-                    : 'No recaps match your filters.'}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {cardsForSelectedDate.map((card) => (
-                  <DailyCardView
-                    key={card.id}
-                    card={card}
-                    variant="compact"
-                    onClick={() => router.push(`/card/${card.id}`)}
-                  />
-                ))}
-              </div>
-            )}
+            <div>
+              {cardsForSelectedDate.length === 0 ? (
+                <div className="text-center py-16 bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700">
+                  <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                    {selectedDate
+                      ? 'No recap on this day.'
+                      : cards.length === 0
+                      ? 'No recaps yet.'
+                      : 'Select a day to view recaps'}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {cardsForSelectedDate.map((card) => (
+                    <DailyCardView
+                      key={card.id}
+                      card={card}
+                      variant="compact"
+                      onClick={() => router.push(`/card/${card.id}`)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

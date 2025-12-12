@@ -5,9 +5,6 @@ import {
   Search,
   X,
   SlidersHorizontal,
-  Calendar,
-  Image as ImageIcon,
-  Tag,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -19,14 +16,13 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { DailyCard, Mood, MOODS, PREDEFINED_TAGS } from '@/lib/types';
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { DailyCard, Mood, MOODS } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { FilterContent } from './filter-content';
 
 export interface SearchFilters {
   query: string;
@@ -50,7 +46,8 @@ interface SearchBarProps {
 }
 
 export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const hasActiveFilters =
     filters.mood !== 'all' ||
@@ -85,13 +82,45 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
           )}
         </div>
 
-        <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+        {/* Desktop: Popover */}
+        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className={cn(
+                'rounded-full shrink-0 hidden lg:flex',
+                hasActiveFilters && 'bg-primary/10 border-primary text-primary'
+              )}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-96" align="end">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold">Filters</h4>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearFilters}
+                disabled={!hasActiveFilters}
+                className="text-sm border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 disabled:opacity-50"
+              >
+                Clear All
+              </Button>
+            </div>
+            <FilterContent filters={filters} onFiltersChange={onFiltersChange} />
+          </PopoverContent>
+        </Popover>
+
+        {/* Mobile: Sheet */}
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetTrigger asChild>
             <Button
               variant="outline"
               size="icon"
               className={cn(
-                'rounded-full shrink-0',
+                'rounded-full shrink-0 lg:hidden',
                 hasActiveFilters && 'bg-primary/10 border-primary text-primary'
               )}
             >
@@ -113,118 +142,7 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
                 </Button>
               </div>
             </SheetHeader>
-            <div className="space-y-6 py-4">
-              {/* Mood Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Mood</label>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => onFiltersChange({ ...filters, mood: 'all' })}
-                    className={cn(
-                      'px-3 py-1.5 rounded-full text-sm',
-                      filters.mood === 'all'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
-                    )}
-                  >
-                    All
-                  </button>
-                  {MOODS.map((mood) => (
-                    <button
-                      key={mood.value}
-                      onClick={() =>
-                        onFiltersChange({ ...filters, mood: mood.value })
-                      }
-                      className={cn(
-                        'px-3 py-1.5 rounded-full text-sm',
-                        filters.mood === mood.value
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted'
-                      )}
-                    >
-                      {mood.emoji}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Photo Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <ImageIcon className="h-4 w-4" />
-                  Photo
-                </label>
-                <Select
-                  value={filters.hasPhoto}
-                  onValueChange={(value: 'all' | 'yes' | 'no') =>
-                    onFiltersChange({ ...filters, hasPhoto: value })
-                  }
-                >
-                  <SelectTrigger className="w-full rounded-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All recaps</SelectItem>
-                    <SelectItem value="yes">With photo</SelectItem>
-                    <SelectItem value="no">Without photo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Date Range Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Date Range
-                </label>
-                <Select
-                  value={filters.dateRange}
-                  onValueChange={(value: SearchFilters['dateRange']) =>
-                    onFiltersChange({ ...filters, dateRange: value })
-                  }
-                >
-                  <SelectTrigger className="w-full rounded-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All time</SelectItem>
-                    <SelectItem value="today">Today</SelectItem>
-                    <SelectItem value="week">This week</SelectItem>
-                    <SelectItem value="month">This month</SelectItem>
-                    <SelectItem value="year">This year</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Tags Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Tag className="h-4 w-4" />
-                  Tags
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {PREDEFINED_TAGS.map((tag) => (
-                    <button
-                      key={tag}
-                      onClick={() => {
-                        const newTags = filters.tags.includes(tag)
-                          ? filters.tags.filter((t) => t !== tag)
-                          : [...filters.tags, tag];
-                        onFiltersChange({ ...filters, tags: newTags });
-                      }}
-                      className={cn(
-                        'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
-                        filters.tags.includes(tag)
-                          ? 'bg-linear-to-r from-violet-500 to-purple-600 text-white'
-                          : 'bg-muted hover:bg-muted/80'
-                      )}
-                    >
-                      #{tag}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <FilterContent filters={filters} onFiltersChange={onFiltersChange} />
           </SheetContent>
         </Sheet>
       </div>
@@ -241,7 +159,7 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
           {filters.hasPhoto !== 'all' && (
             <FilterPill
               label={
-                filters.hasPhoto === 'yes' ? '📷 With photo' : '📷 No photo'
+                filters.hasPhoto === 'yes' ? '📷 With picture' : '📷 No picture'
               }
               onRemove={() => onFiltersChange({ ...filters, hasPhoto: 'all' })}
             />

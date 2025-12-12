@@ -98,8 +98,8 @@ export function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
 
   if (value) {
     return (
-      <div className="relative rounded-2xl overflow-hidden">
-        <img src={value} alt="Uploaded" className="w-full h-48 object-cover" />
+      <div className="relative rounded-2xl overflow-hidden aspect-square lg:aspect-video lg:max-h-80">
+        <img src={value} alt="Uploaded" className="w-full h-full object-cover" />
         <Button
           type="button"
           variant="destructive"
@@ -115,8 +115,8 @@ export function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
 
   if (isCompressing) {
     return (
-      <div className="border-2 border-dashed rounded-2xl p-8 text-center border-primary/50 bg-primary/5">
-        <Loader2 className="h-10 w-10 mx-auto text-primary animate-spin mb-2" />
+      <div className="border-2 border-dashed rounded-2xl p-12 lg:p-12 text-center border-primary/50 bg-primary/5">
+        <Loader2 className="h-12 w-12 mx-auto text-primary animate-spin mb-2" />
         <p className="text-sm text-muted-foreground">Processing image...</p>
       </div>
     );
@@ -125,7 +125,7 @@ export function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
   return (
     <div
       className={cn(
-        'border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors',
+        'border-2 border-dashed rounded-2xl p-12 lg:p-12 text-center cursor-pointer transition-colors',
         isDragging
           ? 'border-primary bg-primary/5'
           : 'border-muted-foreground/25 hover:border-primary/50'
@@ -142,9 +142,9 @@ export function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
         className="hidden"
         onChange={(e) => handleFileChange(e.target.files?.[0])}
       />
-      <ImagePlus className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2" />
-      <p className="text-sm text-muted-foreground">
-        Tap to add a photo (optional)
+      <ImagePlus className="h-12 w-12 lg:h-14 lg:w-14 mx-auto text-muted-foreground/50 mb-3" />
+      <p className="text-sm lg:text-base text-muted-foreground">
+        Click or drag & drop to add a picture (optional)
       </p>
     </div>
   );

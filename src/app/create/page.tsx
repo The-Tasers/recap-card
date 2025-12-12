@@ -141,46 +141,48 @@ export default function CreatePage() {
   };
 
   return (
-    <div className="max-w-md mx-auto pb-32">
+    <div className="max-w-md lg:max-w-3xl mx-auto pb-32">
       {/* Header */}
-      <header className="sticky top-0 z-10 h-20 bg-neutral-50 dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 px-4 py-4 mb-6">
-        {error && (
-          <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm text-destructive font-medium">
-                Storage Full
-              </p>
-              <p className="text-xs text-destructive/80">{error}</p>
+      <header className="sticky top-0 z-10 min-h-20 bg-neutral-50 dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 mb-6">
+        <div className="px-4 lg:px-8 py-4">
+          {error && (
+            <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm text-destructive font-medium">
+                  Storage Full
+                </p>
+                <p className="text-xs text-destructive/80">{error}</p>
+              </div>
             </div>
-          </div>
-        )}
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full"
-            onClick={handleBack}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
-              Capture Today
-            </h1>
-            <p className="text-sm text-muted-foreground">How was your day?</p>
+          )}
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+              onClick={handleBack}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
+                Capture Today
+              </h1>
+              <p className="text-sm text-muted-foreground">How was your day?</p>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="space-y-6 px-4">
+      <div className="space-y-6 px-4 lg:px-8">
         {/* Daily Question */}
         <DailyQuestionCard onSelectQuestion={handleSelectQuestion} />
 
         {/* Mood Selector */}
         <div>
           <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
-            How are you feeling?
+            How are you feeling? <span className="text-destructive">*</span>
           </label>
           <MoodSelector value={mood} onChange={setMood} />
         </div>
@@ -189,14 +191,14 @@ export default function CreatePage() {
         <div>
           <div className="mb-2">
             <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-              What happened today?
+              What happened today? <span className="text-destructive">*</span>
             </label>
           </div>
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Write about your day..."
-            className="min-h-[150px] rounded-2xl resize-none text-base"
+            className="min-h-[150px] lg:min-h-[200px] rounded-2xl resize-none text-base lg:text-lg"
             maxLength={MAX_CHARS + 50}
           />
           <div className="flex justify-end mt-2">
@@ -214,8 +216,8 @@ export default function CreatePage() {
 
         {/* Photo Upload */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-            Photo of the Day
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
+            Picture of the Day
           </label>
           <PhotoUploader value={photoUrl} onChange={setPhotoUrl} />
         </div>
@@ -238,9 +240,12 @@ export default function CreatePage() {
 
         {/* Tags */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
-            Tags
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+            Tags <span className="text-destructive">*</span>
           </label>
+          <p className="text-xs text-muted-foreground mb-3">
+            Select at least one tag to categorize your recap
+          </p>
 
           <div className="flex flex-wrap gap-2">
             {PREDEFINED_TAGS.map((tag) => (

@@ -62,25 +62,33 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto pb-32">
+    <div className="pb-32 min-h-screen">
       {/* Header */}
-      <header className="sticky top-0 z-10 flex items-center h-20 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-200/50 dark:border-neutral-700/50 px-4 py-4 mb-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full"
-            onClick={handleBack}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
-            Settings
-          </h1>
+      <header className="sticky top-0 z-10 h-20 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-200/50 dark:border-neutral-700/50">
+        <div className="px-4 lg:px-8 h-full flex items-center">
+          <div className="flex items-center gap-4 w-full">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full lg:hidden"
+              onClick={handleBack}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-xl lg:text-3xl font-bold text-neutral-800 dark:text-neutral-100">
+                Settings
+              </h1>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1 hidden lg:block">
+                Manage your preferences and data
+              </p>
+            </div>
+          </div>
         </div>
       </header>
 
-      <div className="space-y-6 px-4">
+      <div className="px-4 lg:px-8 py-6 lg:py-8">
+        <div className="max-w-4xl grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Profile */}
         <div className="bg-white dark:bg-neutral-800 rounded-2xl p-4 border border-neutral-200/50 dark:border-neutral-700/60">
           <h2 className="text-sm font-medium text-neutral-500 dark:text-neutral-300 mb-3">
@@ -240,6 +248,7 @@ export default function SettingsPage() {
               </p>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>

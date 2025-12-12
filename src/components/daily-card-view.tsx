@@ -32,16 +32,17 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
     const showGrain = card.showGrain ?? true;
     const showVignette = card.showVignette ?? false;
 
-    // Mood-based gradients
+    // Mood-based gradients - matching mood emoji colors
+    // great: green (#22C55E), good: lime (#84CC16), neutral: yellow (#EAB308), bad: orange (#F97316), terrible: red (#EF4444)
     const moodGradients = {
       great:
-        'bg-gradient-to-br from-emerald-400/90 via-teal-300/80 to-cyan-400/90',
-      good: 'bg-gradient-to-br from-green-400/90 via-lime-300/80 to-emerald-400/90',
+        'bg-gradient-to-br from-green-500/90 via-emerald-500/85 to-green-600/90',
+      good: 'bg-gradient-to-br from-lime-500/90 via-lime-400/85 to-lime-600/90',
       neutral:
-        'bg-gradient-to-br from-amber-300/90 via-yellow-200/80 to-orange-300/90',
-      bad: 'bg-gradient-to-br from-orange-400/90 via-red-300/80 to-pink-400/90',
+        'bg-gradient-to-br from-yellow-400/90 via-yellow-300/85 to-yellow-500/90',
+      bad: 'bg-gradient-to-br from-orange-500/90 via-orange-400/85 to-orange-600/90',
       terrible:
-        'bg-gradient-to-br from-red-500/90 via-rose-400/80 to-purple-500/90',
+        'bg-gradient-to-br from-red-500/90 via-red-400/85 to-red-600/90',
     };
 
     // Compact card for timeline view
@@ -51,379 +52,63 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
           ref={ref}
           onClick={onClick}
           className={cn(
-            'rounded-2xl p-5 transition-all duration-200 cursor-pointer relative overflow-hidden',
-            'hover:shadow-lg',
+            'rounded-2xl p-5 flex flex-col lg:p-6 transition-all duration-200 cursor-pointer relative overflow-hidden',
+            'hover:shadow-lg lg:hover:scale-[1.02] min-h-[200px] lg:min-h-[220px] xl:min-h-[280px] h-full',
             moodGradients[card.mood],
             className
           )}
         >
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <span className="text-sm text-neutral-900/70 dark:text-white/80 font-semibold">
-              {new Date(card.createdAt).toLocaleDateString('en-US', {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-              })}
-            </span>
-            <span className="text-3xl">{moodData?.emoji}</span>
-          </div>
-          <p
-            className={cn(
-              'text-base leading-relaxed line-clamp-2 text-neutral-900 dark:text-white font-semibold mb-4',
-              typography.bodyClass
-            )}
-          >
-            {card.text}
-          </p>
-          {card.tags && card.tags.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2">
-              {card.tags.slice(0, 2).map((tag) => (
-                <span
-                  key={tag}
-                  className="text-sm bg-white/50 dark:bg-black/40 px-3 py-1 rounded-full text-neutral-900 dark:text-white font-semibold backdrop-blur-sm"
-                >
-                  #{tag}
-                </span>
-              ))}
-              {card.tags.length > 2 && (
-                <span className="text-sm bg-white/50 dark:bg-black/40 px-3 py-1 rounded-full text-neutral-900 dark:text-white font-semibold backdrop-blur-sm">
-                  +{card.tags.length - 2}
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    // Full card view based on story template
-    const template = card.storyTemplate || 'photoHero';
-
-    // Photo Hero Template
-    if (template === 'photoHero') {
-      return (
-        <div
-          ref={ref}
-          onClick={onClick}
-          className={cn(
-            'rounded-3xl overflow-hidden shadow-xl relative',
-            onClick && 'cursor-pointer hover:shadow-2xl hover:scale-[1.01]',
-            moodGradients[card.mood],
-            className
-          )}
-        >
-          {/* Photo Section */}
+          {/* Photo Background - Semi-transparent */}
           {card.photoUrl && (
-            <div className="relative h-64">
+            <div className="absolute inset-0 z-0">
               <img
                 src={card.photoUrl}
                 alt=""
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover opacity-10"
               />
-              <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
-                <div>
-                  <div
-                    className={cn(
-                      'text-xs uppercase tracking-wider opacity-90 mb-1',
-                      typography.microClass
-                    )}
-                    style={{
-                      color: '#fff',
-                      textShadow: '0 1px 3px rgba(0,0,0,0.5)',
-                    }}
-                  >
-                    {new Date(card.createdAt).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                    })}
-                  </div>
-                  <div
-                    className={cn(
-                      'text-2xl font-bold',
-                      typography.headlineClass
-                    )}
-                    style={{ color: '#fff' }}
-                  >
-                    {new Date(card.createdAt).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </div>
-                </div>
-                <div
-                  className="text-4xl"
-                  style={{ filter: `drop-shadow(0 0 8px ${moodColor})` }}
-                >
-                  {moodData?.emoji}
-                </div>
-              </div>
             </div>
           )}
 
-          {/* Content Section */}
-          <div className="p-6 space-y-4">
-            {!card.photoUrl && (
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <div
-                    className={cn(
-                      'text-xs uppercase tracking-wider text-neutral-900/70 dark:text-white/80 font-semibold',
-                      typography.microClass
-                    )}
-                  >
-                    {new Date(card.createdAt).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                    })}
-                  </div>
-                  <div
-                    className={cn(
-                      'text-xl font-bold text-neutral-900 dark:text-white',
-                      typography.headlineClass
-                    )}
-                  >
-                    {new Date(card.createdAt).toLocaleDateString('en-US', {
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </div>
-                </div>
-                <div className="text-3xl">{moodData?.emoji}</div>
-              </div>
-            )}
-
-            <p
-              className={cn(
-                'leading-relaxed text-neutral-900 dark:text-white font-medium',
-                typography.bodyClass
-              )}
-            >
-              {card.text}
-            </p>
-
-            {card.blocks && card.blocks.length > 0 && (
-              <div className="grid grid-cols-2 gap-2 pt-4">
-                {card.blocks.map((block) => (
-                  <div
-                    key={block.id}
-                    className="p-3 rounded-xl bg-white/20 dark:bg-black/30"
-                  >
-                    <BlockDisplay block={block} compact />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {card.tags && card.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-2">
-                {card.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-3 py-1 rounded-full text-xs bg-white/50 dark:bg-black/40 text-neutral-900 dark:text-white font-medium backdrop-blur-sm"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Effects */}
-          {showGrain && (
-            <div className="grain-subtle absolute inset-0 pointer-events-none" />
-          )}
-          {showVignette && (
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background:
-                  'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%)',
-              }}
-            />
-          )}
-        </div>
-      );
-    }
-
-    // Centered Quote Template
-    if (template === 'centeredQuote') {
-      return (
-        <div
-          ref={ref}
-          onClick={onClick}
-          className={cn(
-            'rounded-3xl overflow-hidden shadow-xl relative min-h-[400px] flex flex-col items-center justify-center p-8',
-            onClick && 'cursor-pointer hover:shadow-2xl hover:scale-[1.01]',
-            moodGradients[card.mood],
-            className
-          )}
-        >
-          <div className="text-center space-y-6 max-w-sm">
-            <div
-              className="text-5xl mb-4"
-              style={{ filter: `drop-shadow(0 0 12px ${moodColor})` }}
-            >
-              {moodData?.emoji}
-            </div>
-            <blockquote
-              className={cn(
-                'text-xl leading-relaxed text-neutral-900 dark:text-white font-semibold',
-                typography.headlineClass
-              )}
-            >
-              &ldquo;{card.text}&rdquo;
-            </blockquote>
-            <div
-              className={cn(
-                'text-sm text-neutral-900/70 dark:text-white/80',
-                typography.microClass
-              )}
-            >
-              {new Date(card.createdAt).toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </div>
-          </div>
-
-          {showGrain && (
-            <div className="grain-subtle absolute inset-0 pointer-events-none" />
-          )}
-          {showVignette && (
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background:
-                  'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.3) 100%)',
-              }}
-            />
-          )}
-        </div>
-      );
-    }
-
-    // Glass Cards Template
-    if (template === 'glassCards' && card.photoUrl) {
-      return (
-        <div
-          ref={ref}
-          onClick={onClick}
-          className={cn(
-            'rounded-3xl overflow-hidden shadow-xl relative',
-            onClick && 'cursor-pointer hover:shadow-2xl hover:scale-[1.01]',
-            className
-          )}
-        >
-          <img
-            src={card.photoUrl}
-            alt=""
-            className="w-full h-[450px] object-cover"
-          />
-          <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
-
-          <div className="absolute bottom-0 left-0 right-0 p-6 space-y-4">
-            <div className="backdrop-blur-xl bg-white/10 rounded-2xl p-5 border border-white/20">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-4xl">{moodData?.emoji}</span>
-                <span className="text-sm text-white/70">
+          {/* Content - on top of background */}
+          <div className="relative z-10 flex flex-col gap-4 flex-1">
+            <div className="flex flex-col gap-3 flex-1">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <span className="text-sm lg:text-base text-neutral-900/70 dark:text-white/80 font-semibold">
                   {new Date(card.createdAt).toLocaleDateString('en-US', {
+                    weekday: 'short',
                     month: 'short',
                     day: 'numeric',
                   })}
                 </span>
+                <span className="text-3xl lg:text-4xl">{moodData?.emoji}</span>
               </div>
               <p
                 className={cn(
-                  'text-white leading-relaxed',
+                  'text-base lg:text-lg leading-relaxed line-clamp-2 text-neutral-900 dark:text-white font-semibold',
                   typography.bodyClass
                 )}
               >
                 {card.text}
               </p>
             </div>
-          </div>
-
-          {showGrain && (
-            <div className="grain-subtle absolute inset-0 pointer-events-none" />
-          )}
-        </div>
-      );
-    }
-
-    // Magazine Cover Template
-    if (template === 'magazineCover') {
-      return (
-        <div
-          ref={ref}
-          onClick={onClick}
-          className={cn(
-            'rounded-3xl overflow-hidden shadow-xl relative',
-            onClick && 'cursor-pointer hover:shadow-2xl hover:scale-[1.01]',
-            moodGradients[card.mood],
-            className
-          )}
-        >
-          <div className="p-8 space-y-6">
-            {/* Magazine-style header */}
-            <div className="flex items-center justify-between border-b border-neutral-900/20 dark:border-white/20 pb-4">
-              <div
-                className={cn(
-                  'text-xs uppercase tracking-[0.3em] text-neutral-900/70 dark:text-white/80',
-                  typography.microClass
-                )}
-              >
-                Daily Recap
-              </div>
-              <div className="text-4xl">{moodData?.emoji}</div>
-            </div>
-
-            {/* Big headline date */}
-            <div
-              className={cn(
-                'text-5xl font-black tracking-tight text-neutral-900 dark:text-white',
-                typography.headlineClass
-              )}
-            >
-              {new Date(card.createdAt).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-              })}
-            </div>
-
-            {card.photoUrl && (
-              <div className="rounded-xl overflow-hidden">
-                <img
-                  src={card.photoUrl}
-                  alt=""
-                  className="w-full h-48 object-cover"
-                />
-              </div>
-            )}
-
-            <p
-              className={cn(
-                'text-lg leading-relaxed text-neutral-900 dark:text-white font-medium',
-                typography.bodyClass
-              )}
-            >
-              {card.text}
-            </p>
-
-            {card.blocks && card.blocks.length > 0 && (
-              <div className="grid grid-cols-2 gap-3 pt-4 border-t border-neutral-900/20 dark:border-white/20">
-                {card.blocks.slice(0, 4).map((block) => (
-                  <div key={block.id} className="text-center p-3">
-                    <BlockDisplay block={block} />
-                  </div>
+            {card.tags && card.tags.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                {card.tags.slice(0, 2).map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-sm bg-white/50 dark:bg-black/40 px-3 py-1 rounded-full text-neutral-900 dark:text-white font-semibold backdrop-blur-sm"
+                  >
+                    #{tag}
+                  </span>
                 ))}
+                {card.tags.length > 2 && (
+                  <span className="text-sm bg-white/50 dark:bg-black/40 px-3 py-1 rounded-full text-neutral-900 dark:text-white font-semibold backdrop-blur-sm">
+                    +{card.tags.length - 2}
+                  </span>
+                )}
               </div>
             )}
           </div>
-
-          {showGrain && (
-            <div className="grain-subtle absolute inset-0 pointer-events-none" />
-          )}
         </div>
       );
     }
@@ -484,11 +169,7 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
 
           {card.photoUrl && (
             <div className="rounded-2xl overflow-hidden">
-              <img
-                src={card.photoUrl}
-                alt=""
-                className="w-full h-48 object-cover"
-              />
+              <img src={card.photoUrl} alt="" className="w-full object-cover" />
             </div>
           )}
 
@@ -497,8 +178,7 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
               {card.blocks.map((block) => (
                 <div
                   key={block.id}
-                  className="p-3 rounded-xl"
-                  style={{ background: `${palette.surface}` }}
+                  className="p-3 rounded-xl bg-white/50 dark:bg-black/40"
                 >
                   <BlockDisplay block={block} compact />
                 </div>

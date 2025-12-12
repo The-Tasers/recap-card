@@ -129,3 +129,41 @@ export function getLast7DaysMoodData(cards: DailyCard[]): (number | null)[] {
 
   return moodData;
 }
+
+// Get mood data for a specific date range (used for GitHub-style grid)
+export interface MoodDayData {
+  date: Date;
+  mood: 'great' | 'good' | 'neutral' | 'bad' | 'terrible' | null;
+  hasRecap: boolean;
+}
+
+export function getLastNDaysMoodData(
+  cards: DailyCard[],
+  days: number
+): MoodDayData[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const moodData: MoodDayData[] = [];
+
+  // Loop through last N days (from N-1 days ago to today)
+  for (let i = days - 1; i >= 0; i--) {
+    const checkDate = new Date(today);
+    checkDate.setDate(today.getDate() - i);
+    const dateString = checkDate.toDateString();
+
+    // Find card for this date
+    const card = cards.find((c) => {
+      const cardDate = new Date(c.createdAt);
+      return cardDate.toDateString() === dateString;
+    });
+
+    moodData.push({
+      date: new Date(checkDate),
+      mood: card?.mood || null,
+      hasRecap: !!card,
+    });
+  }
+
+  return moodData;
+}

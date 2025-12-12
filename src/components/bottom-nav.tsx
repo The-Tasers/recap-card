@@ -12,7 +12,7 @@ export function BottomNav() {
     (pathname.startsWith('/card/') && pathname.endsWith('/edit'));
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 pb-safe z-50 pointer-events-none">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 pb-safe z-50 pointer-events-none">
       <div className="max-w-sm mx-auto px-8 pb-6">
         <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl rounded-3xl shadow-lg shadow-black/10 dark:shadow-black/40 border border-neutral-200/80 dark:border-neutral-700/50 pointer-events-auto">
           <div className="flex items-center justify-between h-16 px-2">
