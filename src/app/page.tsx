@@ -110,8 +110,8 @@ function Header() {
   return (
     <header className="lg:hidden sticky top-0 left-0 right-0 z-50 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-200/50 dark:border-neutral-800/50">
       <div className="max-w-md mx-auto px-5 py-4">
-        <h1 className="text-4xl font-black text-neutral-900 dark:text-neutral-100 tracking-tight">
-          RECAP<span className="text-amber-500">P</span>
+        <h1 className="relative text-4xl font-black text-neutral-900 dark:text-neutral-100 tracking-tight inline-block">
+          RECAP<span className="text-amber-500 absolute -right-1 -z-1">P</span>
         </h1>
       </div>
     </header>
@@ -162,7 +162,7 @@ function Dashboard({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="mb-6"
+        className="my-6"
       >
         {/* Date and Greeting */}
         <div className="mb-4">

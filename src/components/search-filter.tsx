@@ -1,11 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import {
-  Search,
-  X,
-  SlidersHorizontal,
-} from 'lucide-react';
+import { Search, X, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,18 +11,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { DailyCard, Mood, MOODS } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { FilterContent } from './filter-content';
 
 export interface SearchFilters {
   query: string;
-  mood: Mood | 'all';
+  moods: Mood[];
   hasPhoto: 'all' | 'yes' | 'no';
   dateRange: 'all' | 'today' | 'week' | 'month' | 'year';
   tags: string[];
@@ -34,7 +25,7 @@ export interface SearchFilters {
 
 const DEFAULT_FILTERS: SearchFilters = {
   query: '',
-  mood: 'all',
+  moods: [],
   hasPhoto: 'all',
   dateRange: 'all',
   tags: [],
@@ -46,11 +37,10 @@ interface SearchBarProps {
 }
 
 export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const hasActiveFilters =
-    filters.mood !== 'all' ||
+    filters.moods.length > 0 ||
     filters.hasPhoto !== 'all' ||
     filters.dateRange !== 'all' ||
     filters.tags.length > 0;
@@ -60,9 +50,10 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      {/* Search bar + Mobile filter button */}
       <div className="flex gap-2">
-        <div className="relative flex-1">
+        <div className="relative flex-1 lg:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search your recaps..."
@@ -81,37 +72,6 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
             </button>
           )}
         </div>
-
-        {/* Desktop: Popover */}
-        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className={cn(
-                'rounded-full shrink-0 hidden lg:flex',
-                hasActiveFilters && 'bg-primary/10 border-primary text-primary'
-              )}
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-96" align="end">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold">Filters</h4>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={clearFilters}
-                disabled={!hasActiveFilters}
-                className="text-sm border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 disabled:opacity-50"
-              >
-                Clear All
-              </Button>
-            </div>
-            <FilterContent filters={filters} onFiltersChange={onFiltersChange} />
-          </PopoverContent>
-        </Popover>
 
         {/* Mobile: Sheet */}
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
@@ -142,20 +102,53 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
                 </Button>
               </div>
             </SheetHeader>
-            <FilterContent filters={filters} onFiltersChange={onFiltersChange} />
+            <FilterContent
+              filters={filters}
+              onFiltersChange={onFiltersChange}
+            />
           </SheetContent>
         </Sheet>
       </div>
 
-      {/* Active filter pills */}
-      {hasActiveFilters && (
-        <div className="flex flex-wrap gap-2">
-          {filters.mood !== 'all' && (
-            <FilterPill
-              label={MOODS.find((m) => m.value === filters.mood)?.emoji || ''}
-              onRemove={() => onFiltersChange({ ...filters, mood: 'all' })}
-            />
+      {/* Desktop: Inline filters */}
+      <div className="hidden lg:block">
+        <div className="flex items-center gap-4 mb-4 h-8">
+          <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
+            Filters
+          </h4>
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="text-xs h-8 text-red-600 hover:bg-red-50 hover:text-red-700"
+            >
+              Clear All
+            </Button>
           )}
+        </div>
+        <FilterContent
+          filters={filters}
+          onFiltersChange={onFiltersChange}
+          compact={true}
+        />
+      </div>
+
+      {/* Active filter pills - Mobile only */}
+      {hasActiveFilters && (
+        <div className="flex flex-wrap gap-2 lg:hidden">
+          {filters.moods.map((mood) => (
+            <FilterPill
+              key={mood}
+              label={MOODS.find((m) => m.value === mood)?.emoji || ''}
+              onRemove={() =>
+                onFiltersChange({
+                  ...filters,
+                  moods: filters.moods.filter((m) => m !== mood),
+                })
+              }
+            />
+          ))}
           {filters.hasPhoto !== 'all' && (
             <FilterPill
               label={
@@ -228,9 +221,9 @@ export function useCardSearch(cards: DailyCard[], filters: SearchFilters) {
       );
     }
 
-    // Mood filter
-    if (filters.mood !== 'all') {
-      result = result.filter((card) => card.mood === filters.mood);
+    // Mood filter - multiselect
+    if (filters.moods.length > 0) {
+      result = result.filter((card) => filters.moods.includes(card.mood));
     }
 
     // Photo filter

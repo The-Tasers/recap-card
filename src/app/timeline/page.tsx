@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 
 const DEFAULT_FILTERS: SearchFilters = {
   query: '',
-  mood: 'all',
+  moods: [],
   hasPhoto: 'all',
   dateRange: 'all',
   tags: [],
@@ -33,14 +33,14 @@ function filtersFromParams(params: ReturnType<typeof useSearchParams>) {
       dateRange === 'year'
         ? dateRange
         : DEFAULT_FILTERS.dateRange,
-    mood:
+    moods:
       mood === 'great' ||
       mood === 'good' ||
       mood === 'neutral' ||
       mood === 'bad' ||
       mood === 'terrible'
-        ? mood
-        : DEFAULT_FILTERS.mood,
+        ? [mood]
+        : DEFAULT_FILTERS.moods,
     hasPhoto:
       hasPhoto === 'yes' || hasPhoto === 'no' || hasPhoto === 'all'
         ? hasPhoto
@@ -83,7 +83,8 @@ function filterCards(cards: DailyCard[], filters: SearchFilters) {
       ? card.text.toLowerCase().includes(filters.query.toLowerCase())
       : true;
 
-    const moodMatch = filters.mood === 'all' || card.mood === filters.mood;
+    const moodMatch =
+      filters.moods.length === 0 || filters.moods.includes(card.mood);
 
     const photoMatch =
       filters.hasPhoto === 'all'

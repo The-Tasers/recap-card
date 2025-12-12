@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Home,
   Settings,
   CalendarDays,
   Plus,
@@ -79,11 +78,11 @@ export function DesktopNav() {
         <Link
           href="/create"
           className={cn(
-            'flex items-center justify-center gap-2 h-12 rounded-xl font-semibold',
+            'flex gap-2 h-12 items-center rounded-xl font-semibold ',
             isCreatePage
               ? 'bg-linear-to-br from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-500/30 ring-2 ring-amber-500/20'
               : 'bg-amber-500 hover:bg-amber-600 text-white shadow-md shadow-amber-500/40 hover:shadow-lg hover:shadow-amber-500/50',
-            isCollapsed && 'w-12 p-0 mx-auto'
+            isCollapsed ? 'w-12 p-0 mx-auto justify-center' : 'px-4'
           )}
         >
           <Plus className="h-5 w-5 stroke-[2.5px]" />

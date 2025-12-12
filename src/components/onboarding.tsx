@@ -26,22 +26,22 @@ const SAMPLE_CARD = {
 // Screen 1: What This App Does
 function Screen1() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-full px-6 text-center">
+    <div className="flex flex-col lg:flex-row items-center justify-center min-h-full px-6 lg:px-16 text-center lg:text-left lg:gap-16">
       {/* Decorative background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 -left-20 w-64 h-64 rounded-full bg-linear-to-br from-amber-200/40 to-orange-300/30 blur-3xl" />
-        <div className="absolute bottom-1/3 -right-20 w-72 h-72 rounded-full bg-linear-to-br from-violet-200/40 to-pink-300/30 blur-3xl" />
+        <div className="absolute top-1/4 -left-20 w-64 h-64 lg:w-[600px] lg:h-[600px] rounded-full bg-linear-to-br from-amber-200/40 to-orange-300/30 blur-3xl" />
+        <div className="absolute bottom-1/3 -right-20 w-72 h-72 lg:w-[700px] lg:h-[700px] rounded-full bg-linear-to-br from-violet-200/40 to-pink-300/30 blur-3xl" />
       </div>
 
-      {/* Content */}
+      {/* Content - Left side on desktop */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="relative z-10"
+        className="relative z-10 flex-1 lg:max-w-2xl"
       >
         {/* Headline */}
-        <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-4 leading-tight">
+        <h1 className="text-3xl lg:text-6xl xl:text-7xl font-bold text-neutral-900 dark:text-neutral-100 mb-4 lg:mb-8 leading-tight">
           Capture your day
           <br />
           <span className="bg-linear-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">
@@ -50,48 +50,26 @@ function Screen1() {
         </h1>
 
         {/* Subtext */}
-        <p className="text-neutral-600 dark:text-neutral-400 text-lg mb-10 max-w-xs mx-auto leading-relaxed">
-          A visual diary that&apos;s easy to create and beautiful to share
+        <p className="text-neutral-600 dark:text-neutral-400 text-lg lg:text-2xl mb-10 lg:mb-0 max-w-xs lg:max-w-xl mx-auto lg:mx-0 leading-relaxed">
+          Track your mood, capture daily moments, and reflect on your journey
         </p>
+      </motion.div>
 
-        {/* Card Mockup */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="relative mx-auto"
-        >
-          {/* Phone frame suggestion */}
-          <div className="relative w-56 mx-auto">
-            {/* Shadow */}
-            <div className="absolute inset-0 bg-linear-to-br from-neutral-900/20 to-neutral-900/5 rounded-3xl blur-xl transform translate-y-4 scale-95" />
-
-            {/* Card */}
-            <div className="relative rounded-3xl overflow-hidden bg-linear-to-br from-amber-50 via-white to-violet-50 dark:from-amber-950/30 dark:via-neutral-900 dark:to-violet-950/30 p-5 shadow-2xl border border-white/50 dark:border-neutral-700">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
-                  {SAMPLE_CARD.date}
-                </span>
-                <span className="text-2xl">✨</span>
-              </div>
-              <p className="text-neutral-800 dark:text-neutral-200 text-sm leading-relaxed mb-4">
-                {SAMPLE_CARD.text}
-              </p>
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-medium">
-                  feeling great
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Floating elements */}
+      {/* Card Mockup - Right side on desktop */}
+      <motion.div
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.3, duration: 0.6 }}
+        className="relative z-10 flex-1 lg:flex lg:items-center lg:justify-center"
+      >
+        <div className="relative w-56 lg:w-96 xl:w-[450px] mx-auto">
+          {/* Floating elements - positioned outside card */}
           <motion.div
             animate={{ y: [0, -8, 0] }}
             transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
-            className="absolute -top-4 -right-4 w-12 h-12 rounded-2xl bg-linear-to-br from-pink-400 to-rose-500 flex items-center justify-center shadow-lg"
+            className="absolute -top-4 -right-4 lg:-top-16 lg:-right-16 xl:-top-20 xl:-right-20 w-12 h-12 lg:w-20 lg:h-20 xl:w-24 xl:h-24 rounded-2xl bg-linear-to-br from-pink-400 to-rose-500 flex items-center justify-center shadow-lg z-10"
           >
-            <span className="text-xl">💫</span>
+            <span className="text-xl lg:text-3xl xl:text-4xl">💫</span>
           </motion.div>
           <motion.div
             animate={{ y: [0, 8, 0] }}
@@ -101,11 +79,32 @@ function Screen1() {
               ease: 'easeInOut',
               delay: 0.5,
             }}
-            className="absolute -bottom-2 -left-4 w-10 h-10 rounded-xl bg-linear-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-lg"
+            className="absolute -bottom-2 -left-4 lg:-bottom-12 lg:-left-12 xl:-bottom-16 xl:-left-16 w-10 h-10 lg:w-16 lg:h-16 xl:w-20 xl:h-20 rounded-xl bg-linear-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-lg z-10"
           >
-            <span className="text-lg">🌟</span>
+            <span className="text-lg lg:text-2xl xl:text-3xl">🌟</span>
           </motion.div>
-        </motion.div>
+
+          {/* Shadow */}
+          <div className="absolute inset-0 bg-linear-to-br from-neutral-900/20 to-neutral-900/5 rounded-3xl blur-xl transform translate-y-4 scale-95" />
+
+          {/* Card */}
+          <div className="relative rounded-3xl overflow-hidden bg-linear-to-br from-amber-50 via-white to-violet-50 dark:from-amber-950/30 dark:via-neutral-900 dark:to-violet-950/30 p-5 lg:p-8 xl:p-10 shadow-2xl border border-white/50 dark:border-neutral-700 z-20">
+            <div className="flex items-center justify-between mb-4 lg:mb-6">
+              <span className="text-sm lg:text-lg font-medium text-neutral-500 dark:text-neutral-400">
+                {SAMPLE_CARD.date}
+              </span>
+              <span className="text-2xl lg:text-4xl">✨</span>
+            </div>
+            <p className="text-neutral-800 dark:text-neutral-200 text-sm lg:text-lg xl:text-xl leading-relaxed mb-4 lg:mb-6">
+              {SAMPLE_CARD.text}
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 lg:px-5 lg:py-2 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs lg:text-base font-medium">
+                feeling great
+              </span>
+            </div>
+          </div>
+        </div>
       </motion.div>
     </div>
   );
@@ -120,31 +119,31 @@ function Screen2({
   setUserName: (name: string) => void;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-full px-6 text-center">
+    <div className="flex flex-col items-center justify-center min-h-full px-6 lg:px-20 text-center">
       {/* Decorative background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 -left-20 w-64 h-64 rounded-full bg-linear-to-br from-violet-200/40 to-purple-300/30 blur-3xl" />
-        <div className="absolute bottom-1/3 -right-20 w-72 h-72 rounded-full bg-linear-to-br from-pink-200/40 to-rose-300/30 blur-3xl" />
+        <div className="absolute top-1/4 -left-20 w-64 h-64 lg:w-[600px] lg:h-[600px] rounded-full bg-linear-to-br from-violet-200/40 to-purple-300/30 blur-3xl" />
+        <div className="absolute bottom-1/3 -right-20 w-72 h-72 lg:w-[700px] lg:h-[700px] rounded-full bg-linear-to-br from-pink-200/40 to-rose-300/30 blur-3xl" />
       </div>
 
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="relative z-10 w-full max-w-sm"
+        className="relative z-10 w-full max-w-sm lg:max-w-3xl"
       >
         {/* Icon */}
-        <div className="w-20 h-20 rounded-3xl bg-linear-to-br from-violet-500 to-purple-600 flex items-center justify-center mx-auto mb-8 shadow-xl shadow-purple-500/30">
-          <span className="text-4xl">👋</span>
+        <div className="w-20 h-20 lg:w-36 lg:h-36 rounded-3xl bg-linear-to-br from-violet-500 to-purple-600 flex items-center justify-center mx-auto mb-8 lg:mb-12 shadow-xl shadow-purple-500/30">
+          <span className="text-4xl lg:text-7xl">👋</span>
         </div>
 
         {/* Headline */}
-        <h2 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-4 leading-tight">
+        <h2 className="text-3xl lg:text-6xl xl:text-7xl font-bold text-neutral-900 dark:text-neutral-100 mb-4 lg:mb-8 leading-tight">
           Nice to meet you!
         </h2>
 
         {/* Subtext */}
-        <p className="text-neutral-600 dark:text-neutral-400 mb-10 max-w-xs mx-auto">
+        <p className="text-neutral-600 dark:text-neutral-400 text-base lg:text-2xl xl:text-3xl mb-10 lg:mb-16 max-w-xs lg:max-w-2xl mx-auto leading-relaxed">
           What would you like us to call you?
         </p>
 
@@ -159,10 +158,10 @@ function Screen2({
             value={userName}
             onChange={(e) => setUserName(e.target.value)}
             placeholder="Your name"
-            className="w-full px-6 py-4 rounded-3xl bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm border border-neutral-200 dark:border-neutral-700 text-center text-lg font-medium text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 shadow-sm transition-all"
+            className="w-full px-6 py-4 lg:px-10 lg:py-7 rounded-3xl bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm border-2 border-neutral-200 dark:border-neutral-700 text-center text-lg lg:text-3xl xl:text-4xl font-medium text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 shadow-sm transition-all"
             autoFocus
           />
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-3">
+          <p className="text-xs lg:text-base text-neutral-500 dark:text-neutral-400 mt-3 lg:mt-6">
             You can change this anytime in settings
           </p>
         </motion.div>
@@ -180,52 +179,52 @@ function Screen4({
   onStartCreate: () => void;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-full px-6 text-center">
+    <div className="flex flex-col items-center justify-center min-h-full px-6 lg:px-20 text-center">
       {/* Decorative background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full bg-linear-to-br from-amber-200/30 via-violet-200/30 to-pink-200/30 blur-3xl" />
+        <div className="absolute top-1/5 left-1/2 -translate-x-1/2 w-80 h-80 lg:w-[700px] lg:h-[700px] rounded-full bg-linear-to-br from-amber-200/30 via-violet-200/30 to-pink-200/30 blur-3xl" />
       </div>
 
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-sm"
+        className="relative z-10 w-full max-w-sm lg:max-w-4xl"
       >
         <motion.div
           initial={{ scale: 0.8 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="relative w-32 h-32 mx-auto mb-8"
+          className="relative w-32 h-32 lg:w-48 lg:h-48 mx-auto mb-8 lg:mb-12"
         >
           <motion.span
             animate={{ rotate: [0, 10, 0] }}
             transition={{ repeat: Infinity, duration: 4 }}
-            className="absolute top-0 left-1/2 -translate-x-1/2 text-5xl"
+            className="absolute top-0 left-1/2 -translate-x-1/2 text-5xl lg:text-8xl"
           >
             🎯
           </motion.span>
           <motion.span
             animate={{ y: [0, -5, 0] }}
             transition={{ repeat: Infinity, duration: 2.5, delay: 0.3 }}
-            className="absolute bottom-0 left-4 text-3xl"
+            className="absolute bottom-0 left-4 lg:left-8 text-3xl lg:text-6xl"
           >
             ✨
           </motion.span>
           <motion.span
             animate={{ y: [0, 5, 0] }}
             transition={{ repeat: Infinity, duration: 2, delay: 0.6 }}
-            className="absolute bottom-2 right-4 text-3xl"
+            className="absolute bottom-2 right-4 lg:right-8 text-3xl lg:text-6xl"
           >
             💫
           </motion.span>
         </motion.div>
 
         {/* Headline */}
-        <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-3">
+        <h2 className="text-2xl lg:text-6xl xl:text-7xl font-bold text-neutral-900 dark:text-neutral-100 mb-3 lg:mb-8">
           You&apos;re all set!
         </h2>
-        <p className="text-neutral-600 dark:text-neutral-400 mb-2 leading-relaxed">
+        <p className="text-neutral-600 dark:text-neutral-400 text-base lg:text-2xl xl:text-3xl mb-2 lg:mb-6 leading-relaxed">
           <span className="font-medium text-neutral-800 dark:text-neutral-200">
             Reflect.
           </span>{' '}
@@ -239,22 +238,24 @@ function Screen4({
           initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="flex flex-wrap gap-2 justify-center mb-10"
+          className="flex flex-wrap gap-2 lg:gap-4 justify-center mb-10 lg:mb-16"
         >
-          {['Mood tracking', 'Photo upload', 'Privacy-first'].map((feature) => (
-            <span
-              key={feature}
-              className="px-4 py-2 rounded-full bg-white/80 dark:bg-neutral-800/80 border border-neutral-100 dark:border-neutral-700 text-sm text-neutral-600 dark:text-neutral-300 shadow-sm"
-            >
-              {feature}
-            </span>
-          ))}
+          {['Mood tracking', 'Pictures upload', 'Privacy-first'].map(
+            (feature) => (
+              <span
+                key={feature}
+                className="px-4 py-2 lg:px-7 lg:py-3.5 rounded-full bg-white/80 dark:bg-neutral-800/80 border border-neutral-100 dark:border-neutral-700 text-sm lg:text-xl text-neutral-600 dark:text-neutral-300 shadow-sm"
+              >
+                {feature}
+              </span>
+            )
+          )}
         </motion.div>
 
         {/* CTA - Floating Button */}
         <Button
           onClick={onStartCreate}
-          className="h-12 px-6 rounded-full bg-linear-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-orange-400/30"
+          className="h-12 lg:h-16 xl:h-20 px-6 lg:px-12 text-base lg:text-2xl xl:text-3xl rounded-full bg-linear-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-orange-400/30 hover:shadow-xl hover:scale-105 transition-all"
         >
           Begin your daily recap
         </Button>
@@ -262,7 +263,7 @@ function Screen4({
         <Button
           variant="ghost"
           onClick={onComplete}
-          className="mt-3 text-neutral-600 dark:text-neutral-400"
+          className="mt-3 lg:ml-4 lg:mt-6 text-base lg:text-xl text-neutral-600 dark:text-neutral-400 hover:scale-105 transition-all"
         >
           Explore First
         </Button>
@@ -310,12 +311,9 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   ];
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center">
-      {/* Background overlay - full screen */}
-      <div className="absolute inset-0 bg-neutral-100 dark:bg-neutral-950" />
-
-      {/* Onboarding container - constrained */}
-      <div className="relative max-w-md w-full h-full bg-linear-to-b from-amber-50 via-white to-violet-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950 shadow-2xl shadow-black/20 overflow-hidden">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-neutral-100 dark:bg-neutral-950">
+      {/* Onboarding container - constrained on mobile, wider on desktop */}
+      <div className="relative max-w-md lg:max-w-6xl w-full h-full lg:h-[90vh] lg:rounded-3xl bg-linear-to-b from-amber-0 via-white to-violet-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950 shadow-2xl shadow-black/20 overflow-hidden">
         {/* Grain texture */}
         <div className="grain-subtle absolute inset-0 pointer-events-none opacity-50" />
 
@@ -323,11 +321,11 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         <div className="relative h-full flex flex-col safe-area-inset">
           {/* Skip button */}
           {currentScreen < 2 && (
-            <div className="absolute top-4 right-4 z-20">
+            <div className="absolute top-4 right-4 lg:top-8 lg:right-8 z-20">
               <Button
                 variant="ghost"
                 onClick={onComplete}
-                className="text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+                className="h-10 lg:h-12 px-4 lg:px-6 text-base lg:text-xl text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100/50 dark:hover:bg-neutral-800/50 rounded-full"
               >
                 Skip
               </Button>
@@ -351,33 +349,32 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           </div>
 
           {/* Navigation */}
-          <div className="p-6 pb-8">
-            <div className="flex items-center justify-between gap-4">
+          <div className="p-6 pb-8 lg:p-10 lg:pb-12">
+            <div className="flex items-center justify-between gap-4 lg:gap-8">
               {/* Back button - left side */}
               {currentScreen > 0 ? (
                 <Button
                   variant="ghost"
                   onClick={() => setCurrentScreen(currentScreen - 1)}
-                  className="h-12 px-5 rounded-full text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100/80 dark:hover:bg-neutral-800/80"
+                  className="size-12 lg:h-16 px-5 lg:px-8 text-base lg:text-xl rounded-full text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100/80 dark:hover:bg-neutral-800/80"
                 >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
+                  <ArrowLeft className="h-4 w-4 lg:h-6 lg:w-6" />
                 </Button>
               ) : (
-                <div className="w-24" />
+                <div className="w-24 lg:w-40" />
               )}
 
               {/* Dots - center */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 lg:gap-4">
                 {[0, 1, 2].map((i) => (
                   <button
                     key={i}
                     onClick={() => setCurrentScreen(i)}
                     className={cn(
-                      'h-2 rounded-full transition-all duration-300',
+                      'h-2 lg:h-3 rounded-full transition-all duration-300',
                       i === currentScreen
-                        ? 'w-8 bg-linear-to-r from-amber-500 to-orange-500'
-                        : 'w-2 bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'
+                        ? 'w-8 lg:w-14 bg-linear-to-r from-amber-500 to-orange-500'
+                        : 'w-2 lg:w-3 bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600'
                     )}
                   />
                 ))}
@@ -388,13 +385,13 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                 <Button
                   onClick={handleNext}
                   disabled={currentScreen === 1 && !userName.trim()}
-                  className="h-12 px-6 rounded-full bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-orange-400/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-12 lg:h-16 px-6 lg:px-16 lg:min-w-[200px] text-base lg:text-xl rounded-full bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-orange-400/30 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                  <ArrowRight className="h-4 w-4 lg:h-6 lg:w-6 ml-2" />
                 </Button>
               ) : (
-                <div className="w-24" />
+                <div className="w-24 lg:w-[200px]" />
               )}
             </div>
           </div>
