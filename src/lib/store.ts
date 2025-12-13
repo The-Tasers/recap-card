@@ -19,7 +19,6 @@ interface CardStore {
   addCard: (card: DailyCard) => boolean;
   updateCard: (id: string, updates: Partial<DailyCard>) => boolean;
   deleteCard: (id: string) => void;
-  togglePin: (id: string) => void;
   getById: (id: string) => DailyCard | undefined;
   getCardByDate: (date: string) => DailyCard | undefined;
 }
@@ -104,12 +103,6 @@ export const useCardStore = create<CardStore>()(
         set((state) => ({
           cards: state.cards.filter((card) => card.id !== id),
           error: null,
-        })),
-      togglePin: (id) =>
-        set((state) => ({
-          cards: state.cards.map((card) =>
-            card.id === id ? { ...card, isPinned: !card.isPinned } : card
-          ),
         })),
       getById: (id) => get().cards.find((card) => card.id === id),
       getCardByDate: (date) => {

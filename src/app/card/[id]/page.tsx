@@ -2,18 +2,13 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import {
-  ArrowLeft,
-  Trash2,
-  MoreVertical,
-  Edit,
-  Pin,
-  PinOff,
-} from 'lucide-react';
+import { ArrowLeft, Trash2, Edit } from 'lucide-react';
 import { useCardStore } from '@/lib/store';
+import { useOnboardingGuard } from '@/hooks/useOnboardingGuard';
 
 import { DailyCardView } from '@/components/daily-card-view';
 import { Button } from '@/components/ui/button';
+import { EditSheet } from '@/components/edit-sheet';
 import {
   Dialog,
   DialogContent,
@@ -22,24 +17,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 
 export default function CardDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { getById, deleteCard, togglePin, hydrated } = useCardStore();
+  const { isChecking } = useOnboardingGuard();
+  const { getById, deleteCard, hydrated } = useCardStore();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEditSheet, setShowEditSheet] = useState(false);
 
   const cardId = params.id as string;
   const card = hydrated ? getById(cardId) : undefined;
@@ -52,7 +37,7 @@ export default function CardDetailPage() {
     }
   };
 
-  if (!hydrated) {
+  if (!hydrated || isChecking) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-pulse text-muted-foreground">Loading...</div>
@@ -85,15 +70,12 @@ export default function CardDetailPage() {
 
   const handleDelete = () => {
     deleteCard(card.id);
-    router.push('/');
-  };
-
-  const handleTogglePin = () => {
-    togglePin(card.id);
+    router.push('/timeline');
   };
 
   const handleEdit = () => {
-    router.push(`/card/${card.id}/edit`);
+    // Always open sheet for both mobile and desktop
+    setShowEditSheet(true);
   };
 
   return (
@@ -122,101 +104,22 @@ export default function CardDetailPage() {
           </div>
 
           <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full"
-            onClick={handleEdit}
-          >
-            <Edit className="h-5 w-5" />
-          </Button>
-
-          {/* Desktop: Popover */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full hidden lg:flex"
-              >
-                <MoreVertical className="h-5 w-5" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-56" align="end">
-              <div className="grid gap-1">
-                <Button
-                  variant="ghost"
-                  className="justify-start h-10"
-                  onClick={handleTogglePin}
-                >
-                  {card.isPinned ? (
-                    <>
-                      <PinOff className="h-4 w-4 mr-2" />
-                      Unpin from Home
-                    </>
-                  ) : (
-                    <>
-                      <Pin className="h-4 w-4 mr-2" />
-                      Pin to Home
-                    </>
-                  )}
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start h-10 text-destructive hover:text-destructive hover:bg-destructive/10"
-                  onClick={() => setShowDeleteDialog(true)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Recap
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          {/* Mobile: Sheet */}
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full lg:hidden"
-              >
-                <MoreVertical className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="rounded-t-3xl">
-              <SheetHeader>
-                <SheetTitle>Card Options</SheetTitle>
-              </SheetHeader>
-              <div className="grid gap-2 py-4">
-                <Button
-                  variant="ghost"
-                  className="justify-start h-12"
-                  onClick={handleTogglePin}
-                >
-                  {card.isPinned ? (
-                    <>
-                      <PinOff className="h-5 w-5 mr-3" />
-                      Unpin from Home
-                    </>
-                  ) : (
-                    <>
-                      <Pin className="h-5 w-5 mr-3" />
-                      Pin to Home
-                    </>
-                  )}
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start h-12 text-destructive hover:text-destructive"
-                  onClick={() => setShowDeleteDialog(true)}
-                >
-                  <Trash2 className="h-5 w-5 mr-3" />
-                  Delete Recap
-                </Button>
-              </div>
-            </SheetContent>
-          </Sheet>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+              onClick={handleEdit}
+            >
+              <Edit className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </header>
@@ -247,6 +150,13 @@ export default function CardDetailPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Sheet for mobile */}
+        <EditSheet
+          cardId={card.id}
+          open={showEditSheet}
+          onOpenChange={setShowEditSheet}
+        />
       </div>
     </div>
   );

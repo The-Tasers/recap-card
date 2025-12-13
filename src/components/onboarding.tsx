@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -51,7 +50,7 @@ function Screen1() {
 
         {/* Subtext */}
         <p className="text-neutral-600 dark:text-neutral-400 text-lg lg:text-2xl mb-10 lg:mb-0 max-w-xs lg:max-w-xl mx-auto lg:mx-0 leading-relaxed">
-          Track your mood, capture daily moments, and reflect on your journey
+          A mindful space for daily reflection. Track your mood, celebrate moments, and cultivate awareness through journaling.
         </p>
       </motion.div>
 
@@ -158,7 +157,7 @@ function Screen2({
             value={userName}
             onChange={(e) => setUserName(e.target.value)}
             placeholder="Your name"
-            className="w-full px-6 py-4 lg:px-10 lg:py-7 rounded-3xl bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm border-2 border-neutral-200 dark:border-neutral-700 text-center text-lg lg:text-3xl xl:text-4xl font-medium text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 shadow-sm transition-all"
+            className="w-full px-6 py-4 lg:px-10 lg:py-7 rounded-2xl bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm border-2 border-neutral-200 dark:border-neutral-700 text-center text-lg lg:text-3xl xl:text-4xl font-medium text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 shadow-sm transition-all"
             autoFocus
           />
           <p className="text-xs lg:text-base text-neutral-500 dark:text-neutral-400 mt-3 lg:mt-6">
@@ -170,13 +169,13 @@ function Screen2({
   );
 }
 
-// Screen 4: What You Can Do Next
+// Screen 4: Welcome
 function Screen4({
+  userName,
   onComplete,
-  onStartCreate,
 }: {
+  userName: string;
   onComplete: () => void;
-  onStartCreate: () => void;
 }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-full px-6 lg:px-20 text-center">
@@ -202,7 +201,7 @@ function Screen4({
             transition={{ repeat: Infinity, duration: 4 }}
             className="absolute top-0 left-1/2 -translate-x-1/2 text-5xl lg:text-8xl"
           >
-            🎯
+            🎉
           </motion.span>
           <motion.span
             animate={{ y: [0, -5, 0] }}
@@ -221,51 +220,20 @@ function Screen4({
         </motion.div>
 
         {/* Headline */}
-        <h2 className="text-2xl lg:text-6xl xl:text-7xl font-bold text-neutral-900 dark:text-neutral-100 mb-3 lg:mb-8">
-          You&apos;re all set!
+        <h2 className="text-3xl lg:text-6xl xl:text-7xl font-bold text-neutral-900 dark:text-neutral-100 mb-4 lg:mb-8">
+          Welcome{userName ? `, ${userName}` : ''}!
         </h2>
-        <p className="text-neutral-600 dark:text-neutral-400 text-base lg:text-2xl xl:text-3xl mb-2 lg:mb-6 leading-relaxed">
-          <span className="font-medium text-neutral-800 dark:text-neutral-200">
-            Reflect.
-          </span>{' '}
-          <span className="font-medium text-neutral-800 dark:text-neutral-200">
-            Celebrate small wins.
-          </span>
+        <p className="text-neutral-600 dark:text-neutral-400 text-lg lg:text-2xl xl:text-3xl mb-12 lg:mb-20 max-w-2xl mx-auto leading-relaxed">
+          You&apos;re all set to begin your mindful journaling journey. Take a
+          moment each day to reflect, track your mood, and build awareness.
         </p>
 
-        {/* Feature pills */}
-        <motion.div
-          initial={{ y: 10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="flex flex-wrap gap-2 lg:gap-4 justify-center mb-10 lg:mb-16"
-        >
-          {['Mood tracking', 'Pictures upload', 'Privacy-first'].map(
-            (feature) => (
-              <span
-                key={feature}
-                className="px-4 py-2 lg:px-7 lg:py-3.5 rounded-full bg-white/80 dark:bg-neutral-800/80 border border-neutral-100 dark:border-neutral-700 text-sm lg:text-xl text-neutral-600 dark:text-neutral-300 shadow-sm"
-              >
-                {feature}
-              </span>
-            )
-          )}
-        </motion.div>
-
-        {/* CTA - Floating Button */}
+        {/* CTA Button */}
         <Button
-          onClick={onStartCreate}
-          className="h-12 lg:h-16 xl:h-20 px-6 lg:px-12 text-base lg:text-2xl xl:text-3xl rounded-full bg-linear-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-orange-400/30 hover:shadow-xl hover:scale-105 transition-all"
-        >
-          Begin your daily recap
-        </Button>
-
-        <Button
-          variant="ghost"
           onClick={onComplete}
-          className="mt-3 lg:ml-4 lg:mt-6 text-base lg:text-xl text-neutral-600 dark:text-neutral-400 hover:scale-105 transition-all"
+          className="h-14 lg:h-20 xl:h-24 px-8 lg:px-16 text-lg lg:text-2xl xl:text-3xl rounded-2xl bg-linear-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-orange-400/30 hover:shadow-xl hover:scale-105 transition-all"
         >
-          Explore First
+          Start Exploring
         </Button>
       </motion.div>
     </div>
@@ -273,18 +241,9 @@ function Screen4({
 }
 
 export function Onboarding({ onComplete }: OnboardingProps) {
-  const router = useRouter();
   const [currentScreen, setCurrentScreen] = useState(0);
   const [userName, setUserName] = useState('');
   const { setUserName: saveUserName } = useCardStore();
-
-  const handleStartCreate = useCallback(() => {
-    if (userName.trim()) {
-      saveUserName(userName.trim());
-    }
-    onComplete();
-    router.push('/create');
-  }, [onComplete, router, userName, saveUserName]);
 
   const handleNext = useCallback(() => {
     if (currentScreen === 1 && userName.trim()) {
@@ -305,8 +264,8 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     <Screen2 key="screen2" userName={userName} setUserName={setUserName} />,
     <Screen4
       key="screen4"
+      userName={userName}
       onComplete={onComplete}
-      onStartCreate={handleStartCreate}
     />,
   ];
 
@@ -325,7 +284,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               <Button
                 variant="ghost"
                 onClick={onComplete}
-                className="h-10 lg:h-12 px-4 lg:px-6 text-base lg:text-xl text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100/50 dark:hover:bg-neutral-800/50 rounded-full"
+                className="h-10 lg:h-12 px-4 lg:px-6 text-base lg:text-xl text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100/50 dark:hover:bg-neutral-800/50 rounded-2xl"
               >
                 Skip
               </Button>
@@ -355,13 +314,14 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               {currentScreen > 0 ? (
                 <Button
                   variant="ghost"
+                  size="icon"
                   onClick={() => setCurrentScreen(currentScreen - 1)}
-                  className="size-12 lg:h-16 px-5 lg:px-8 text-base lg:text-xl rounded-full text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100/80 dark:hover:bg-neutral-800/80"
+                  className="h-12 w-12 lg:h-16 lg:w-16 rounded-full text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100/80 dark:hover:bg-neutral-800/80"
                 >
                   <ArrowLeft className="h-4 w-4 lg:h-6 lg:w-6" />
                 </Button>
               ) : (
-                <div className="w-24 lg:w-40" />
+                <div className="w-12 lg:w-16" />
               )}
 
               {/* Dots - center */}
@@ -385,7 +345,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                 <Button
                   onClick={handleNext}
                   disabled={currentScreen === 1 && !userName.trim()}
-                  className="h-12 lg:h-16 px-6 lg:px-16 lg:min-w-[200px] text-base lg:text-xl rounded-full bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-orange-400/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-12 lg:h-16 px-6 lg:px-16 lg:min-w-[200px] text-base lg:text-xl rounded-2xl bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-orange-400/30 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                   <ArrowRight className="h-4 w-4 lg:h-6 lg:w-6 ml-2" />

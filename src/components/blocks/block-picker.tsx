@@ -9,6 +9,7 @@ import {
   Heart,
   Cloud,
   Star,
+  ChevronDown,
 } from 'lucide-react';
 import { BlockId, CardBlock, BLOCK_DEFINITIONS } from '@/lib/types';
 import { generateId } from '@/lib/export';
@@ -20,6 +21,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
 interface BlockPickerProps {
@@ -28,7 +35,8 @@ interface BlockPickerProps {
 }
 
 export function BlockPicker({ onSelect, existingBlockIds }: BlockPickerProps) {
-  const [open, setOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const handleSelect = (blockId: BlockId) => {
     const definition = BLOCK_DEFINITIONS[blockId];
@@ -41,7 +49,8 @@ export function BlockPicker({ onSelect, existingBlockIds }: BlockPickerProps) {
       order: existingBlockIds.length,
     };
     onSelect(newBlock);
-    setOpen(false);
+    setSheetOpen(false);
+    setDropdownOpen(false);
   };
 
   const availableBlocks = (Object.keys(BLOCK_DEFINITIONS) as BlockId[]).filter(
@@ -49,34 +58,66 @@ export function BlockPicker({ onSelect, existingBlockIds }: BlockPickerProps) {
   );
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button variant="outline" className="w-full rounded-full">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Block
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="bottom" className="rounded-t-3xl">
-        <SheetHeader>
-          <SheetTitle>Add a Block</SheetTitle>
-        </SheetHeader>
-        <div className="grid grid-cols-2 gap-2 py-4">
+    <>
+      {/* Mobile: Sheet */}
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetTrigger asChild>
+          <Button variant="outline" className="w-full rounded-full lg:hidden">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Block
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="bottom" className="rounded-t-3xl">
+          <SheetHeader>
+            <SheetTitle>Add a Block</SheetTitle>
+          </SheetHeader>
+          <div className="grid grid-cols-2 gap-2 py-4">
+            {availableBlocks.map((blockId) => {
+              const def = BLOCK_DEFINITIONS[blockId];
+              return (
+                <button
+                  key={blockId}
+                  onClick={() => handleSelect(blockId)}
+                  className="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-left"
+                >
+                  <span className="text-xl">{def.icon}</span>
+                  <span className="text-sm font-medium">{def.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Desktop: Dropdown */}
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            className="w-full rounded-xl hidden lg:flex"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Block
+            <ChevronDown className="h-4 w-4 ml-auto" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-[407px]">
           {availableBlocks.map((blockId) => {
             const def = BLOCK_DEFINITIONS[blockId];
             return (
-              <button
+              <DropdownMenuItem
                 key={blockId}
                 onClick={() => handleSelect(blockId)}
-                className="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-left"
+                className="cursor-pointer"
               >
-                <span className="text-xl">{def.icon}</span>
+                <span className="text-lg mr-2">{def.icon}</span>
                 <span className="text-sm font-medium">{def.label}</span>
-              </button>
+              </DropdownMenuItem>
             );
           })}
-        </div>
-      </SheetContent>
-    </Sheet>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   );
 }
 

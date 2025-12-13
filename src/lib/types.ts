@@ -87,7 +87,6 @@ export interface DailyCard {
   mood: Mood;
   photoUrl?: string;
   createdAt: string;
-  isPinned?: boolean;
 
   // New optional fields
   blocks?: CardBlock[];

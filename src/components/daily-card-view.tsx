@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 
 interface DailyCardViewProps {
   card: DailyCard;
-  variant?: 'default' | 'compact';
+  variant?: 'default' | 'compact' | 'calendar';
   onClick?: () => void;
   className?: string;
 }
@@ -22,6 +22,7 @@ interface DailyCardViewProps {
 export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
   ({ card, variant = 'default', onClick, className }, ref) => {
     const isCompact = variant === 'compact';
+    const isCalendar = variant === 'calendar';
     const paletteId: PaletteId = (card.palette as PaletteId) || 'warmCinematic';
     const typographyId: TypographySetId =
       (card.typography as TypographySetId) || 'modernGeo';
@@ -45,6 +46,38 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
         'bg-gradient-to-br from-red-500/90 via-red-400/85 to-red-600/90',
     };
 
+    // Minimal calendar card - only mood emoji and background
+    if (isCalendar) {
+      return (
+        <div
+          ref={ref}
+          onClick={onClick}
+          className={cn(
+            'rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer relative overflow-hidden aspect-[3/4]',
+            'hover:shadow-lg hover:scale-[1.02]',
+            moodGradients[card.mood],
+            className
+          )}
+        >
+          {/* Photo Background - Very subtle */}
+          {card.photoUrl && (
+            <div className="absolute inset-0 z-0">
+              <img
+                src={card.photoUrl}
+                alt=""
+                className="w-full h-full object-cover opacity-5"
+              />
+            </div>
+          )}
+
+          {/* Mood Emoji - centered */}
+          <div className="relative z-10">
+            <span className="text-5xl xl:text-6xl">{moodData?.emoji}</span>
+          </div>
+        </div>
+      );
+    }
+
     // Compact card for timeline view
     if (isCompact) {
       return (
@@ -52,8 +85,8 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
           ref={ref}
           onClick={onClick}
           className={cn(
-            'rounded-2xl p-5 flex flex-col lg:p-6 transition-all duration-200 cursor-pointer relative overflow-hidden',
-            'hover:shadow-lg lg:hover:scale-[1.02] min-h-[200px] lg:min-h-[220px] xl:min-h-[280px] h-full',
+            'rounded-2xl p-3 flex flex-col lg:p-6 transition-all duration-200 cursor-pointer relative overflow-hidden',
+            'hover:shadow-lg lg:hover:scale-[1.02] min-h-[140px] lg:min-h-[220px] xl:min-h-[280px] h-full',
             moodGradients[card.mood],
             className
           )}
@@ -70,21 +103,21 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
           )}
 
           {/* Content - on top of background */}
-          <div className="relative z-10 flex flex-col gap-4 flex-1">
-            <div className="flex flex-col gap-3 flex-1">
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <span className="text-sm lg:text-base text-neutral-900/70 dark:text-white/80 font-semibold">
+          <div className="relative z-10 flex flex-col gap-2 lg:gap-4 flex-1">
+            <div className="flex flex-col gap-2 lg:gap-3 flex-1">
+              <div className="flex items-start justify-between gap-2 lg:gap-3 mb-1 lg:mb-3">
+                <span className="text-xs lg:text-base text-neutral-900/70 dark:text-white/80 font-semibold">
                   {new Date(card.createdAt).toLocaleDateString('en-US', {
                     weekday: 'short',
                     month: 'short',
                     day: 'numeric',
                   })}
                 </span>
-                <span className="text-3xl lg:text-4xl">{moodData?.emoji}</span>
+                <span className="text-2xl lg:text-4xl">{moodData?.emoji}</span>
               </div>
               <p
                 className={cn(
-                  'text-base lg:text-lg leading-relaxed line-clamp-2 text-neutral-900 dark:text-white font-semibold',
+                  'text-sm lg:text-lg leading-snug lg:leading-relaxed line-clamp-2 text-neutral-900 dark:text-white font-semibold',
                   typography.bodyClass
                 )}
               >
@@ -92,17 +125,17 @@ export const DailyCardView = forwardRef<HTMLDivElement, DailyCardViewProps>(
               </p>
             </div>
             {card.tags && card.tags.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5 lg:gap-2">
                 {card.tags.slice(0, 2).map((tag) => (
                   <span
                     key={tag}
-                    className="text-sm bg-white/50 dark:bg-black/40 px-3 py-1 rounded-full text-neutral-900 dark:text-white font-semibold backdrop-blur-sm"
+                    className="text-xs lg:text-sm bg-white/50 dark:bg-black/40 px-2 py-0.5 lg:px-3 lg:py-1 rounded-full text-neutral-900 dark:text-white font-semibold backdrop-blur-sm"
                   >
                     #{tag}
                   </span>
                 ))}
                 {card.tags.length > 2 && (
-                  <span className="text-sm bg-white/50 dark:bg-black/40 px-3 py-1 rounded-full text-neutral-900 dark:text-white font-semibold backdrop-blur-sm">
+                  <span className="text-xs lg:text-sm bg-white/50 dark:bg-black/40 px-2 py-0.5 lg:px-3 lg:py-1 rounded-full text-neutral-900 dark:text-white font-semibold backdrop-blur-sm">
                     +{card.tags.length - 2}
                   </span>
                 )}

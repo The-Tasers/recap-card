@@ -65,7 +65,7 @@ export function MoodSelector({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap justify-center gap-3">
+      <div className="flex flex-wrap justify-center gap-3 py-1 px-4">
         {MOODS.map((mood) => {
           const isSelected = value === mood.value;
           const styles = MOOD_STYLES[mood.value];

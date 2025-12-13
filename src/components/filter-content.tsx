@@ -36,7 +36,7 @@ export function FilterContent({
             <button
               onClick={() => onFiltersChange({ ...filters, moods: [] })}
               className={cn(
-                'px-2.5 py-1 rounded-full text-xs font-medium transition-colors',
+                'px-2.5 py-1 rounded-xl text-xs font-medium transition-colors',
                 filters.moods.length === 0
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted hover:bg-muted/80'
@@ -56,7 +56,7 @@ export function FilterContent({
                     onFiltersChange({ ...filters, moods: newMoods });
                   }}
                   className={cn(
-                    'px-2 py-1 rounded-full text-base transition-colors',
+                    'px-2 py-1 rounded-xl text-base transition-colors',
                     isSelected
                       ? 'bg-primary/20 ring-1 ring-primary'
                       : 'bg-muted hover:bg-muted/80'
@@ -82,7 +82,7 @@ export function FilterContent({
               onFiltersChange({ ...filters, dateRange: value })
             }
           >
-            <SelectTrigger className="w-[130px] h-8 rounded-full text-xs">
+            <SelectTrigger className="w-[130px] h-8 rounded-xl text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -107,7 +107,7 @@ export function FilterContent({
               onFiltersChange({ ...filters, hasPhoto: value })
             }
           >
-            <SelectTrigger className="w-[120px] h-8 rounded-full text-xs">
+            <SelectTrigger className="w-[120px] h-8 rounded-xl text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -135,7 +135,7 @@ export function FilterContent({
                   onFiltersChange({ ...filters, tags: newTags });
                 }}
                 className={cn(
-                  'px-2.5 py-1 rounded-full text-xs font-medium transition-all',
+                  'px-2.5 py-1 rounded-xl text-xs font-medium',
                   filters.tags.includes(tag)
                     ? 'bg-violet-500 text-white'
                     : 'bg-muted hover:bg-muted/80'
@@ -160,7 +160,7 @@ export function FilterContent({
           <button
             onClick={() => onFiltersChange({ ...filters, moods: [] })}
             className={cn(
-              'px-3 py-1.5 rounded-full text-sm',
+              'px-3 py-1.5 rounded-xl text-sm',
               filters.moods.length === 0
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-muted'
@@ -180,10 +180,8 @@ export function FilterContent({
                   onFiltersChange({ ...filters, moods: newMoods });
                 }}
                 className={cn(
-                  'px-3 py-1.5 rounded-full text-sm',
-                  isSelected
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted'
+                  'px-3 py-1.5 rounded-xl text-sm',
+                  isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'
                 )}
               >
                 {mood.emoji}
@@ -205,7 +203,7 @@ export function FilterContent({
             onFiltersChange({ ...filters, hasPhoto: value })
           }
         >
-          <SelectTrigger className="w-full rounded-full">
+          <SelectTrigger className="w-full rounded-xl">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -228,7 +226,7 @@ export function FilterContent({
             onFiltersChange({ ...filters, dateRange: value })
           }
         >
-          <SelectTrigger className="w-full rounded-full">
+          <SelectTrigger className="w-full rounded-xl">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -258,7 +256,7 @@ export function FilterContent({
                 onFiltersChange({ ...filters, tags: newTags });
               }}
               className={cn(
-                'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
+                'px-3 py-1.5 rounded-xl text-sm font-medium',
                 filters.tags.includes(tag)
                   ? 'bg-linear-to-r from-violet-500 to-purple-600 text-white'
                   : 'bg-muted hover:bg-muted/80'

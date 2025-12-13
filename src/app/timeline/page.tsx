@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect, Suspense } from 'react';
+import { useMemo, useState, Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, CalendarDays, List } from 'lucide-react';
 import { useCardStore } from '@/lib/store';
@@ -8,8 +8,19 @@ import { DailyCard } from '@/lib/types';
 import { SearchBar, SearchFilters } from '@/components/search-filter';
 import { CalendarView } from '@/components/calendar-view';
 import { DailyCardView } from '@/components/daily-card-view';
+import { CardTableView } from '@/components/card-table-view';
+import { EditSheet } from '@/components/edit-sheet';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { useOnboardingGuard } from '@/hooks/useOnboardingGuard';
 
 const DEFAULT_FILTERS: SearchFilters = {
   query: '',
@@ -106,7 +117,10 @@ function filterCards(cards: DailyCard[], filters: SearchFilters) {
 function TimelineContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { cards, hydrated } = useCardStore();
+  const { isChecking } = useOnboardingGuard();
+  const { cards, hydrated, deleteCard } = useCardStore();
+  const [cardToDelete, setCardToDelete] = useState<DailyCard | null>(null);
+  const [cardToEdit, setCardToEdit] = useState<DailyCard | null>(null);
 
   // Derive filters and view mode from search params
   const filters = useMemo(
@@ -155,7 +169,22 @@ function TimelineContent() {
     );
   }, [filteredCards, selectedDate]);
 
-  if (!hydrated) {
+  const handleDelete = (card: DailyCard) => {
+    setCardToDelete(card);
+  };
+
+  const confirmDelete = () => {
+    if (cardToDelete) {
+      deleteCard(cardToDelete.id);
+      setCardToDelete(null);
+    }
+  };
+
+  const handleEdit = (card: DailyCard) => {
+    setCardToEdit(card);
+  };
+
+  if (!hydrated || isChecking) {
     return (
       <div className="flex items-center justify-center min-h-screen text-muted-foreground">
         Loading your recaps...
@@ -188,32 +217,38 @@ function TimelineContent() {
                 </p>
               </div>
             </div>
-            <div className="flex gap-2" aria-label="View mode">
+            <div className="flex gap-2 lg:hidden" aria-label="View mode">
               <Button
                 variant={viewMode === 'list' ? 'default' : 'outline'}
                 size="icon"
                 className={cn(
-                  'rounded-full h-10 w-10 lg:h-11 lg:w-11 transition-all duration-200'
+                  'rounded-xl h-10 w-10 transition-all duration-200'
                 )}
-                onClick={() => setViewMode('list')}
+                onClick={() => {
+                  setViewMode('list');
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.set('view', 'list');
+                  router.push(`/timeline?${params.toString()}`);
+                }}
                 aria-pressed={viewMode === 'list'}
               >
-                <List
-                  className={cn('h-4 w-4 lg:h-5 lg:w-5 transition-colors')}
-                />
+                <List className={cn('h-4 w-4 transition-colors')} />
               </Button>
               <Button
                 variant={viewMode === 'calendar' ? 'default' : 'outline'}
                 size="icon"
                 className={cn(
-                  'rounded-full h-10 w-10 lg:h-11 lg:w-11 transition-all duration-200'
+                  'rounded-xl h-10 w-10 transition-all duration-200'
                 )}
-                onClick={() => setViewMode('calendar')}
+                onClick={() => {
+                  setViewMode('calendar');
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.set('view', 'calendar');
+                  router.push(`/timeline?${params.toString()}`);
+                }}
                 aria-pressed={viewMode === 'calendar'}
               >
-                <CalendarDays
-                  className={cn('h-4 w-4 lg:h-5 lg:w-5 transition-colors')}
-                />
+                <CalendarDays className={cn('h-4 w-4 transition-colors')} />
               </Button>
             </div>
           </div>
@@ -222,9 +257,50 @@ function TimelineContent() {
 
       {/* Content */}
       <div className="px-4 lg:px-8 py-6 lg:py-8">
-        {/* Search Bar */}
+        {/* Search Bar with View Options */}
         <div className="mb-6 lg:mb-8">
-          <SearchBar filters={localFilters} onFiltersChange={setLocalFilters} />
+          <div className="flex flex-col lg:flex-row lg:items-start lg:gap-4">
+            <div className="flex-1">
+              <SearchBar
+                filters={localFilters}
+                onFiltersChange={setLocalFilters}
+              />
+            </div>
+            {/* Desktop: View mode buttons */}
+            <div
+              className="hidden lg:flex gap-2 shrink-0"
+              aria-label="View mode"
+            >
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                size="icon"
+                className={cn('rounded-xl size-9 transition-all duration-200')}
+                onClick={() => {
+                  setViewMode('list');
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.set('view', 'list');
+                  router.push(`/timeline?${params.toString()}`);
+                }}
+                aria-pressed={viewMode === 'list'}
+              >
+                <List className={cn('h-5 w-5 transition-colors')} />
+              </Button>
+              <Button
+                variant={viewMode === 'calendar' ? 'default' : 'outline'}
+                size="icon"
+                className={cn('rounded-xl size-9 transition-all duration-200')}
+                onClick={() => {
+                  setViewMode('calendar');
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.set('view', 'calendar');
+                  router.push(`/timeline?${params.toString()}`);
+                }}
+                aria-pressed={viewMode === 'calendar'}
+              >
+                <CalendarDays className={cn('h-5 w-5 transition-colors')} />
+              </Button>
+            </div>
+          </div>
         </div>
 
         {viewMode === 'list' ? (
@@ -237,52 +313,70 @@ function TimelineContent() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredCards.map((card) => (
-                <DailyCardView
-                  key={card.id}
-                  card={card}
-                  variant="compact"
-                  onClick={() => router.push(`/card/${card.id}`)}
+            <>
+              {/* Desktop: Table View */}
+              <CardTableView
+                cards={filteredCards}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+
+              {/* Mobile: Single Column List View */}
+              <div className="lg:hidden grid grid-cols-1 gap-4">
+                {filteredCards.map((card) => (
+                  <DailyCardView
+                    key={card.id}
+                    card={card}
+                    variant="compact"
+                    onClick={() => router.push(`/card/${card.id}`)}
+                  />
+                ))}
+              </div>
+
+              {/* Edit Sheet */}
+              {cardToEdit && (
+                <EditSheet
+                  cardId={cardToEdit.id}
+                  open={!!cardToEdit}
+                  onOpenChange={(open) => !open && setCardToEdit(null)}
                 />
-              ))}
-            </div>
+              )}
+
+              {/* Delete Dialog */}
+              <Dialog
+                open={!!cardToDelete}
+                onOpenChange={(open) => !open && setCardToDelete(null)}
+              >
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Delete Recap</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to delete this recap? This action
+                      cannot be undone.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter className="gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCardToDelete(null)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button variant="destructive" onClick={confirmDelete}>
+                      Delete
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </>
           )
         ) : (
-          <div className="lg:grid lg:grid-cols-[400px_1fr] lg:gap-8 space-y-4 lg:space-y-0">
-            <div className="lg:sticky lg:top-32 lg:h-fit">
-              <CalendarView
-                cards={filteredCards}
-                selectedDate={selectedDate}
-                onSelectDate={setSelectedDate}
-              />
-            </div>
-
-            <div>
-              {cardsForSelectedDate.length === 0 ? (
-                <div className="text-center py-16 bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700">
-                  <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                    {selectedDate
-                      ? 'No recap on this day.'
-                      : cards.length === 0
-                      ? 'No recaps yet.'
-                      : 'Select a day to view recaps'}
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {cardsForSelectedDate.map((card) => (
-                    <DailyCardView
-                      key={card.id}
-                      card={card}
-                      variant="compact"
-                      onClick={() => router.push(`/card/${card.id}`)}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+          <CalendarView
+            cards={filteredCards}
+            selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
+            showNavigation={true}
+          />
         )}
       </div>
     </div>

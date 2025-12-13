@@ -135,6 +135,7 @@ export interface MoodDayData {
   date: Date;
   mood: 'great' | 'good' | 'neutral' | 'bad' | 'terrible' | null;
   hasRecap: boolean;
+  cardId?: string;
 }
 
 export function getLastNDaysMoodData(
@@ -162,6 +163,7 @@ export function getLastNDaysMoodData(
       date: new Date(checkDate),
       mood: card?.mood || null,
       hasRecap: !!card,
+      cardId: card?.id,
     });
   }
 

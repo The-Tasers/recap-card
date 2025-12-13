@@ -5,7 +5,9 @@
       "Bash(git -C /Users/sponom/dev/future/recap-card log --oneline -10 --format=\"%h %s %b\")",
       "Bash(npm run build:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(tree:*)",
+      "Bash(npm install:*)"
     ]
   }
 }

@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 import {
   Settings,
   CalendarDays,
-  Plus,
   ChevronLeft,
   ChevronRight,
   LayoutDashboard,
+  PencilLine,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSidebar } from './layout-wrapper';
@@ -16,17 +17,16 @@ import { Button } from './ui/button';
 import { DayCountdown } from '@/app/page';
 import { useCardStore } from '@/lib/store';
 import { getTodayRecap } from '@/lib/daily-utils';
+import { CreateSheet } from './create-sheet';
 
 export function DesktopNav() {
   const { cards } = useCardStore();
   const hasCards = cards.length > 0;
+  const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
 
   const hasRecapToday = hasCards ? !!getTodayRecap(cards) : false;
   const pathname = usePathname();
   const { isCollapsed, setIsCollapsed } = useSidebar();
-  const isCreatePage =
-    pathname === '/create' ||
-    (pathname.startsWith('/card/') && pathname.endsWith('/edit'));
 
   return (
     <nav
@@ -47,7 +47,7 @@ export function DesktopNav() {
             </Link>
 
             <p className="text-xs truncate text-neutral-500 dark:text-neutral-400 mt-1">
-              Daily journaling made simple
+              Your daily mindfulness companion
             </p>
           </>
         ) : (
@@ -69,31 +69,26 @@ export function DesktopNav() {
 
       {/* Navigation Section - Create + Links grouped at top */}
       <div className="space-y-2 mb-8 flex-1">
-        {!isCollapsed && (
-          <div className="mb-6">
-            <DayCountdown hasRecapToday={hasRecapToday} />
-          </div>
-        )}
+        {!isCollapsed && <DayCountdown hasRecapToday={hasRecapToday} />}
 
-        {/* Create Button - Primary CTA */}
-        <Link
-          href="/create"
+        {/* Create Button - Primary CTA (hide on settings page) */}
+
+        <button
+          onClick={() => setIsCreateSheetOpen(true)}
           className={cn(
-            'flex gap-2 h-12 items-center rounded-xl font-semibold ',
-            isCreatePage
-              ? 'bg-linear-to-br from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-500/30 ring-2 ring-amber-500/20'
-              : 'bg-amber-500 hover:bg-amber-600 text-white shadow-md shadow-amber-500/40 hover:shadow-lg hover:shadow-amber-500/50',
+            'flex gap-2 h-12 cursor-pointer w-full items-center rounded-xl font-semibold transition-all',
+            'bg-amber-500 hover:bg-amber-600 text-white shadow-md shadow-amber-500/40 hover:shadow-lg hover:shadow-amber-500/50',
             isCollapsed ? 'w-12 p-0 mx-auto justify-center' : 'px-4'
           )}
         >
-          <Plus className="h-5 w-5 stroke-[2.5px]" />
+          <PencilLine className="h-5 w-5 stroke-[2.5px]" />
           {!isCollapsed && <span>New Recap</span>}
-        </Link>
+        </button>
 
         <Link
           href="/"
           className={cn(
-            'flex items-center mt-10 gap-3 rounded-xl',
+            'flex items-center mt-10 gap-3 rounded-xl transition-all',
             pathname === '/'
               ? 'bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 font-semibold'
               : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white',
@@ -108,7 +103,7 @@ export function DesktopNav() {
         <Link
           href="/timeline"
           className={cn(
-            'flex items-center gap-3 rounded-xl',
+            'flex items-center gap-3 rounded-xl transition-all',
             pathname === '/timeline'
               ? 'bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 font-semibold'
               : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white',
@@ -123,7 +118,7 @@ export function DesktopNav() {
         <Link
           href="/settings"
           className={cn(
-            'flex items-center gap-3 rounded-xl',
+            'flex items-center gap-3 rounded-xl transition-all',
             pathname === '/settings'
               ? 'bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 font-semibold'
               : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white',
@@ -163,6 +158,12 @@ export function DesktopNav() {
           )}
         </Button>
       </div>
+
+      {/* Create Sheet */}
+      <CreateSheet
+        open={isCreateSheetOpen}
+        onOpenChange={setIsCreateSheetOpen}
+      />
     </nav>
   );
 }

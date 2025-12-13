@@ -13,7 +13,10 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: 'Recapp',
+  title: {
+    template: '%s | Recapp',
+    default: 'Home | Recapp',
+  },
   description: 'Capture your daily moments in beautiful shareable recaps',
 };
 
