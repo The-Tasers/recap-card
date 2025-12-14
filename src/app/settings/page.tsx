@@ -67,9 +67,9 @@ export default function SettingsPage() {
   return (
     <div className="pb-32 min-h-screen">
       {/* Header */}
-      <header className="sticky top-0 z-10 h-20 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-200/50 dark:border-neutral-700/50">
+      <header className="sticky top-0 z-10 h-24 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-200/50 dark:border-neutral-700/50">
         <div className="px-4 lg:px-8 h-full flex items-center">
-          <div className="flex items-center gap-4 w-full">
+          <div className="flex items-center gap-4 w-full max-w-4xl mx-auto">
             <Button
               variant="ghost"
               size="icon"
@@ -91,8 +91,9 @@ export default function SettingsPage() {
       </header>
 
       <div className="px-4 lg:px-8 py-6 lg:py-8">
+        <div className="max-w-4xl mx-auto">
         {/* Mobile: Grid Layout */}
-        <div className="lg:hidden max-w-4xl grid grid-cols-1 gap-6">
+        <div className="lg:hidden grid grid-cols-1 gap-6">
         {/* Profile */}
         <div className="bg-white dark:bg-neutral-800 rounded-2xl p-4 border border-neutral-200/50 dark:border-neutral-700/60">
           <h2 className="text-sm font-medium text-neutral-500 dark:text-neutral-300 mb-3">
@@ -256,7 +257,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Desktop: Tabbed Layout */}
-        <div className="hidden lg:block max-w-4xl">
+        <div className="hidden lg:block">
           <Tabs defaultValue="profile" className="w-full">
             <TabsList className="mb-6">
               <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -430,6 +431,7 @@ export default function SettingsPage() {
               </div>
             </TabsContent>
           </Tabs>
+        </div>
         </div>
       </div>
     </div>

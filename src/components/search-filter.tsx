@@ -18,24 +18,22 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { DailyCard, Mood, MOODS } from '@/lib/types';
+import { DailyCard, Mood, MOODS, BlockId } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { FilterContent } from './filter-content';
 
 export interface SearchFilters {
   query: string;
   moods: Mood[];
-  hasPhoto: 'all' | 'yes' | 'no';
+  blocks: BlockId[];
   dateRange: 'all' | 'today' | 'week' | 'month' | 'year';
-  tags: string[];
 }
 
 const DEFAULT_FILTERS: SearchFilters = {
   query: '',
   moods: [],
-  hasPhoto: 'all',
+  blocks: [],
   dateRange: 'all',
-  tags: [],
 };
 
 interface SearchBarProps {
@@ -51,15 +49,13 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
 
   const hasActiveFilters =
     filters.moods.length > 0 ||
-    filters.hasPhoto !== 'all' ||
-    filters.dateRange !== 'all' ||
-    filters.tags.length > 0;
+    filters.blocks.length > 0 ||
+    filters.dateRange !== 'all';
 
   const hasTempFilters =
     tempFilters.moods.length > 0 ||
-    tempFilters.hasPhoto !== 'all' ||
-    tempFilters.dateRange !== 'all' ||
-    tempFilters.tags.length > 0;
+    tempFilters.blocks.length > 0 ||
+    tempFilters.dateRange !== 'all';
 
   const clearFilters = () => {
     onFiltersChange(DEFAULT_FILTERS);
@@ -252,18 +248,18 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
                 }
               />
             ))}
-            {filters.hasPhoto !== 'all' && (
+            {filters.blocks.map((blockId) => (
               <FilterPill
-                label={
-                  filters.hasPhoto === 'yes'
-                    ? '📷 With picture'
-                    : '📷 No picture'
-                }
+                key={blockId}
+                label={blockId}
                 onRemove={() =>
-                  onFiltersChange({ ...filters, hasPhoto: 'all' })
+                  onFiltersChange({
+                    ...filters,
+                    blocks: filters.blocks.filter((b) => b !== blockId),
+                  })
                 }
               />
-            )}
+            ))}
             {filters.dateRange !== 'all' && (
               <FilterPill
                 label={`📅 ${filters.dateRange}`}
@@ -272,18 +268,6 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
                 }
               />
             )}
-            {filters.tags.map((tag) => (
-              <FilterPill
-                key={tag}
-                label={`#${tag}`}
-                onRemove={() =>
-                  onFiltersChange({
-                    ...filters,
-                    tags: filters.tags.filter((t) => t !== tag),
-                  })
-                }
-              />
-            ))}
           </div>
         </div>
       )}
@@ -299,11 +283,11 @@ function FilterPill({
   onRemove: () => void;
 }) {
   return (
-    <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary/10 text-primary text-sm font-medium">
+    <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 text-sm font-medium">
       {label}
       <button
         onClick={onRemove}
-        className="hover:bg-primary/20 rounded-xl p-1 -mr-1"
+        className="hover:bg-amber-500/20 rounded-xl p-1 -mr-1"
         aria-label="Remove filter"
       >
         <X className="h-4 w-4" />
@@ -327,8 +311,7 @@ export function useCardSearch(cards: DailyCard[], filters: SearchFilters) {
             (block) =>
               block.label.toLowerCase().includes(query) ||
               String(block.value).toLowerCase().includes(query)
-          ) ||
-          card.tags?.some((tag) => tag.toLowerCase().includes(query))
+          )
       );
     }
 
@@ -337,11 +320,13 @@ export function useCardSearch(cards: DailyCard[], filters: SearchFilters) {
       result = result.filter((card) => filters.moods.includes(card.mood));
     }
 
-    // Photo filter
-    if (filters.hasPhoto === 'yes') {
-      result = result.filter((card) => card.photoUrl);
-    } else if (filters.hasPhoto === 'no') {
-      result = result.filter((card) => !card.photoUrl);
+    // Block filter
+    if (filters.blocks.length > 0) {
+      result = result.filter((card) =>
+        filters.blocks.some((blockId) =>
+          card.blocks?.some((block) => block.blockId === blockId)
+        )
+      );
     }
 
     // Date range filter
@@ -377,22 +362,6 @@ export function useCardSearch(cards: DailyCard[], filters: SearchFilters) {
       result = result.filter((card) => new Date(card.createdAt) >= startDate);
     }
 
-    // Tags filter
-    if (filters.tags.length > 0) {
-      result = result.filter((card) =>
-        filters.tags.every((tag) => card.tags?.includes(tag))
-      );
-    }
-
     return result;
   }, [cards, filters]);
-}
-
-// Extract all unique tags from cards
-export function extractTags(cards: DailyCard[]): string[] {
-  const tagSet = new Set<string>();
-  cards.forEach((card) => {
-    card.tags?.forEach((tag) => tagSet.add(tag));
-  });
-  return Array.from(tagSet).sort();
 }

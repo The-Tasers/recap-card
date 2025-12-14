@@ -2,7 +2,14 @@
 
 import { useState } from 'react';
 import { X, ChevronDown, ChevronUp, MoveUp, MoveDown } from 'lucide-react';
-import { CardBlock, BLOCK_DEFINITIONS } from '@/lib/types';
+import {
+  CardBlock,
+  BLOCK_DEFINITIONS,
+  WEATHER_OPTIONS,
+  MEAL_OPTIONS,
+  SELFCARE_OPTIONS,
+  HEALTH_OPTIONS,
+} from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -12,6 +19,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 interface BlockEditorProps {
@@ -98,98 +110,61 @@ export function BlockEditor({
           />
         );
 
-      case 'weather':
+      case 'multiselect':
+        const getOptions = () => {
+          switch (block.blockId) {
+            case 'weather':
+              return WEATHER_OPTIONS;
+            case 'meals':
+              return MEAL_OPTIONS;
+            case 'selfcare':
+              return SELFCARE_OPTIONS;
+            case 'health':
+              return HEALTH_OPTIONS;
+            default:
+              return [];
+          }
+        };
+
+        const options = getOptions();
+        const selectedValues = (block.value as string[]) || [];
+
+        const toggleOption = (optionValue: string) => {
+          const newValues = selectedValues.includes(optionValue)
+            ? selectedValues.filter((v) => v !== optionValue)
+            : [...selectedValues, optionValue];
+          onChange({ ...block, value: newValues });
+        };
+
         return (
-          <div className="space-y-3">
-            <div>
-              <label className="text-xs text-muted-foreground mb-1.5 block">
-                Condition
-              </label>
-              <Select
-                value={block.weatherCondition || ''}
-                onValueChange={(value) => {
-                  onChange({
-                    ...block,
-                    weatherCondition: value,
-                    value: `${value}${
-                      block.temperature
-                        ? `, ${block.temperature}°${
-                            block.temperatureUnit || 'C'
-                          }`
-                        : ''
-                    }`,
-                  });
-                }}
-              >
-                <SelectTrigger className="rounded-xl">
-                  <SelectValue placeholder="Select condition..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="☀️ Sunny">☀️ Sunny</SelectItem>
-                  <SelectItem value="⛅ Partly Cloudy">
-                    ⛅ Partly Cloudy
-                  </SelectItem>
-                  <SelectItem value="☁️ Cloudy">☁️ Cloudy</SelectItem>
-                  <SelectItem value="🌧️ Rainy">🌧️ Rainy</SelectItem>
-                  <SelectItem value="⛈️ Stormy">⛈️ Stormy</SelectItem>
-                  <SelectItem value="🌨️ Snowy">🌨️ Snowy</SelectItem>
-                  <SelectItem value="🌫️ Foggy">🌫️ Foggy</SelectItem>
-                  <SelectItem value="🌬️ Windy">🌬️ Windy</SelectItem>
-                  <SelectItem value="🥵 Hot">🥵 Hot</SelectItem>
-                  <SelectItem value="🥶 Cold">🥶 Cold</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <label className="text-xs text-muted-foreground mb-1.5 block">
-                  Temperature
-                </label>
-                <Input
-                  type="number"
-                  value={block.temperature || ''}
-                  onChange={(e) => {
-                    const temp = Number(e.target.value);
-                    onChange({
-                      ...block,
-                      temperature: temp || undefined,
-                      value: `${block.weatherCondition || ''}${
-                        temp ? `, ${temp}°${block.temperatureUnit || 'C'}` : ''
-                      }`,
-                    });
-                  }}
-                  placeholder="20"
-                  className="rounded-xl"
-                />
-              </div>
-              <div className="w-20">
-                <label className="text-xs text-muted-foreground mb-1.5 block">
-                  Unit
-                </label>
-                <Select
-                  value={block.temperatureUnit || 'C'}
-                  onValueChange={(value: 'C' | 'F') => {
-                    onChange({
-                      ...block,
-                      temperatureUnit: value,
-                      value: `${block.weatherCondition || ''}${
-                        block.temperature
-                          ? `, ${block.temperature}°${value}`
-                          : ''
-                      }`,
-                    });
-                  }}
+          <div className="grid grid-cols-2 gap-2">
+            {options.map((option) => {
+              const isSelected = selectedValues.includes(option.value);
+              return (
+                <button
+                  key={option.value}
+                  onClick={() => toggleOption(option.value)}
+                  className={cn(
+                    'flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all',
+                    isSelected
+                      ? 'border-amber-500 bg-amber-500/10 dark:bg-amber-500/20'
+                      : 'border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/50 hover:border-neutral-300 dark:hover:border-neutral-600'
+                  )}
                 >
-                  <SelectTrigger className="rounded-xl">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="C">°C</SelectItem>
-                    <SelectItem value="F">°F</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+                  <span className="text-3xl">{option.icon}</span>
+                  <span
+                    className={cn(
+                      'text-xs font-medium',
+                      isSelected
+                        ? 'text-amber-700 dark:text-amber-400'
+                        : 'text-neutral-600 dark:text-neutral-400'
+                    )}
+                  >
+                    {option.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         );
 
@@ -333,7 +308,6 @@ export function BlockDisplay({ block, compact }: BlockDisplayProps) {
           <span className="text-lg font-semibold text-neutral-900 dark:text-white">
             {block.value}
             {block.blockId === 'sleep' && ' hrs'}
-            {block.blockId === 'steps' && ' steps'}
           </span>
         );
 
@@ -358,17 +332,45 @@ export function BlockDisplay({ block, compact }: BlockDisplayProps) {
           </span>
         );
 
-      case 'weather':
+      case 'multiselect':
+        const getOptionsForDisplay = () => {
+          switch (block.blockId) {
+            case 'weather':
+              return WEATHER_OPTIONS;
+            case 'meals':
+              return MEAL_OPTIONS;
+            case 'selfcare':
+              return SELFCARE_OPTIONS;
+            case 'health':
+              return HEALTH_OPTIONS;
+            default:
+              return [];
+          }
+        };
+
+        const optionsForDisplay = getOptionsForDisplay();
+        const selectedValuesForDisplay = (block.value as string[]) || [];
+
+        if (selectedValuesForDisplay.length === 0) return null;
+
         return (
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-medium text-neutral-900 dark:text-white">
-              {block.weatherCondition || block.value}
-            </span>
-            {block.temperature && (
-              <span className="text-sm text-neutral-600 dark:text-white/70">
-                {block.temperature}°{block.temperatureUnit || 'C'}
-              </span>
-            )}
+          <div className="flex flex-wrap gap-1.5">
+            {selectedValuesForDisplay.map((val) => {
+              const option = optionsForDisplay.find((o) => o.value === val);
+              if (!option) return null;
+              return (
+                <Tooltip key={val}>
+                  <TooltipTrigger asChild>
+                    <span className="text-lg cursor-default">
+                      {option.icon}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{option.label}</p>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
           </div>
         );
 
@@ -385,6 +387,11 @@ export function BlockDisplay({ block, compact }: BlockDisplayProps) {
         );
     }
   };
+
+  // For multiselect blocks, render inline without wrapper
+  if (block.type === 'multiselect') {
+    return <div className="py-1">{renderValue()}</div>;
+  }
 
   return (
     <div className={cn('flex items-start gap-2', compact ? 'py-1' : 'py-2')}>

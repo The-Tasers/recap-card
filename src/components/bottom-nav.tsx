@@ -11,8 +11,9 @@ export function BottomNav() {
   const pathname = usePathname();
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
 
-  // Hide bottom nav on card detail and edit pages
+  // Hide bottom nav on card detail, edit pages, and welcome page
   const shouldHide =
+    pathname === '/welcome' ||
     (pathname.startsWith('/card/') && pathname.endsWith('/edit')) ||
     (pathname.startsWith('/card/') && !pathname.endsWith('/edit'));
 
@@ -74,7 +75,7 @@ export function BottomNav() {
               <button
                 onClick={handleCreateClick}
                 className="flex items-center justify-center h-12 w-12 rounded-2xl bg-linear-to-br from-amber-400 to-orange-500 text-white shadow-md shadow-amber-500/40 hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-200 hover:scale-105 active:scale-95"
-                aria-label="Create new recap"
+                aria-label="Capture today"
               >
                 <PencilLine className="h-5 w-5 stroke-[2.5px]" />
               </button>

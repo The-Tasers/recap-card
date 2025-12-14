@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import {
   Sheet,
@@ -13,10 +12,10 @@ import { CreateFormContent } from './create-form-content';
 interface CreateSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  selectedDate?: Date;
 }
 
-export function CreateSheet({ open, onOpenChange }: CreateSheetProps) {
-  const router = useRouter();
+export function CreateSheet({ open, onOpenChange, selectedDate }: CreateSheetProps) {
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
@@ -26,14 +25,22 @@ export function CreateSheet({ open, onOpenChange }: CreateSheetProps) {
     return () => window.removeEventListener('resize', checkDesktop);
   }, []);
 
-  const handleSuccess = (cardId: string) => {
+  const handleSuccess = () => {
     onOpenChange(false);
-    router.push(`/card/${cardId}`);
+    // Don't redirect - stay on current page
   };
 
   const handleCancel = () => {
     onOpenChange(false);
   };
+
+  const displayDate = selectedDate || new Date();
+  const formattedDate = displayDate.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -47,12 +54,12 @@ export function CreateSheet({ open, onOpenChange }: CreateSheetProps) {
       >
         <SheetHeader className="mb-4 px-6 pt-6 shrink-0">
           <SheetTitle className="text-xl font-semibold">
-            Capture Today
+            Capture a Moment
           </SheetTitle>
-          <p className="text-sm text-muted-foreground">Take a mindful moment to reflect</p>
+          <p className="text-sm text-muted-foreground">{formattedDate}</p>
         </SheetHeader>
         <div className="flex-1 overflow-hidden px-6 pb-6">
-          <CreateFormContent onSuccess={handleSuccess} onCancel={handleCancel} />
+          <CreateFormContent onSuccess={handleSuccess} onCancel={handleCancel} selectedDate={selectedDate} />
         </div>
       </SheetContent>
     </Sheet>

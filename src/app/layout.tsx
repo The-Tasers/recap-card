@@ -6,6 +6,9 @@ import { Geist } from 'next/font/google';
 import './globals.css';
 import { BottomNav } from '@/components/bottom-nav';
 import { DesktopNav } from '@/components/desktop-nav';
+import { MainContainer } from '@/components/main-container';
+import { Toaster } from '@/components/ui/toaster';
+import { FirstRecapCelebration } from '@/components/first-recap-celebration';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -46,15 +49,17 @@ export default function RootLayout({
             </Suspense>
 
             {/* Main Container */}
-            <div className="max-w-md mx-auto lg:ml-64 lg:max-w-none bg-neutral-50 dark:bg-neutral-900 min-h-screen relative [body:has(nav.sidebar-collapsed)_&]:lg:ml-20">
-              <main className="min-h-screen">{children}</main>
+            <MainContainer>
+              {children}
 
               {/* Mobile Bottom Nav */}
               <Suspense fallback={null}>
                 <BottomNav />
               </Suspense>
-            </div>
+            </MainContainer>
           </LayoutWrapper>
+          <Toaster />
+          <FirstRecapCelebration />
         </ThemeProvider>
       </body>
     </html>

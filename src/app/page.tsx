@@ -2,11 +2,10 @@
 
 import { useMemo, useState, Suspense, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Flame, Clock, CalendarDays } from 'lucide-react';
 
 import { useCardStore } from '@/lib/store';
-import { Onboarding } from '@/components/onboarding';
 import {
   getGreeting,
   getTodayDateFormatted,
@@ -46,16 +45,16 @@ export function DayCountdown({
       // Contextual messages based on time of day
       const currentHour = now.getHours();
       if (currentHour >= 5 && currentHour < 12) {
-        setMessage('Start your day with reflection ✨');
+        setMessage('A quiet moment to notice today ✨');
       } else if (currentHour >= 12 && currentHour < 17) {
-        setMessage('Take a moment to capture today 🌟');
+        setMessage('How does this moment feel? 🌟');
       } else if (currentHour >= 17 && currentHour < 22) {
-        setMessage('Evening is perfect for reflection 🌙');
+        setMessage('A moment to pause and reflect 🌙');
       } else if (currentHour >= 22 || currentHour < 2) {
-        setMessage('End the day with your thoughts 💫');
+        setMessage('Before the day ends, notice one thing 💫');
       } else {
         // 2am-5am - very late night/early morning
-        setMessage('Tomorrow is a fresh start 🌅');
+        setMessage('Rest well. Tomorrow awaits 🌅');
       }
     };
 
@@ -98,7 +97,7 @@ export function DayCountdown({
             onClick={onCreateClick}
             className="relative w-full h-8 md:h-9 bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold text-xs md:text-sm rounded-lg md:rounded-xl shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
           >
-            Capture Today
+            Notice this moment
           </button>
         )}
       </div>
@@ -172,7 +171,7 @@ function Dashboard({
           </h2>
           {!isEmptyState && (
             <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-2">
-              Your daily mindfulness companion
+              Notice your day, one moment at a time
             </p>
           )}
         </div>
@@ -194,7 +193,7 @@ function Dashboard({
         >
           <div className="mb-4">
             <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-              Progress
+              How your days felt
             </h2>
           </div>
 
@@ -286,51 +285,53 @@ function Dashboard({
           transition={{ delay: 0.8 }}
           className="mt-8 lg:mt-12"
         >
-          <div className="bg-linear-to-br from-violet-50 via-purple-50 to-pink-50 dark:from-violet-950/30 dark:via-purple-950/30 dark:to-pink-950/30 rounded-3xl p-6 lg:p-10 border border-violet-200 dark:border-violet-900/50 shadow-sm">
+          <div className="bg-linear-to-br from-amber-50 via-orange-50 to-rose-50 dark:from-amber-950/30 dark:via-orange-950/30 dark:to-rose-950/30 rounded-3xl p-6 lg:p-10 border border-amber-200 dark:border-amber-900/50 shadow-sm">
             <div className="text-center max-w-2xl mx-auto">
               <div className="mb-4 lg:mb-6">
-                <span className="text-5xl lg:text-7xl">🌟</span>
+                <span className="text-5xl lg:text-7xl">✨</span>
               </div>
               <h3 className="text-xl lg:text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-3 lg:mb-4">
-                Start Your Mindful Journey
+                Notice your day
               </h3>
-              <p className="text-sm lg:text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4 lg:mb-6">
-                Track your mood, celebrate wins, and reflect daily.
+              <p className="text-sm lg:text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed mb-6 lg:mb-8">
+                This is a space for awareness, not achievement.
+                <br />
+                Just one small moment each day is enough.
               </p>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-4 text-left">
                 <div className="bg-white/50 dark:bg-neutral-900/50 rounded-2xl p-4 lg:p-5">
-                  <div className="text-2xl lg:text-3xl mb-2">🧘</div>
+                  <div className="text-2xl lg:text-3xl mb-2">🌱</div>
                   <h4 className="font-semibold text-sm lg:text-base text-neutral-900 dark:text-neutral-100 mb-1">
-                    Daily Mindfulness
+                    Notice without pressure
                   </h4>
                   <p className="text-xs lg:text-sm text-neutral-600 dark:text-neutral-400">
-                    Practice self-awareness by reflecting on your day
+                    One moment that stood out to you today
                   </p>
                 </div>
                 <div className="bg-white/50 dark:bg-neutral-900/50 rounded-2xl p-4 lg:p-5">
-                  <div className="text-2xl lg:text-3xl mb-2">📊</div>
+                  <div className="text-2xl lg:text-3xl mb-2">🌙</div>
                   <h4 className="font-semibold text-sm lg:text-base text-neutral-900 dark:text-neutral-100 mb-1">
-                    Track Your Mood
+                    See how your days feel
                   </h4>
                   <p className="text-xs lg:text-sm text-neutral-600 dark:text-neutral-400">
-                    Gain insights into your emotional patterns
+                    Patterns emerge naturally over time
                   </p>
                 </div>
                 <div className="bg-white/50 dark:bg-neutral-900/50 rounded-2xl p-4 lg:p-5">
-                  <div className="text-2xl lg:text-3xl mb-2">🎯</div>
+                  <div className="text-2xl lg:text-3xl mb-2">☁️</div>
                   <h4 className="font-semibold text-sm lg:text-base text-neutral-900 dark:text-neutral-100 mb-1">
-                    Celebrate Progress
+                    A calm daily ritual
                   </h4>
                   <p className="text-xs lg:text-sm text-neutral-600 dark:text-neutral-400">
-                    Build meaningful habits, one day at a time
+                    No streaks to maintain, no goals to hit
                   </p>
                 </div>
               </div>
               <button
                 onClick={handleCreateClick}
-                className="mt-6 lg:mt-8 w-full lg:w-auto lg:px-12 h-12 lg:h-14 bg-linear-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-semibold text-sm lg:text-base rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]"
+                className="mt-6 lg:mt-8 w-full cursor-pointer lg:w-auto lg:px-12 h-12 lg:h-14 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm lg:text-base rounded-2xl shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50 transition-all duration-200 hover:scale-[1.02]"
               >
-                Create Your First Recap
+                Capture today's moment
               </button>
             </div>
           </div>
@@ -343,9 +344,7 @@ function Dashboard({
 // Main Home Page Component
 function HomePageInner() {
   const router = useRouter();
-  const { cards, hydrated, hasSeenOnboarding, userName, setHasSeenOnboarding } =
-    useCardStore();
-  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  const { cards, hydrated, userName } = useCardStore();
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
 
   // Calculate stats
@@ -398,11 +397,6 @@ function HomePageInner() {
     };
   }, [cards]);
 
-  const handleOnboardingComplete = () => {
-    setHasSeenOnboarding(true);
-    setOnboardingDismissed(true);
-  };
-
   const handleStreakClick = () => {
     router.push('/timeline?view=calendar');
   };
@@ -413,12 +407,6 @@ function HomePageInner() {
 
   // Get mood data for last 28 days (4 weeks) - before early return
   const moodData = useMemo(() => getLastNDaysMoodData(cards, 28), [cards]);
-
-  const showOnboarding =
-    hydrated &&
-    !hasSeenOnboarding &&
-    cards.length === 0 &&
-    !onboardingDismissed;
 
   if (!hydrated) {
     return (
@@ -439,17 +427,12 @@ function HomePageInner() {
 
   return (
     <>
-      {/* Onboarding */}
-      <AnimatePresence>
-        {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
-      </AnimatePresence>
-
       {/* Mobile Header */}
       <Header />
 
       {/* Desktop Page Header */}
-      <div className="hidden lg:block sticky top-0 z-10 h-20 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-200/50 dark:border-neutral-800/50">
-        <div className="px-8 h-full flex items-center justify-between">
+      <div className="hidden lg:block sticky top-0 z-10 h-24 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-200/50 dark:border-neutral-800/50">
+        <div className="h-full flex items-center justify-between max-w-4xl mx-auto">
           <div>
             <h1 className="text-xl lg:text-3xl font-bold text-neutral-900 dark:text-neutral-100">
               {getGreeting(userName)}
@@ -463,149 +446,192 @@ function HomePageInner() {
 
       {/* Main Content */}
       <div className="px-5 lg:px-8 pb-24 lg:py-8">
-        {/* Desktop: Dashboard Grid Layout */}
-        <div className="lg:grid lg:grid-cols-12 lg:gap-6">
-          {/* Top Stats Bar - Desktop Only - Hide until first recap */}
-          {hasCards && (
-            <div className="hidden lg:flex lg:col-span-12 lg:gap-3 xl:gap-4 lg:mb-6 lg:items-stretch">
-              {/* Streak & Total Container - Stack on medium, horizontal on xl */}
-              <div className="flex lg:flex-col xl:flex-row lg:gap-3 xl:gap-4 xl:flex-1 lg:h-full">
-                {/* Streak Card */}
-                <div
-                  onClick={handleStreakClick}
-                  className={cn(
-                    'flex-1 rounded-2xl flex flex-col border gap-2 p-4 xl:p-5 hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer',
-                    !hasCards
-                      ? 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800'
-                      : 'bg-linear-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border-orange-200 dark:border-orange-900/50'
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <Flame className="h-4 w-4 xl:h-5 xl:w-5 text-orange-500" />
-                    <p className="font-semibold text-lg xl:text-2xl text-neutral-900 dark:text-neutral-100">
-                      Streak
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-center justify-center flex-1">
-                    <p className="text-6xl xl:text-9xl font-black text-orange-500">
-                      {stats.streak}
-                    </p>
-                    <p className="text-xl xl:text-3xl text-orange-500 mt-1">
-                      {stats.streak === 0
-                        ? 'days yet'
-                        : stats.streak === 1
-                        ? 'day'
-                        : 'days'}
-                    </p>
-                  </div>
-                  <p className="text-xs text-center text-neutral-500 dark:text-neutral-500 mt-2">
-                    Build momentum daily
-                  </p>
-                </div>
-
-                {/* Total Recaps Card */}
-                <div
-                  onClick={handleTotalClick}
-                  className="flex-1 rounded-2xl flex flex-col gap-2 p-4 xl:p-5 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
-                >
-                  <div className="flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4 xl:h-5 xl:w-5 text-blue-500" />
-                    <p className="font-semibold text-lg xl:text-2xl text-neutral-900 dark:text-neutral-100">
-                      Total
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-center justify-center flex-1">
-                    <p className="text-6xl xl:text-9xl font-black text-blue-500">
-                      {stats.total}
-                    </p>
-                    <p className="text-xl xl:text-3xl mt-1 text-blue-500">
-                      all time
-                    </p>
-                  </div>
-                  <p className="text-xs text-center text-neutral-500 dark:text-neutral-500 mt-2">
-                    Every moment counts
-                  </p>
-                </div>
-              </div>
-
-              {/* Mood Map - constrained width */}
-              <div className="flex-1 lg:h-full">
-                <MoodMapTile moodData={moodData} />
-              </div>
-            </div>
-          )}
-
-          {/* Mobile Dashboard */}
-          <div className="lg:hidden">
-            <Dashboard
-              userName={userName}
-              hasRecapToday={hasCards ? !!getTodayRecap(cards) : false}
-              stats={stats}
-              moodData={moodData}
-              todayRecap={hasCards ? getTodayRecap(cards) : null}
-              isEmptyState={!hasCards}
-              onCreateClick={() => setIsCreateSheetOpen(true)}
-            />
-          </div>
-
-          {/* Desktop Empty State - Welcome Block */}
-          {!hasCards && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-              className="hidden lg:block lg:col-span-12 mt-8"
-            >
-              <div className="bg-linear-to-br from-violet-50 via-purple-50 to-pink-50 dark:from-violet-950/30 dark:via-purple-950/30 dark:to-pink-950/30 rounded-3xl p-10 border border-violet-200 dark:border-violet-900/50 shadow-sm">
-                <div className="text-center max-w-2xl mx-auto">
-                  <div className="mb-6">
-                    <span className="text-7xl">🌟</span>
-                  </div>
-                  <h3 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
-                    Start Your Mindful Journey
-                  </h3>
-                  <p className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed mb-6">
-                    Track your mood, celebrate wins, and reflect daily.
-                  </p>
-                  <div className="grid grid-cols-3 gap-4 text-left">
-                    <div className="bg-white/50 dark:bg-neutral-900/50 rounded-2xl p-5">
-                      <div className="text-3xl mb-2">🧘</div>
-                      <h4 className="font-semibold text-base text-neutral-900 dark:text-neutral-100 mb-1">
-                        Daily Mindfulness
-                      </h4>
-                      <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                        Practice self-awareness by reflecting on your day
-                      </p>
-                    </div>
-                    <div className="bg-white/50 dark:bg-neutral-900/50 rounded-2xl p-5">
-                      <div className="text-3xl mb-2">📊</div>
-                      <h4 className="font-semibold text-base text-neutral-900 dark:text-neutral-100 mb-1">
-                        Track Your Mood
-                      </h4>
-                      <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                        Gain insights into your emotional patterns
-                      </p>
-                    </div>
-                    <div className="bg-white/50 dark:bg-neutral-900/50 rounded-2xl p-5">
-                      <div className="text-3xl mb-2">🎯</div>
-                      <h4 className="font-semibold text-base text-neutral-900 dark:text-neutral-100 mb-1">
-                        Celebrate Progress
-                      </h4>
-                      <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                        Build meaningful habits, one day at a time
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setIsCreateSheetOpen(true)}
-                    className="mt-8 w-auto px-12 h-14 bg-linear-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-semibold text-base rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]"
+        <div className="max-w-4xl mx-auto">
+          {/* Desktop: Dashboard Grid Layout */}
+          <div className="lg:grid lg:grid-cols-12 lg:gap-6">
+            {/* Top Stats Bar - Desktop Only - Hide until first recap */}
+            {hasCards && (
+              <div className="hidden lg:flex lg:col-span-12 lg:gap-3 xl:gap-4 lg:mb-6 lg:items-stretch">
+                {/* Streak & Total Container - Stack on medium, horizontal on xl */}
+                <div className="flex lg:flex-col xl:flex-row lg:gap-3 xl:gap-4 xl:flex-1 lg:h-full">
+                  {/* Streak Card */}
+                  <div
+                    onClick={handleStreakClick}
+                    className={cn(
+                      'flex-1 rounded-2xl flex flex-col border gap-2 p-4 xl:p-5 hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer',
+                      !hasCards
+                        ? 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800'
+                        : 'bg-linear-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border-orange-200 dark:border-orange-900/50'
+                    )}
                   >
-                    Create Your First Recap
-                  </button>
+                    <div className="flex items-center gap-2">
+                      <Flame className="h-4 w-4 xl:h-5 xl:w-5 text-orange-500" />
+                      <p className="font-semibold text-lg xl:text-2xl text-neutral-900 dark:text-neutral-100">
+                        Streak
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-center justify-center flex-1">
+                      <p className="text-6xl xl:text-9xl font-black text-orange-500">
+                        {stats.streak}
+                      </p>
+                      <p className="text-xl xl:text-3xl text-orange-500 mt-1">
+                        {stats.streak === 0
+                          ? 'days yet'
+                          : stats.streak === 1
+                          ? 'day'
+                          : 'days'}
+                      </p>
+                    </div>
+                    <p className="text-xs text-center text-neutral-500 dark:text-neutral-500 mt-2">
+                      Build momentum daily
+                    </p>
+                  </div>
+
+                  {/* Total Recaps Card */}
+                  <div
+                    onClick={handleTotalClick}
+                    className="flex-1 rounded-2xl flex flex-col gap-2 p-4 xl:p-5 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <CalendarDays className="h-4 w-4 xl:h-5 xl:w-5 text-blue-500" />
+                      <p className="font-semibold text-lg xl:text-2xl text-neutral-900 dark:text-neutral-100">
+                        Total
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-center justify-center flex-1">
+                      <p className="text-6xl xl:text-9xl font-black text-blue-500">
+                        {stats.total}
+                      </p>
+                      <p className="text-xl xl:text-3xl mt-1 text-blue-500">
+                        all time
+                      </p>
+                    </div>
+                    <p className="text-xs text-center text-neutral-500 dark:text-neutral-500 mt-2">
+                      Every moment counts
+                    </p>
+                  </div>
+                </div>
+
+                {/* Mood Map - constrained width */}
+                <div className="flex-1 lg:h-full">
+                  <MoodMapTile moodData={moodData} />
                 </div>
               </div>
-            </motion.div>
-          )}
+            )}
+
+            {/* Mobile Dashboard */}
+            <div className="lg:hidden">
+              <Dashboard
+                userName={userName}
+                hasRecapToday={hasCards ? !!getTodayRecap(cards) : false}
+                stats={stats}
+                moodData={moodData}
+                todayRecap={hasCards ? getTodayRecap(cards) : null}
+                isEmptyState={!hasCards}
+                onCreateClick={() => setIsCreateSheetOpen(true)}
+              />
+            </div>
+
+            {/* Desktop Empty State - Welcome Block */}
+            {!hasCards && (
+              <div className="hidden lg:block lg:col-span-12 mt-8">
+                <div className="bg-linear-to-br from-amber-50 via-orange-50 to-rose-50 dark:from-amber-950/30 dark:via-orange-950/30 dark:to-rose-950/30 rounded-3xl p-12 border border-amber-200 dark:border-amber-900/50 shadow-sm group">
+                  <div className="flex items-center gap-8">
+                    {/* Left side - Content */}
+                    <div className="flex-none">
+                      <div className="mb-6">
+                        <span className="text-6xl">✨</span>
+                      </div>
+                      <h3 className="text-4xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
+                        Notice your day
+                      </h3>
+                      <p className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed mb-10">
+                        This is a space for awareness, not achievement.
+                        <br />
+                        Just one small moment each day is enough.
+                      </p>
+                      <div className="space-y-4 mb-10">
+                        <div className="flex items-start gap-4">
+                          <div className="text-3xl">🌱</div>
+                          <div>
+                            <h4 className="font-semibold text-base text-neutral-900 dark:text-neutral-100 mb-1">
+                              Notice without pressure
+                            </h4>
+                            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                              One moment that stood out to you today
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-4">
+                          <div className="text-3xl">🌙</div>
+                          <div>
+                            <h4 className="font-semibold text-base text-neutral-900 dark:text-neutral-100 mb-1">
+                              See how your days feel
+                            </h4>
+                            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                              Patterns emerge naturally over time
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-4">
+                          <div className="text-3xl">☁️</div>
+                          <div>
+                            <h4 className="font-semibold text-base text-neutral-900 dark:text-neutral-100 mb-1">
+                              A calm daily ritual
+                            </h4>
+                            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                              No streaks to maintain, no goals to hit
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setIsCreateSheetOpen(true)}
+                        className="w-auto px-12 h-14 cursor-pointer bg-amber-500 hover:bg-amber-600 text-white font-semibold text-base rounded-2xl shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50 transition-all duration-200 hover:scale-[1.02]"
+                      >
+                        Capture today's moment
+                      </button>
+                    </div>
+
+                    {/* Right side - Visual representation with floating cards */}
+                    <div className="flex-1 relative min-h-[380px] xl:min-h-[420px] flex items-center justify-center">
+                      <div className="flex flex-col gap-3 items-center justify-center">
+                        {/* Example card 1 - Great mood */}
+                        <div className="w-28 h-36 lg:w-32 lg:h-40 rounded-2xl p-3 shadow-xl hover:scale-[1.02] hover:-rotate-2 transition-all duration-200 bg-gradient-to-br from-green-500 to-emerald-500 transform -rotate-2">
+                          <div className="flex flex-col gap-1 h-full">
+                            <span className="text-2xl lg:text-3xl">😄</span>
+                            <p className="text-[10px] lg:text-xs text-white/90 font-medium line-clamp-2">
+                              Morning coffee hit different today
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Example card 2 - Good mood */}
+                        <div className="w-28 h-36 lg:w-32 lg:h-40 rounded-2xl p-3 shadow-xl hover:scale-[1.02] hover:rotate-1 transition-all duration-200 bg-gradient-to-br from-lime-500 to-lime-400 transform rotate-1">
+                          <div className="flex flex-col gap-1 h-full">
+                            <span className="text-2xl lg:text-3xl">🙂</span>
+                            <p className="text-[10px] lg:text-xs text-white/90 font-medium line-clamp-2">
+                              Small wins add up
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Example card 3 - Neutral mood */}
+                        <div className="w-28 h-36 lg:w-32 lg:h-40 rounded-2xl p-3 shadow-xl hover:scale-[1.02] hover:-rotate-1 transition-all duration-200 bg-gradient-to-br from-yellow-400 to-yellow-500 transform -rotate-1">
+                          <div className="flex flex-col gap-1 h-full">
+                            <span className="text-2xl lg:text-3xl">😐</span>
+                            <p className="text-[10px] lg:text-xs text-white/90 font-medium line-clamp-2">
+                              Just another quiet evening
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

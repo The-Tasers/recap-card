@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { Check, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 import { useCardStore } from '@/lib/store';
-import { Mood, CardBlock, PREDEFINED_TAGS, DailyCard } from '@/lib/types';
+import { Mood, CardBlock, BlockId, BLOCK_DEFINITIONS } from '@/lib/types';
+import { generateId } from '@/lib/export';
 import { MoodSelector } from '@/components/mood-selector';
 import { PhotoUploader } from '@/components/photo-uploader';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { BlockList } from '@/components/blocks/block-editor';
-import { BlockPicker } from '@/components/blocks/block-picker';
+import { InlineBlockForm } from '@/components/blocks/inline-block-form';
 
-const MAX_CHARS = 500;
+const MAX_CHARS = 200;
 
 interface EditFormContentProps {
   cardId: string;
@@ -19,7 +20,11 @@ interface EditFormContentProps {
   onCancel?: () => void;
 }
 
-export function EditFormContent({ cardId, onSuccess, onCancel }: EditFormContentProps) {
+export function EditFormContent({
+  cardId,
+  onSuccess,
+  onCancel,
+}: EditFormContentProps) {
   const { getById, updateCard, hydrated } = useCardStore();
 
   const card = hydrated ? getById(cardId) : undefined;
@@ -29,9 +34,38 @@ export function EditFormContent({ cardId, onSuccess, onCancel }: EditFormContent
   const [mood, setMood] = useState<Mood>('neutral');
   const [photoUrl, setPhotoUrl] = useState<string | undefined>();
 
-  // New design system fields
-  const [blocks, setBlocks] = useState<CardBlock[]>([]);
-  const [tags, setTags] = useState<string[]>([]);
+  // Initialize all blocks
+  const initializeBlocks = (): Record<BlockId, CardBlock> => {
+    const blockIds: BlockId[] = [
+      'sleep',
+      'weather',
+      'meals',
+      'selfcare',
+      'health',
+    ];
+    const initialBlocks: Record<BlockId, CardBlock> = {} as Record<
+      BlockId,
+      CardBlock
+    >;
+
+    blockIds.forEach((blockId, index) => {
+      const definition = BLOCK_DEFINITIONS[blockId];
+      initialBlocks[blockId] = {
+        id: generateId(),
+        type: definition.type,
+        blockId,
+        label: definition.label,
+        value: definition.type === 'number' ? 0 : [],
+        order: index,
+      };
+    });
+
+    return initialBlocks;
+  };
+
+  const [blocks, setBlocks] = useState<Record<BlockId, CardBlock>>(
+    initializeBlocks()
+  );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -40,53 +74,55 @@ export function EditFormContent({ cardId, onSuccess, onCancel }: EditFormContent
       setText(card.text);
       setMood(card.mood);
       setPhotoUrl(card.photoUrl);
-      setBlocks(card.blocks || []);
-      setTags(card.tags || []);
+
+      // Convert existing blocks array to Record format
+      const existingBlocks = initializeBlocks();
+      if (card.blocks) {
+        card.blocks.forEach((block) => {
+          if (block.blockId in existingBlocks) {
+            existingBlocks[block.blockId] = block;
+          }
+        });
+      }
+      setBlocks(existingBlocks);
     }
   }, [card]);
 
   const charCount = text.length;
-  const isValid =
-    text.trim().length > 0 && charCount <= MAX_CHARS && tags.length > 0;
-
-  const [showValidationError, setShowValidationError] = useState(false);
-
-  const getValidationMessage = () => {
-    const errors = [];
-    if (text.trim().length === 0) errors.push('recap text');
-    if (tags.length === 0) errors.push('at least one tag');
-    if (charCount > MAX_CHARS) errors.push(`reduce text to ${MAX_CHARS} characters`);
-
-    if (errors.length === 0) return '';
-    if (errors.length === 1) return `Please add ${errors[0]}`;
-    return `Please add ${errors.slice(0, -1).join(', ')} and ${errors[errors.length - 1]}`;
-  };
-
-  // Tag handlers
-  const handleToggleTag = (tag: string) => {
-    setTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
-  };
+  const isValid = text.trim().length > 0 && charCount <= MAX_CHARS;
 
   const handleSubmit = async () => {
-    if (!isValid || !card) {
-      setShowValidationError(true);
-      setTimeout(() => setShowValidationError(false), 3000);
+    setIsSubmitting(true);
+
+    // Convert blocks object to array and filter non-empty ones
+    const blocksArray = Object.values(blocks);
+    const nonEmptyBlocks = blocksArray.filter((block) => {
+      if (block.type === 'number') {
+        return (
+          block.value !== null && block.value !== undefined && block.value !== 0
+        );
+      } else if (block.type === 'multiselect') {
+        return Array.isArray(block.value) && block.value.length > 0;
+      }
+      return false;
+    });
+
+    if (!card) {
+      setIsSubmitting(false);
       return;
     }
 
-    setShowValidationError(false);
-    setIsSubmitting(true);
     const success = updateCard(card.id, {
       text: text.trim(),
       mood,
       photoUrl,
-      blocks: blocks.length > 0 ? blocks : undefined,
-      tags: tags.length > 0 ? tags : undefined,
+      blocks: nonEmptyBlocks.length > 0 ? nonEmptyBlocks : undefined,
     });
 
     if (success) {
+      toast.success('Recap updated! ✨', {
+        description: 'Your changes have been saved successfully.'
+      });
       onSuccess?.(card.id);
     } else {
       setIsSubmitting(false);
@@ -106,24 +142,27 @@ export function EditFormContent({ cardId, onSuccess, onCancel }: EditFormContent
       <div className="flex-1 overflow-y-auto space-y-6 pb-6 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-neutral-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent dark:[&::-webkit-scrollbar-thumb]:bg-neutral-700 hover:[&::-webkit-scrollbar-thumb]:bg-neutral-400 dark:hover:[&::-webkit-scrollbar-thumb]:bg-neutral-600">
         {/* Mood Selector */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-3">
-            How are you feeling? <span className="text-destructive">*</span>
+          <label className="block text-sm font-medium text-center text-neutral-700 dark:text-neutral-200 mb-3">
+            How was your day?
           </label>
           <MoodSelector value={mood} onChange={setMood} />
         </div>
 
-        {/* Text Input */}
+        {/* Blocks - Always visible */}
+        <InlineBlockForm blocks={blocks} onChange={setBlocks} />
+
+        {/* Text Input - Moved to bottom */}
         <div>
           <div className="mb-2">
             <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200">
-              What happened today? <span className="text-destructive">*</span>
+              What happened today?
             </label>
           </div>
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Write about your day..."
-            className="min-h-[150px] rounded-2xl resize-none text-base"
+            placeholder="A quick note..."
+            className="min-h-20 rounded-2xl resize-none text-base"
             maxLength={MAX_CHARS + 50}
           />
           <div className="flex justify-end mt-2">
@@ -139,69 +178,17 @@ export function EditFormContent({ cardId, onSuccess, onCancel }: EditFormContent
           </div>
         </div>
 
-        {/* Photo Upload */}
+        {/* Photo Upload - Moved to last */}
         <div>
           <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-3">
             Picture of the Day
           </label>
           <PhotoUploader value={photoUrl} onChange={setPhotoUrl} />
         </div>
-
-        {/* Blocks */}
-        <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
-            Add details
-          </label>
-          {blocks.length > 0 && (
-            <div className="mb-4">
-              <BlockList blocks={blocks} onChange={setBlocks} />
-            </div>
-          )}
-          <BlockPicker
-            onSelect={(block) => setBlocks((prev) => [...prev, block])}
-            existingBlockIds={blocks.map((b) => b.blockId)}
-          />
-        </div>
-
-        {/* Tags */}
-        <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
-            Tags <span className="text-destructive">*</span>
-          </label>
-          <p className="text-xs text-muted-foreground mb-3">
-            Select at least one tag to categorize your recap
-          </p>
-
-          <div className="flex flex-wrap gap-2">
-            {PREDEFINED_TAGS.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => handleToggleTag(tag)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                  tags.includes(tag)
-                    ? 'bg-linear-to-r from-violet-500 to-purple-600 text-white shadow-md'
-                    : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
-                }`}
-              >
-                #{tag}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* Save Button */}
       <div className="border-t border-neutral-200 dark:border-neutral-800 pt-4 mt-4">
-        {showValidationError && (
-          <div className="mb-3 p-3 bg-destructive/10 border border-destructive/20 rounded-xl flex items-start gap-2">
-            <AlertCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
-            <p className="text-sm text-destructive font-medium">
-              {getValidationMessage()}
-            </p>
-          </div>
-        )}
-
         <div className="flex gap-2">
           {onCancel && (
             <Button
@@ -216,7 +203,7 @@ export function EditFormContent({ cardId, onSuccess, onCancel }: EditFormContent
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="flex-1 rounded-2xl h-12 text-base font-semibold shadow-lg"
+            className="flex-1 rounded-2xl h-12 text-base font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50"
             size="lg"
           >
             {isSubmitting ? (
@@ -224,17 +211,11 @@ export function EditFormContent({ cardId, onSuccess, onCancel }: EditFormContent
             ) : (
               <>
                 <Check className="h-5 w-5 mr-2" />
-                Save Changes
+                Done
               </>
             )}
           </Button>
         </div>
-
-        {!isValid && !showValidationError && (
-          <p className="text-xs text-muted-foreground text-center mt-2">
-            Fill in all required fields (*) to save
-          </p>
-        )}
       </div>
     </div>
   );

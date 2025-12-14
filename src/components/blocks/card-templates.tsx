@@ -78,19 +78,6 @@ export const DefaultTemplate = forwardRef<HTMLDivElement, CardTemplateProps>(
               ))}
             </div>
           )}
-
-          {card.tags && card.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 pt-2">
-              {card.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-2 py-0.5 rounded-full bg-black/5 text-xs text-muted-foreground"
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          )}
         </CardContent>
       </Card>
     );
@@ -277,19 +264,6 @@ export const MixedGridTemplate = forwardRef<HTMLDivElement, CardTemplateProps>(
               </div>
             ))}
           </div>
-
-          {card.tags && card.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {card.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-2 py-0.5 rounded-full bg-white/50 text-xs"
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          )}
         </CardContent>
       </Card>
     );

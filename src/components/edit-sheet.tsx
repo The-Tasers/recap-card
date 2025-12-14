@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import {
   Sheet,
@@ -9,6 +8,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { EditFormContent } from './edit-form-content';
+import { useCardStore } from '@/lib/store';
 
 interface EditSheetProps {
   cardId: string;
@@ -17,8 +17,9 @@ interface EditSheetProps {
 }
 
 export function EditSheet({ cardId, open, onOpenChange }: EditSheetProps) {
-  const router = useRouter();
   const [isDesktop, setIsDesktop] = useState(false);
+  const { getById } = useCardStore();
+  const card = getById(cardId);
 
   useEffect(() => {
     const checkDesktop = () => setIsDesktop(window.innerWidth >= 1024);
@@ -27,14 +28,23 @@ export function EditSheet({ cardId, open, onOpenChange }: EditSheetProps) {
     return () => window.removeEventListener('resize', checkDesktop);
   }, []);
 
-  const handleSuccess = (id: string) => {
+  const handleSuccess = () => {
     onOpenChange(false);
-    router.push(`/card/${id}`);
+    // Don't redirect - stay on current page
   };
 
   const handleCancel = () => {
     onOpenChange(false);
   };
+
+  const formattedDate = card
+    ? new Date(card.createdAt).toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : '';
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -50,7 +60,7 @@ export function EditSheet({ cardId, open, onOpenChange }: EditSheetProps) {
           <SheetTitle className="text-xl font-semibold">
             Edit Recap
           </SheetTitle>
-          <p className="text-sm text-muted-foreground">Update your thoughts</p>
+          <p className="text-sm text-muted-foreground">{formattedDate}</p>
         </SheetHeader>
         <div className="flex-1 overflow-hidden px-6 pb-6">
           <EditFormContent cardId={cardId} onSuccess={handleSuccess} onCancel={handleCancel} />

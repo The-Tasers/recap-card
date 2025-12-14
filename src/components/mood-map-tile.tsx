@@ -28,9 +28,14 @@ export function MoodMapTile({ moodData }: MoodMapTileProps) {
   const router = useRouter();
 
   const handleDayClick = (day: MoodDayData) => {
-    if (day.hasRecap && day.cardId) {
-      // Navigate directly to the card
-      router.push(`/card/${day.cardId}`);
+    if (day.hasRecap) {
+      // Navigate to calendar view with the selected date
+      // Use local date string to avoid timezone offset issues
+      const year = day.date.getFullYear();
+      const month = String(day.date.getMonth() + 1).padStart(2, '0');
+      const date = String(day.date.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${date}`;
+      router.push(`/timeline?view=calendar&date=${dateStr}`);
     }
   };
 
@@ -73,7 +78,7 @@ export function MoodMapTile({ moodData }: MoodMapTileProps) {
       <div className="flex items-center gap-2 mb-3">
         <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-violet-500" />
         <h3 className="font-semibold text-base md:text-lg lg:text-2xl text-neutral-900 dark:text-neutral-100">
-          Mood Map
+          How your days felt
         </h3>
       </div>
 

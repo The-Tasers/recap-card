@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { DailyCard, MOODS } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -14,6 +14,9 @@ interface CalendarViewProps {
   selectedDate: Date | null;
   showNavigation?: boolean;
   currentMonth?: Date;
+  onEdit?: (card: DailyCard) => void;
+  onDelete?: (card: DailyCard) => void;
+  onCreateForDate?: (date: Date) => void;
 }
 
 export function CalendarView({
@@ -22,8 +25,10 @@ export function CalendarView({
   selectedDate,
   showNavigation = true,
   currentMonth: propCurrentMonth,
+  onEdit,
+  onDelete,
+  onCreateForDate,
 }: CalendarViewProps) {
-  const router = useRouter();
   const [internalCurrentMonth, setInternalCurrentMonth] = useState(new Date());
 
   // Use internal state for month navigation
@@ -124,155 +129,210 @@ export function CalendarView({
     setCurrentMonth((prev) => new Date(yearNum, prev.getMonth(), 1));
   };
 
-  const isToday = (date: Date) => {
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
-  };
-
   const getMoodColor = (mood: string) => {
     const moodData = MOODS.find((m) => m.value === mood);
     return moodData?.color || 'bg-muted';
   };
 
   return (
-    <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-4 lg:p-6">
-      {/* Header - Mobile and Desktop navigation */}
-      {showNavigation && (
-        <div className="flex items-center justify-between mb-4 gap-2">
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={goToPrevMonth}
-              className="h-8 w-8 lg:h-10 lg:w-10"
-              aria-label="Previous month"
-            >
-              <ChevronLeft className="h-4 w-4 lg:h-5 lg:w-5" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={goToNextMonth}
-              className="h-8 w-8 lg:h-10 lg:w-10"
-              aria-label="Next month"
-            >
-              <ChevronRight className="h-4 w-4 lg:h-5 lg:w-5" />
-            </Button>
+    <div className="max-w-xl lg:max-w-lg mx-auto space-y-3 lg:space-y-4">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-3 lg:p-4">
+        {/* Header - Mobile and Desktop navigation */}
+        {showNavigation && (
+          <div className="flex items-center justify-between mb-3 lg:mb-4 gap-2">
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={goToPrevMonth}
+                className="h-8 w-8"
+                aria-label="Previous month"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={goToNextMonth}
+                className="h-8 w-8"
+                aria-label="Next month"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={monthOptions[currentMonth.getMonth()]}
+                onChange={(e) => handleMonthChange(e.target.value)}
+                className="text-sm border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 py-1 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+                aria-label="Select month"
+              >
+                {monthOptions.map((month) => (
+                  <option key={month} value={month}>
+                    {month}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={currentMonth.getFullYear()}
+                onChange={(e) => handleYearChange(e.target.value)}
+                className="text-sm border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 py-1 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+                aria-label="Select year"
+              >
+                {yearOptions.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <select
-              value={monthOptions[currentMonth.getMonth()]}
-              onChange={(e) => handleMonthChange(e.target.value)}
-              className="text-sm lg:text-base border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 lg:px-3 py-1 lg:py-2 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
-              aria-label="Select month"
+        )}
+
+        {/* Weekday headers */}
+        <div className="grid grid-cols-7 gap-1 mb-2">
+          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
+            <div
+              key={i}
+              className="text-center text-xs font-semibold text-muted-foreground py-1"
             >
-              {monthOptions.map((month) => (
-                <option key={month} value={month}>
-                  {month}
-                </option>
-              ))}
-            </select>
-            <select
-              value={currentMonth.getFullYear()}
-              onChange={(e) => handleYearChange(e.target.value)}
-              className="text-sm lg:text-base border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 lg:px-3 py-1 lg:py-2 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
-              aria-label="Select year"
-            >
-              {yearOptions.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </div>
+              {day}
+            </div>
+          ))}
+        </div>
+
+        {/* Calendar grid - Compact view with emojis */}
+        <div className="grid grid-cols-7 gap-1 relative z-0">
+          {daysInMonth.map((date, i) => {
+            if (!date) {
+              return (
+                <div
+                  key={`empty-${i}`}
+                  className="flex flex-col items-center gap-1"
+                ></div>
+              );
+            }
+
+            const card = cardsByDate.get(date.toDateString());
+            const hasCard = !!card;
+            const isSelected =
+              selectedDate &&
+              date.toDateString() === selectedDate.toDateString();
+            const moodData = hasCard
+              ? MOODS.find((m) => m.value === card.mood)
+              : null;
+
+            return (
+              <div
+                key={date.toISOString()}
+                className="flex flex-col items-center gap-1"
+              >
+                <button
+                  onClick={() => {
+                    if (hasCard) {
+                      onSelectDate(date);
+                    } else if (onCreateForDate) {
+                      // Check if date is in the future
+                      const now = new Date();
+                      const today = new Date(
+                        now.getFullYear(),
+                        now.getMonth(),
+                        now.getDate()
+                      );
+                      const targetDate = new Date(
+                        date.getFullYear(),
+                        date.getMonth(),
+                        date.getDate()
+                      );
+
+                      if (targetDate > today) {
+                        toast.error('Time travel not supported yet! 🚀', {
+                          description:
+                            'You can only create recaps for today or past days. The future is still unwritten!',
+                        });
+                      } else {
+                        onCreateForDate(date);
+                      }
+                    }
+                  }}
+                  className={cn(
+                    'w-full rounded-lg flex cursor-pointer items-center justify-center p-1.5 lg:p-2 transition-all duration-200 h-10 lg:h-16',
+                    hasCard && getMoodColor(card.mood),
+                    hasCard && 'lg:hover:scale-105 lg:hover:shadow-md',
+                    !hasCard &&
+                      'hover:bg-muted/30 border border-dashed lg:hover:scale-105 lg:hover:border-solid lg:hover:border-neutral-300 dark:lg:hover:border-neutral-600'
+                  )}
+                >
+                  {/* Emoji - centered */}
+                  {hasCard && moodData && (
+                    <span className="text-xl lg:text-2xl">
+                      {moodData.emoji}
+                    </span>
+                  )}
+                </button>
+
+                {/* Day number - below cell, centered */}
+                <span
+                  className={cn(
+                    'text-xs font-semibold rounded-full px-1.5 lg:px-2.5 py-0.5 min-w-5 text-center',
+                    isSelected && 'bg-green-500 text-white',
+                    !isSelected && 'text-muted-foreground'
+                  )}
+                >
+                  {date.getDate()}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Selected card display */}
+      {selectedDate && cardsByDate.get(selectedDate.toDateString()) && (
+        <div className="space-y-2">
+          {/* Action buttons - Above card */}
+          {(onEdit || onDelete) && (
+            <div className="flex gap-1 justify-end">
+              {onEdit && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    const selectedCard = cardsByDate.get(
+                      selectedDate.toDateString()
+                    );
+                    if (selectedCard) onEdit(selectedCard);
+                  }}
+                  className="h-8 w-8"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              )}
+              {onDelete && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    const selectedCard = cardsByDate.get(
+                      selectedDate.toDateString()
+                    );
+                    if (selectedCard) onDelete(selectedCard);
+                  }}
+                  className="h-8 w-8"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Selected card - using default variant like timeline mobile */}
+          <DailyCardView
+            card={cardsByDate.get(selectedDate.toDateString())!}
+            variant="default"
+          />
         </div>
       )}
-
-      {/* Weekday headers */}
-      <div className="grid grid-cols-7 gap-1 lg:gap-3 mb-2">
-        {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
-          <div
-            key={i}
-            className="text-center text-xs lg:text-sm font-semibold text-muted-foreground py-1 lg:py-2"
-          >
-            {day}
-          </div>
-        ))}
-      </div>
-
-      {/* Calendar grid - Mobile: Small cards, Desktop: Full cards */}
-      <div className="grid grid-cols-7 gap-1 lg:gap-3 relative z-0">
-        {daysInMonth.map((date, i) => {
-          if (!date) {
-            return <div key={`empty-${i}`} className="lg:aspect-[3/4]" />;
-          }
-
-          const card = cardsByDate.get(date.toDateString());
-          const hasCard = !!card;
-
-          return (
-            <div
-              key={date.toISOString()}
-              className={cn(
-                'relative',
-                isToday(date) && 'ring-2 ring-primary ring-offset-1 rounded-lg'
-              )}
-            >
-              {hasCard ? (
-                // Mobile: Small card preview, Desktop: Full card
-                <div className="lg:hidden flex">
-                  <button
-                    onClick={() => router.push(`/card/${card.id}`)}
-                    className="w-full aspect-square rounded-lg overflow-hidden relative group hover:ring-2 hover:ring-primary transition-all"
-                  >
-                    {/* Mini card with mood gradient background */}
-                    <div
-                      className={cn(
-                        'absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity',
-                        getMoodColor(card.mood)
-                      )}
-                    />
-                    <div className="relative h-full p-1 flex items-start justify-center">
-                      <div className="text-xs font-semibold text-neutral-900 dark:text-neutral-100">
-                        {date.getDate()}
-                      </div>
-                    </div>
-                  </button>
-                </div>
-              ) : (
-                // Mobile: Empty day cell
-                <div className="lg:hidden">
-                  <div className="w-full aspect-square rounded-lg flex items-start justify-center p-1 hover:bg-muted/30 transition-colors">
-                    <span className="text-xs text-muted-foreground">
-                      {date.getDate()}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Desktop: Minimal calendar card or empty state */}
-              <div className="hidden lg:block">
-                {hasCard ? (
-                  <div className="w-full">
-                    <DailyCardView
-                      card={card}
-                      variant="calendar"
-                      onClick={() => router.push(`/card/${card.id}`)}
-                      className="h-full"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-full aspect-3/4 rounded-xl border-2 border-dashed border-neutral-200 dark:border-neutral-700 flex items-start justify-center p-2 hover:border-neutral-300 dark:hover:border-neutral-600 transition-colors">
-                    <span className="text-sm font-medium text-neutral-400 dark:text-neutral-600">
-                      {date.getDate()}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }

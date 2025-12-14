@@ -45,7 +45,7 @@ export function BlockPicker({ onSelect, existingBlockIds }: BlockPickerProps) {
       type: definition.type,
       blockId,
       label: definition.label,
-      value: definition.type === 'number' ? 0 : '',
+      value: definition.type === 'number' ? 0 : definition.type === 'multiselect' ? [] : '',
       order: existingBlockIds.length,
     };
     onSelect(newBlock);
@@ -54,7 +54,7 @@ export function BlockPicker({ onSelect, existingBlockIds }: BlockPickerProps) {
   };
 
   const availableBlocks = (Object.keys(BLOCK_DEFINITIONS) as BlockId[]).filter(
-    (id) => id === 'custom' || !existingBlockIds.includes(id)
+    (id) => !existingBlockIds.includes(id)
   );
 
   return (
@@ -128,11 +128,11 @@ interface QuickAddButtonsProps {
 }
 
 const QUICK_ADD_ITEMS: { blockId: BlockId; icon: React.ReactNode }[] = [
-  { blockId: 'custom', icon: <Star className="h-4 w-4" /> },
-  { blockId: 'soundtrack', icon: <Music className="h-4 w-4" /> },
-  { blockId: 'steps', icon: <Footprints className="h-4 w-4" /> },
   { blockId: 'sleep', icon: <Moon className="h-4 w-4" /> },
   { blockId: 'weather', icon: <Cloud className="h-4 w-4" /> },
+  { blockId: 'meals', icon: <Star className="h-4 w-4" /> },
+  { blockId: 'selfcare', icon: <Star className="h-4 w-4" /> },
+  { blockId: 'health', icon: <Star className="h-4 w-4" /> },
 ];
 
 export function QuickAddButtons({

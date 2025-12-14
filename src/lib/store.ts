@@ -9,11 +9,13 @@ interface CardStore {
   hydrated: boolean;
   error: string | null;
   hasSeenOnboarding: boolean;
+  hasSeenFirstRecapCelebration: boolean;
   userName: string;
   theme: 'light' | 'dark' | 'system';
   setHydrated: (state: boolean) => void;
   setError: (error: string | null) => void;
   setHasSeenOnboarding: (seen: boolean) => void;
+  setHasSeenFirstRecapCelebration: (seen: boolean) => void;
   setUserName: (name: string) => void;
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
   addCard: (card: DailyCard) => boolean;
@@ -60,11 +62,13 @@ export const useCardStore = create<CardStore>()(
       hydrated: false,
       error: null,
       hasSeenOnboarding: false,
+      hasSeenFirstRecapCelebration: false,
       userName: '',
       theme: 'system',
       setHydrated: (state) => set({ hydrated: state }),
       setError: (error) => set({ error }),
       setHasSeenOnboarding: (seen) => set({ hasSeenOnboarding: seen }),
+      setHasSeenFirstRecapCelebration: (seen) => set({ hasSeenFirstRecapCelebration: seen }),
       setUserName: (name) => set({ userName: name }),
       setTheme: (theme) => set({ theme }),
       addCard: (card) => {

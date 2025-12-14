@@ -41,16 +41,18 @@ function Screen1() {
       >
         {/* Headline */}
         <h1 className="text-3xl lg:text-6xl xl:text-7xl font-bold text-neutral-900 dark:text-neutral-100 mb-4 lg:mb-8 leading-tight">
-          Capture your day
+          Notice your day,
           <br />
           <span className="bg-linear-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">
-            in one beautiful card
+            one moment at a time
           </span>
         </h1>
 
         {/* Subtext */}
         <p className="text-neutral-600 dark:text-neutral-400 text-lg lg:text-2xl mb-10 lg:mb-0 max-w-xs lg:max-w-xl mx-auto lg:mx-0 leading-relaxed">
-          A mindful space for daily reflection. Track your mood, celebrate moments, and cultivate awareness through journaling.
+          This isn't about productivity or perfect days.
+          <br className="hidden lg:block" />
+          It's about awareness - pausing to see how you feel.
         </p>
       </motion.div>
 
@@ -221,11 +223,12 @@ function Screen4({
 
         {/* Headline */}
         <h2 className="text-3xl lg:text-6xl xl:text-7xl font-bold text-neutral-900 dark:text-neutral-100 mb-4 lg:mb-8">
-          Welcome{userName ? `, ${userName}` : ''}!
+          You're all set{userName ? `, ${userName}` : ''}
         </h2>
         <p className="text-neutral-600 dark:text-neutral-400 text-lg lg:text-2xl xl:text-3xl mb-12 lg:mb-20 max-w-2xl mx-auto leading-relaxed">
-          You&apos;re all set to begin your mindful journaling journey. Take a
-          moment each day to reflect, track your mood, and build awareness.
+          Just one small moment each day is enough.
+          <br className="hidden lg:block" />
+          Over time, you'll see patterns in how your days feel.
         </p>
 
         {/* CTA Button */}
@@ -233,7 +236,7 @@ function Screen4({
           onClick={onComplete}
           className="h-14 lg:h-20 xl:h-24 px-8 lg:px-16 text-lg lg:text-2xl xl:text-3xl rounded-2xl bg-linear-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-orange-400/30 hover:shadow-xl hover:scale-105 transition-all"
         >
-          Start Exploring
+          Notice today's moment
         </Button>
       </motion.div>
     </div>
@@ -262,11 +265,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   const screens = [
     <Screen1 key="screen1" />,
     <Screen2 key="screen2" userName={userName} setUserName={setUserName} />,
-    <Screen4
-      key="screen4"
-      userName={userName}
-      onComplete={onComplete}
-    />,
+    <Screen4 key="screen4" userName={userName} onComplete={onComplete} />,
   ];
 
   return (

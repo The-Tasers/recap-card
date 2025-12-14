@@ -54,18 +54,18 @@ interface MoodSelectorProps {
 export function MoodSelector({
   value,
   onChange,
-  size = 'md',
+  size = 'sm',
   showPreview = false,
 }: MoodSelectorProps) {
   const sizeClasses = {
-    sm: 'text-2xl p-2',
+    sm: 'text-2xl py-2 px-3',
     md: 'text-3xl p-3',
     lg: 'text-4xl p-4',
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap justify-center gap-3 py-1 px-4">
+      <div className="flex flex-wrap justify-center gap-3 py-1 px-1">
         {MOODS.map((mood) => {
           const isSelected = value === mood.value;
           const styles = MOOD_STYLES[mood.value];
@@ -79,7 +79,7 @@ export function MoodSelector({
                 'rounded-2xl transition-all duration-200 hover:scale-110 border-2',
                 sizeClasses[size],
                 isSelected
-                  ? `${styles.bg} ${styles.border} ring-2 ${styles.ring} scale-110`
+                  ? `${styles.bg} ${styles.border} ${styles.ring} scale-110`
                   : 'bg-muted/30 border-muted hover:bg-muted/50'
               )}
               title={mood.label}

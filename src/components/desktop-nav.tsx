@@ -28,6 +28,11 @@ export function DesktopNav() {
   const pathname = usePathname();
   const { isCollapsed, setIsCollapsed } = useSidebar();
 
+  // Hide on welcome page
+  if (pathname === '/welcome') {
+    return null;
+  }
+
   return (
     <nav
       className={cn(
@@ -46,8 +51,8 @@ export function DesktopNav() {
               </h1>
             </Link>
 
-            <p className="text-xs truncate text-neutral-500 dark:text-neutral-400 mt-1">
-              Your daily mindfulness companion
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-tight">
+              Notice your day, one moment at a time
             </p>
           </>
         ) : (
@@ -82,7 +87,7 @@ export function DesktopNav() {
           )}
         >
           <PencilLine className="h-5 w-5 stroke-[2.5px]" />
-          {!isCollapsed && <span>New Recap</span>}
+          {!isCollapsed && <span>Capture Today</span>}
         </button>
 
         <Link
@@ -97,7 +102,7 @@ export function DesktopNav() {
           title={isCollapsed ? 'Timeline' : ''}
         >
           <LayoutDashboard className="h-5 w-5 stroke-2" />
-          {!isCollapsed && <span>Dashboard</span>}
+          {!isCollapsed && <span>Today</span>}
         </Link>
 
         <Link
@@ -112,7 +117,7 @@ export function DesktopNav() {
           title={isCollapsed ? 'Timeline' : ''}
         >
           <CalendarDays className="h-5 w-5 stroke-2" />
-          {!isCollapsed && <span>Timeline</span>}
+          {!isCollapsed && <span>Your Days</span>}
         </Link>
 
         <Link

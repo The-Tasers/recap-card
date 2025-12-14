@@ -1,28 +1,5 @@
 export type Mood = 'great' | 'good' | 'neutral' | 'bad' | 'terrible';
 
-// Predefined tags for categorizing daily recaps
-export const PREDEFINED_TAGS = [
-  'work',
-  'family',
-  'friends',
-  'health',
-  'exercise',
-  'food',
-  'travel',
-  'learning',
-  'creative',
-  'achievement',
-  'gratitude',
-  'reflection',
-  'challenge',
-  'milestone',
-  'fun',
-  'relax',
-  'other',
-] as const;
-
-export type PredefinedTag = (typeof PREDEFINED_TAGS)[number];
-
 // Import design system types
 import {
   type PaletteId as PaletteIdType,
@@ -46,16 +23,16 @@ export const VISUAL_STYLES = VISUAL_STYLES_IMPL;
 export const TYPOGRAPHY_SETS = TYPOGRAPHY_SETS_IMPL;
 
 // Block types for modular card content
-export type BlockType = 'text' | 'number' | 'link' | 'slider' | 'weather';
+export type BlockType = 'text' | 'number' | 'link' | 'slider' | 'weather' | 'multiselect' | 'checkbox';
 
-export type BlockId = 'custom' | 'soundtrack' | 'steps' | 'sleep' | 'weather';
+export type BlockId = 'sleep' | 'weather' | 'meals' | 'selfcare' | 'health';
 
 export interface CardBlock {
   id: string;
   type: BlockType;
   blockId: BlockId;
   label: string;
-  value: string | number;
+  value: string | number | string[]; // string[] for multiselect
   order: number;
   icon?: string;
   // Weather-specific fields
@@ -104,7 +81,6 @@ export interface DailyCard {
   theme?: ThemeId;
   font?: FontPreset;
   darkMode?: boolean;
-  tags?: string[];
 
   // Share settings
   shareId?: string;
@@ -116,35 +92,35 @@ export const BLOCK_DEFINITIONS: Record<
   BlockId,
   { type: BlockType; label: string; placeholder: string; icon: string }
 > = {
-  custom: {
-    type: 'text',
-    label: 'Text note',
-    placeholder: 'Write anything...',
-    icon: '📝',
-  },
-  soundtrack: {
-    type: 'link',
-    label: 'Music / Link',
-    placeholder: 'Song name, Spotify link, or any URL...',
-    icon: '🎵',
-  },
-  steps: {
-    type: 'number',
-    label: 'Steps',
-    placeholder: '0',
-    icon: '👟',
-  },
   sleep: {
     type: 'number',
-    label: 'Sleep (hours)',
+    label: 'Sleep',
     placeholder: '0',
-    icon: '😴',
+    icon: '🌙',
   },
   weather: {
-    type: 'weather',
+    type: 'multiselect',
     label: 'Weather',
     placeholder: 'Select condition...',
-    icon: '🌤️',
+    icon: '☀️',
+  },
+  meals: {
+    type: 'multiselect',
+    label: 'Meals',
+    placeholder: 'Select meals...',
+    icon: '🍳',
+  },
+  selfcare: {
+    type: 'multiselect',
+    label: 'Self-Care',
+    placeholder: 'Select activities...',
+    icon: '🚿',
+  },
+  health: {
+    type: 'multiselect',
+    label: 'Health',
+    placeholder: 'Select items...',
+    icon: '🩺',
   },
 };
 
@@ -216,3 +192,36 @@ export const MOODS: {
 export const getMoodInfo = (mood: Mood) => {
   return MOODS.find((m) => m.value === mood) || MOODS[2];
 };
+
+// Block options definitions
+export const WEATHER_OPTIONS = [
+  { value: 'sunny', label: 'sunny', icon: '☀️' },
+  { value: 'partly-cloudy', label: 'partly cloudy', icon: '⛅' },
+  { value: 'cloudy', label: 'cloudy', icon: '☁️' },
+  { value: 'rainy', label: 'rainy', icon: '🌧️' },
+  { value: 'stormy', label: 'stormy', icon: '⛈️' },
+  { value: 'snowy', label: 'snowy', icon: '❄️' },
+  { value: 'foggy', label: 'foggy', icon: '🌫️' },
+  { value: 'windy', label: 'windy', icon: '💨' },
+];
+
+export const MEAL_OPTIONS = [
+  { value: 'breakfast', label: 'breakfast', icon: '🍳' },
+  { value: 'lunch', label: 'lunch', icon: '🥗' },
+  { value: 'dinner', label: 'dinner', icon: '🍽️' },
+  { value: 'night-snack', label: 'night snack', icon: '🍪' },
+];
+
+export const SELFCARE_OPTIONS = [
+  { value: 'shower', label: 'shower', icon: '🚿' },
+  { value: 'brush-teeth', label: 'brush teeth', icon: '🪥' },
+  { value: 'wash-face', label: 'wash face', icon: '🧼' },
+  { value: 'drink-water', label: 'drink water', icon: '💧' },
+];
+
+export const HEALTH_OPTIONS = [
+  { value: 'sick', label: 'sick', icon: '🤢' },
+  { value: 'hospital', label: 'hospital', icon: '🏥' },
+  { value: 'checkup', label: 'checkup', icon: '🩺' },
+  { value: 'medicine', label: 'medicine', icon: '💊' },
+];
