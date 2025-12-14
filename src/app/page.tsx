@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, Suspense, useRef, useEffect } from 'react';
+import { useMemo, useState, Suspense, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Flame, Clock, CalendarDays } from 'lucide-react';
@@ -15,7 +15,6 @@ import {
 } from '@/lib/daily-utils';
 import { MoodMapTile } from '@/components/mood-map-tile';
 import { CreateSheet } from '@/components/create-sheet';
-import { DailyCard } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 // Countdown Timer with CTA Component
@@ -125,7 +124,6 @@ function Dashboard({
   isEmptyState = true,
   stats,
   moodData,
-  todayRecap,
   onCreateClick,
 }: {
   userName: string;
@@ -133,7 +131,6 @@ function Dashboard({
   isEmptyState?: boolean;
   stats: { streak: number; total: number };
   moodData: MoodDayData[];
-  todayRecap: DailyCard | undefined | null;
   onCreateClick: () => void;
 }) {
   const router = useRouter();
@@ -331,7 +328,7 @@ function Dashboard({
                 onClick={handleCreateClick}
                 className="mt-6 lg:mt-8 w-full cursor-pointer lg:w-auto lg:px-12 h-12 lg:h-14 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm lg:text-base rounded-2xl shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50 transition-all duration-200 hover:scale-[1.02]"
               >
-                Capture today's moment
+                Capture today&apos;s moment
               </button>
             </div>
           </div>
@@ -526,7 +523,6 @@ function HomePageInner() {
                 hasRecapToday={hasCards ? !!getTodayRecap(cards) : false}
                 stats={stats}
                 moodData={moodData}
-                todayRecap={hasCards ? getTodayRecap(cards) : null}
                 isEmptyState={!hasCards}
                 onCreateClick={() => setIsCreateSheetOpen(true)}
               />
@@ -589,7 +585,7 @@ function HomePageInner() {
                         onClick={() => setIsCreateSheetOpen(true)}
                         className="w-auto px-12 h-14 cursor-pointer bg-amber-500 hover:bg-amber-600 text-white font-semibold text-base rounded-2xl shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50 transition-all duration-200 hover:scale-[1.02]"
                       >
-                        Capture today's moment
+                        Capture today&apos;s moment
                       </button>
                     </div>
 

@@ -50,9 +50,9 @@ function Screen1() {
 
         {/* Subtext */}
         <p className="text-neutral-600 dark:text-neutral-400 text-lg lg:text-2xl mb-10 lg:mb-0 max-w-xs lg:max-w-xl mx-auto lg:mx-0 leading-relaxed">
-          This isn't about productivity or perfect days.
+          This isn&apos;t about productivity or perfect days.
           <br className="hidden lg:block" />
-          It's about awareness - pausing to see how you feel.
+          It&apos;s about awareness - pausing to see how you feel.
         </p>
       </motion.div>
 
@@ -223,12 +223,12 @@ function Screen4({
 
         {/* Headline */}
         <h2 className="text-3xl lg:text-6xl xl:text-7xl font-bold text-neutral-900 dark:text-neutral-100 mb-4 lg:mb-8">
-          You're all set{userName ? `, ${userName}` : ''}
+          You&apos;re all set{userName ? `, ${userName}` : ''}
         </h2>
         <p className="text-neutral-600 dark:text-neutral-400 text-lg lg:text-2xl xl:text-3xl mb-12 lg:mb-20 max-w-2xl mx-auto leading-relaxed">
           Just one small moment each day is enough.
           <br className="hidden lg:block" />
-          Over time, you'll see patterns in how your days feel.
+          Over time, you&apos;ll see patterns in how your days feel.
         </p>
 
         {/* CTA Button */}
@@ -236,7 +236,7 @@ function Screen4({
           onClick={onComplete}
           className="h-14 lg:h-20 xl:h-24 px-8 lg:px-16 text-lg lg:text-2xl xl:text-3xl rounded-2xl bg-linear-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-orange-400/30 hover:shadow-xl hover:scale-105 transition-all"
         >
-          Notice today's moment
+          Notice today&apos;s moment
         </Button>
       </motion.div>
     </div>

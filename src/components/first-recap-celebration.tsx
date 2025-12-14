@@ -61,7 +61,7 @@ export function FirstRecapCelebration() {
       </h2>
 
       <p className="text-base lg:text-lg text-neutral-600 dark:text-neutral-400 mb-6 max-w-md mx-auto leading-relaxed">
-        You've captured your first moment! This is the beginning of your journey to mindful reflection.
+        You&apos;ve captured your first moment! This is the beginning of your journey to mindful reflection.
       </p>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 rounded-2xl p-6 mb-6 border border-amber-200 dark:border-amber-900/50">
@@ -74,7 +74,7 @@ export function FirstRecapCelebration() {
         onClick={handleClose}
         className="w-full lg:w-auto px-8 h-12 rounded-2xl text-base font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50"
       >
-        Let's keep going! 🚀
+        Let&apos;s keep going! 🚀
       </Button>
     </div>
   );

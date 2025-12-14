@@ -50,9 +50,9 @@ export default function WelcomePage() {
       ),
       description: (
         <>
-          This isn't about productivity or perfect days.
+          This isn&apos;t about productivity or perfect days.
           <br />
-          It's about awareness - pausing to see how you feel.
+          It&apos;s about awareness - pausing to see how you feel.
         </>
       ),
       graphics: (

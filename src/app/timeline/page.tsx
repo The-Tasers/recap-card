@@ -15,7 +15,6 @@ import { DailyCard } from '@/lib/types';
 import { SearchBar, SearchFilters } from '@/components/search-filter';
 import { CalendarView } from '@/components/calendar-view';
 import { DailyCardView } from '@/components/daily-card-view';
-import { CardTableView } from '@/components/card-table-view';
 import { EditSheet } from '@/components/edit-sheet';
 import { CreateSheet } from '@/components/create-sheet';
 import { Button } from '@/components/ui/button';
@@ -176,13 +175,6 @@ function TimelineContent() {
     }
   };
 
-  const cardsForSelectedDate = useMemo(() => {
-    if (!selectedDate) return filteredCards;
-    return filteredCards.filter(
-      (card) =>
-        new Date(card.createdAt).toDateString() === selectedDate.toDateString()
-    );
-  }, [filteredCards, selectedDate]);
 
   const handleDelete = (card: DailyCard) => {
     setCardToDelete(card);
@@ -355,7 +347,7 @@ function TimelineContent() {
                           className="inline-flex items-center cursor-pointer gap-2 px-12 h-14 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-base rounded-2xl shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50 transition-all duration-200 hover:scale-[1.02]"
                         >
                           <PencilLine className="h-5 w-5" />
-                          Capture today's moment
+                          Capture today&apos;s moment
                         </button>
                       </div>
                     </div>
@@ -376,7 +368,7 @@ function TimelineContent() {
                       className="inline-flex items-center cursor-pointer gap-2 px-8 h-12 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm rounded-2xl shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50 transition-all duration-200"
                     >
                       <PencilLine className="h-4 w-4" />
-                      Capture today's moment
+                      Capture today&apos;s moment
                     </button>
                   </div>
                 </>
