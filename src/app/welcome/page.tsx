@@ -41,7 +41,7 @@ export default function WelcomePage() {
     {
       title: (
         <>
-          Notice your day,
+          Capture your day,
           <br />
           <span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">
             one moment at a time
@@ -50,9 +50,9 @@ export default function WelcomePage() {
       ),
       description: (
         <>
-          This isn&apos;t about productivity or perfect days.
+          No pressure, no perfection needed.
           <br />
-          It&apos;s about awareness - pausing to see how you feel.
+          Just a quick check-in with yourself.
         </>
       ),
       graphics: (
@@ -151,8 +151,8 @@ export default function WelcomePage() {
       ),
     },
     {
-      title: 'What should we call you?',
-      description: 'This helps personalize your experience',
+      title: 'Hey, what should we call you?',
+      description: 'Makes your recaps feel more personal',
       graphics: null,
       action: (
         <div className="w-full max-w-md space-y-4">

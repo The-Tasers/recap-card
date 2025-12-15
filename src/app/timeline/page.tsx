@@ -10,7 +10,10 @@ import {
   Edit,
   Trash2,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useCardStore } from '@/lib/store';
+import { useSupabaseSync } from '@/hooks/useSupabaseSync';
+import { deleteImage, isSupabaseStorageUrl } from '@/lib/supabase/storage';
 import { DailyCard } from '@/lib/types';
 import { SearchBar, SearchFilters } from '@/components/search-filter';
 import { CalendarView } from '@/components/calendar-view';
@@ -115,6 +118,7 @@ function TimelineContent() {
   const searchParams = useSearchParams();
   const { isChecking } = useOnboardingGuard();
   const { cards, hydrated, deleteCard } = useCardStore();
+  const { deleteRecapFromCloud, isAuthenticated } = useSupabaseSync();
   const [cardToDelete, setCardToDelete] = useState<DailyCard | null>(null);
   const [cardToEdit, setCardToEdit] = useState<DailyCard | null>(null);
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
@@ -180,9 +184,29 @@ function TimelineContent() {
     setCardToDelete(card);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (cardToDelete) {
+      // Delete image from storage if it exists
+      if (cardToDelete.photoUrl && isSupabaseStorageUrl(cardToDelete.photoUrl)) {
+        const { error } = await deleteImage(cardToDelete.photoUrl);
+        if (error) {
+          console.error('Failed to delete image from storage:', error);
+        }
+      }
+
       deleteCard(cardToDelete.id);
+      // Sync deletion to cloud if authenticated
+      if (isAuthenticated) {
+        const cloudSuccess = await deleteRecapFromCloud(cardToDelete.id);
+        if (!cloudSuccess) {
+          toast.error('Cloud sync failed', {
+            description: 'Recap deleted locally but failed to sync to cloud.',
+          });
+        }
+      }
+      toast.success('Recap deleted', {
+        description: 'The recap has been removed.',
+      });
       setCardToDelete(null);
     }
   };
@@ -344,7 +368,7 @@ function TimelineContent() {
                         </p>
                         <button
                           onClick={() => setIsCreateSheetOpen(true)}
-                          className="inline-flex items-center cursor-pointer gap-2 px-12 h-14 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-base rounded-2xl shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50 transition-all duration-200 hover:scale-[1.02]"
+                          className="inline-flex items-center cursor-pointer gap-2 px-12 h-14 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-base rounded-2xl shadow-sm shadow-amber-500/20 hover:shadow-md hover:shadow-amber-500/25 transition-all duration-200 hover:scale-[1.02]"
                         >
                           <PencilLine className="h-5 w-5" />
                           Capture today&apos;s moment
@@ -365,7 +389,7 @@ function TimelineContent() {
                     </p>
                     <button
                       onClick={() => setIsCreateSheetOpen(true)}
-                      className="inline-flex items-center cursor-pointer gap-2 px-8 h-12 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm rounded-2xl shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50 transition-all duration-200"
+                      className="inline-flex items-center cursor-pointer gap-2 px-8 h-12 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm rounded-2xl shadow-sm shadow-amber-500/20 hover:shadow-md hover:shadow-amber-500/25 transition-all duration-200"
                     >
                       <PencilLine className="h-4 w-4" />
                       Capture today&apos;s moment

@@ -3,17 +3,22 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Settings, CalendarDays, PencilLine } from 'lucide-react';
+import { Home, CalendarDays, PencilLine, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CreateSheet } from './create-sheet';
+import { UserMenuSheet } from './user-menu-sheet';
 
 export function BottomNav() {
   const pathname = usePathname();
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  // Hide bottom nav on card detail, edit pages, and welcome page
+  // Hide bottom nav on card detail, edit pages, welcome page, and auth pages
   const shouldHide =
     pathname === '/welcome' ||
+    pathname === '/login' ||
+    pathname === '/signup' ||
+    pathname.startsWith('/auth') ||
     (pathname.startsWith('/card/') && pathname.endsWith('/edit')) ||
     (pathname.startsWith('/card/') && !pathname.endsWith('/edit'));
 
@@ -57,24 +62,19 @@ export function BottomNav() {
                   <CalendarDays className="h-5 w-5 stroke-[2.5px]" />
                 </Link>
 
-                {/* Settings */}
-                <Link
-                  href="/settings"
-                  className={cn(
-                    'flex items-center justify-center h-12 w-12 rounded-2xl transition-all duration-200',
-                    pathname === '/settings'
-                      ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900'
-                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-                  )}
+                {/* User */}
+                <button
+                  onClick={() => setIsUserMenuOpen(true)}
+                  className="flex items-center justify-center h-12 w-12 rounded-2xl transition-all duration-200 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
                 >
-                  <Settings className="h-5 w-5 stroke-[2.5px]" />
-                </Link>
+                  <User className="h-5 w-5 stroke-[2.5px]" />
+                </button>
               </div>
 
               {/* Right: Create button */}
               <button
                 onClick={handleCreateClick}
-                className="flex items-center justify-center h-12 w-12 rounded-2xl bg-linear-to-br from-amber-400 to-orange-500 text-white shadow-md shadow-amber-500/40 hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-200 hover:scale-105 active:scale-95"
+                className="flex items-center justify-center h-12 w-12 rounded-2xl bg-linear-to-br from-amber-400 to-orange-500 text-white shadow-sm shadow-amber-500/20 hover:shadow-md hover:shadow-amber-500/25 transition-all duration-200 hover:scale-105 active:scale-95"
                 aria-label="Capture today"
               >
                 <PencilLine className="h-5 w-5 stroke-[2.5px]" />
@@ -87,6 +87,11 @@ export function BottomNav() {
       <CreateSheet
         open={isCreateSheetOpen}
         onOpenChange={setIsCreateSheetOpen}
+      />
+
+      <UserMenuSheet
+        open={isUserMenuOpen}
+        onOpenChange={setIsUserMenuOpen}
       />
     </>
   );

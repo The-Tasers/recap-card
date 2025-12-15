@@ -105,10 +105,10 @@ export function FilterContent({
           </Select>
         </div>
 
-        {/* Block Filter */}
+        {/* Details Filter */}
         <div className="flex items-center gap-2">
           <label className="text-xs font-medium text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
-            Blocks:
+            Details:
           </label>
           <div className="flex gap-1.5">
             {(Object.keys(BLOCK_DEFINITIONS) as BlockId[]).map((blockId) => {
@@ -193,9 +193,9 @@ export function FilterContent({
         </div>
       </div>
 
-      {/* Block Filter */}
+      {/* Details Filter */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Blocks</label>
+        <label className="text-sm font-medium">Details</label>
         <div className="flex flex-wrap gap-2">
           {(Object.keys(BLOCK_DEFINITIONS) as BlockId[]).map((blockId) => {
             const isSelected = filters.blocks.includes(blockId);

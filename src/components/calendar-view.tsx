@@ -82,6 +82,16 @@ export function CalendarView({
     return map;
   }, [cards]);
 
+  // Check if current month has any cards
+  const hasCardsInCurrentMonth = useMemo(() => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    return cards.some((card) => {
+      const cardDate = new Date(card.createdAt);
+      return cardDate.getFullYear() === year && cardDate.getMonth() === month;
+    });
+  }, [cards, currentMonth]);
+
   const daysInMonth = useMemo(() => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
@@ -285,6 +295,14 @@ export function CalendarView({
             );
           })}
         </div>
+
+        {/* Empty month hint */}
+        {!hasCardsInCurrentMonth && (
+          <p className="text-center text-sm text-neutral-500 dark:text-neutral-400 mt-4 pt-3 border-t border-neutral-200 dark:border-neutral-700">
+            <span className="lg:hidden">Tap any day to create a recap</span>
+            <span className="hidden lg:inline">Click any day to create a recap</span>
+          </p>
+        )}
       </div>
 
       {/* Selected card display */}

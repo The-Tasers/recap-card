@@ -81,10 +81,6 @@ export interface DailyCard {
   theme?: ThemeId;
   font?: FontPreset;
   darkMode?: boolean;
-
-  // Share settings
-  shareId?: string;
-  shareExpiresAt?: string;
 }
 
 // Predefined block definitions

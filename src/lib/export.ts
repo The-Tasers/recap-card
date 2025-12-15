@@ -1,4 +1,5 @@
 import { toJpeg } from 'html-to-image';
+import { v4 as uuidv4 } from 'uuid';
 import { DailyCard } from './types';
 
 // Story dimensions for Instagram/TikTok (9:16)
@@ -167,7 +168,7 @@ export const decompressCardFromUrl = (
 };
 
 export const generateId = (): string => {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return uuidv4();
 };
 
 export const formatDate = (dateString: string): string => {

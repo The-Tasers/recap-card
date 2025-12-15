@@ -45,8 +45,8 @@ export function CreateFAB() {
               'pointer-events-auto',
               'flex items-center justify-center h-14 w-14 rounded-2xl',
               'bg-linear-to-br from-amber-400 to-orange-500',
-              'text-white shadow-lg shadow-amber-500/40',
-              'hover:shadow-xl hover:shadow-amber-500/50',
+              'text-white shadow-sm shadow-amber-500/20',
+              'hover:shadow-md hover:shadow-amber-500/25',
               'transition-all duration-200',
               'hover:scale-105 active:scale-95'
             )}

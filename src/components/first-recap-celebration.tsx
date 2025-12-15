@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useCardStore } from '@/lib/store';
+import { useAuth } from '@/components/auth-provider';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -18,7 +19,9 @@ import {
 } from '@/components/ui/dialog';
 
 export function FirstRecapCelebration() {
+  const router = useRouter();
   const { cards, hasSeenFirstRecapCelebration, setHasSeenFirstRecapCelebration } = useCardStore();
+  const { user, loading: authLoading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
 
@@ -29,55 +32,128 @@ export function FirstRecapCelebration() {
     return () => window.removeEventListener('resize', checkDesktop);
   }, []);
 
+  // Check if we should show signup prompt (at 5 recaps for non-authenticated users)
+  const shouldShowSignupPrompt = !authLoading && !user && cards.length === 5;
+
   useEffect(() => {
     // Show celebration if:
     // 1. User hasn't seen it before
     // 2. There is exactly 1 card (first recap just created)
+    // OR show signup prompt at 5 recaps for non-authenticated users
     if (!hasSeenFirstRecapCelebration && cards.length === 1) {
       // Small delay for better UX
       const timer = setTimeout(() => {
         setIsOpen(true);
       }, 500);
       return () => clearTimeout(timer);
+    } else if (shouldShowSignupPrompt) {
+      const timer = setTimeout(() => {
+        setIsOpen(true);
+      }, 500);
+      return () => clearTimeout(timer);
     }
-  }, [cards.length, hasSeenFirstRecapCelebration]);
+  }, [cards.length, hasSeenFirstRecapCelebration, shouldShowSignupPrompt]);
 
   const handleClose = () => {
     setIsOpen(false);
     setHasSeenFirstRecapCelebration(true);
   };
 
-  const CelebrationContent = () => (
-    <div className="text-center py-6 lg:py-8">
-      <div className="mb-6 flex justify-center">
-        <div className="relative">
-          <div className="text-7xl lg:text-8xl animate-bounce">🎉</div>
-          <Sparkles className="absolute -top-2 -right-2 h-8 w-8 text-amber-500 animate-pulse" />
+  const handleSignUp = () => {
+    setIsOpen(false);
+    setHasSeenFirstRecapCelebration(true);
+    router.push('/signup');
+  };
+
+  const handleLater = () => {
+    setIsOpen(false);
+    // Don't set hasSeenFirstRecapCelebration for signup prompts so it can show again later
+    if (cards.length === 1) {
+      setHasSeenFirstRecapCelebration(true);
+    }
+  };
+
+  // Different content for first recap celebration vs signup prompt at 5 recaps
+  const CelebrationContent = () => {
+    const isSignupPrompt = shouldShowSignupPrompt;
+    const showSignUpOption = !authLoading && !user;
+
+    if (isSignupPrompt) {
+      // Signup prompt at 5 recaps
+      return (
+        <div className="text-center py-4 lg:py-6">
+          <div className="text-5xl lg:text-6xl mb-4">🎯</div>
+
+          <h2 className="text-xl lg:text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
+            5 recaps already!
+          </h2>
+
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-5">
+            Keep them safe with a free account — sync across devices, never lose your memories.
+          </p>
+
+          <div className="flex flex-col gap-2">
+            <Button
+              onClick={handleSignUp}
+              className="w-full h-11 rounded-xl font-semibold bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              Create Free Account
+            </Button>
+            <button
+              onClick={handleLater}
+              className="text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300 py-2"
+            >
+              Maybe later
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // First recap celebration
+    return (
+      <div className="text-center py-4 lg:py-6">
+        <div className="text-5xl lg:text-6xl mb-4">🎉</div>
+
+        <h2 className="text-xl lg:text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
+          First recap captured!
+        </h2>
+
+        <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-5">
+          {showSignUpOption
+            ? "Great start! Create a free account to sync your recaps across devices and keep them safe."
+            : "Great start! Keep capturing moments — even a few words help you notice patterns over time."
+          }
+        </p>
+
+        <div className="flex flex-col gap-2">
+          {showSignUpOption ? (
+            <>
+              <Button
+                onClick={handleSignUp}
+                className="w-full h-11 rounded-xl font-semibold bg-amber-500 hover:bg-amber-600 text-white"
+              >
+                Create Free Account
+              </Button>
+              <button
+                onClick={handleClose}
+                className="text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300 py-2"
+              >
+                Continue without account
+              </button>
+            </>
+          ) : (
+            <Button
+              onClick={handleClose}
+              className="w-full h-11 rounded-xl font-semibold bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              Keep going
+            </Button>
+          )}
         </div>
       </div>
-
-      <h2 className="text-2xl lg:text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
-        Congratulations! 🌟
-      </h2>
-
-      <p className="text-base lg:text-lg text-neutral-600 dark:text-neutral-400 mb-6 max-w-md mx-auto leading-relaxed">
-        You&apos;ve captured your first moment! This is the beginning of your journey to mindful reflection.
-      </p>
-
-      <div className="bg-amber-50 dark:bg-amber-950/30 rounded-2xl p-6 mb-6 border border-amber-200 dark:border-amber-900/50">
-        <p className="text-sm lg:text-base text-neutral-700 dark:text-neutral-300">
-          <span className="font-semibold">💡 Tip:</span> Make it a daily habit! Even a few words can help you track your journey and discover patterns over time.
-        </p>
-      </div>
-
-      <Button
-        onClick={handleClose}
-        className="w-full lg:w-auto px-8 h-12 rounded-2xl text-base font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50"
-      >
-        Let&apos;s keep going! 🚀
-      </Button>
-    </div>
-  );
+    );
+  };
 
   if (isDesktop) {
     return (

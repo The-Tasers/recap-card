@@ -326,7 +326,7 @@ function Dashboard({
               </div>
               <button
                 onClick={handleCreateClick}
-                className="mt-6 lg:mt-8 w-full cursor-pointer lg:w-auto lg:px-12 h-12 lg:h-14 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm lg:text-base rounded-2xl shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50 transition-all duration-200 hover:scale-[1.02]"
+                className="mt-6 lg:mt-8 w-full cursor-pointer lg:w-auto lg:px-12 h-12 lg:h-14 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm lg:text-base rounded-2xl shadow-sm shadow-amber-500/20 hover:shadow-md hover:shadow-amber-500/25 transition-all duration-200 hover:scale-[1.02]"
               >
                 Capture today&apos;s moment
               </button>
@@ -429,7 +429,7 @@ function HomePageInner() {
 
       {/* Desktop Page Header */}
       <div className="hidden lg:block sticky top-0 z-10 h-24 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-200/50 dark:border-neutral-800/50">
-        <div className="h-full flex items-center justify-between max-w-4xl mx-auto">
+        <div className="h-full flex items-center max-w-4xl mx-auto">
           <div>
             <h1 className="text-xl lg:text-3xl font-bold text-neutral-900 dark:text-neutral-100">
               {getGreeting(userName)}
@@ -583,7 +583,7 @@ function HomePageInner() {
                       </div>
                       <button
                         onClick={() => setIsCreateSheetOpen(true)}
-                        className="w-auto px-12 h-14 cursor-pointer bg-amber-500 hover:bg-amber-600 text-white font-semibold text-base rounded-2xl shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50 transition-all duration-200 hover:scale-[1.02]"
+                        className="w-auto px-12 h-14 cursor-pointer bg-amber-500 hover:bg-amber-600 text-white font-semibold text-base rounded-2xl shadow-sm shadow-amber-500/20 hover:shadow-md hover:shadow-amber-500/25 transition-all duration-200 hover:scale-[1.02]"
                       >
                         Capture today&apos;s moment
                       </button>

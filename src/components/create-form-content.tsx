@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Check, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCardStore } from '@/lib/store';
+import { useSupabaseSync } from '@/hooks/useSupabaseSync';
+import { useAuth } from '@/components/auth-provider';
 import {
   Mood,
   DailyCard,
@@ -12,8 +14,14 @@ import {
   BLOCK_DEFINITIONS,
 } from '@/lib/types';
 import { generateId } from '@/lib/export';
+import {
+  uploadImage,
+  compressImageToDataUrl,
+  deleteImage,
+  isSupabaseStorageUrl,
+} from '@/lib/supabase/storage';
 import { MoodSelector } from '@/components/mood-selector';
-import { PhotoUploader } from '@/components/photo-uploader';
+import { PhotoUploader, PhotoData } from '@/components/photo-uploader';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -42,11 +50,13 @@ export function CreateFormContent({
 }: CreateFormContentProps) {
   const { addCard, updateCard, getCardByDate, error, setError } =
     useCardStore();
+  const { saveRecapToCloud, isAuthenticated } = useSupabaseSync();
+  const { user } = useAuth();
 
   // Basic fields
   const [text, setText] = useState('');
   const [mood, setMood] = useState<Mood>('great');
-  const [photoUrl, setPhotoUrl] = useState<string | undefined>();
+  const [photoData, setPhotoData] = useState<PhotoData | undefined>();
 
   // Initialize all blocks
   const initializeBlocks = (): Record<BlockId, CardBlock> => {
@@ -98,11 +108,16 @@ export function CreateFormContent({
     // Check if the target date is in the future
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const target = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    const target = new Date(
+      targetDate.getFullYear(),
+      targetDate.getMonth(),
+      targetDate.getDate()
+    );
 
     if (target > today) {
       toast.error('Time travel not supported yet! 🚀', {
-        description: 'You can only create recaps for today or past days. The future is still unwritten!'
+        description:
+          'You can only create recaps for today or past days. The future is still unwritten!',
       });
       return;
     }
@@ -121,43 +136,100 @@ export function CreateFormContent({
     setIsSubmitting(true);
     setError(null);
 
-    // Convert blocks object to array and filter non-empty ones
-    const blocksArray = Object.values(blocks);
-    const nonEmptyBlocks = blocksArray.filter((block) => {
-      if (block.type === 'number') {
-        return (
-          block.value !== null && block.value !== undefined && block.value !== 0
-        );
-      } else if (block.type === 'multiselect') {
-        return Array.isArray(block.value) && block.value.length > 0;
-      }
-      return false;
-    });
-
-    const targetDate = selectedDate || new Date();
-    const cardData = {
-      text: text.trim(),
-      mood,
-      photoUrl,
-      blocks: nonEmptyBlocks.length > 0 ? nonEmptyBlocks : undefined,
-      createdAt: targetDate.toISOString(),
-    };
-
     try {
+      // Handle image upload/processing
+      let photoUrl: string | undefined;
+
+      if (photoData?.file) {
+        // New file selected - need to upload
+        if (user?.id) {
+          // Authenticated user: upload to Supabase Storage
+          const { url, error } = await uploadImage(photoData.file, user.id);
+          if (error) {
+            toast.error('Image upload failed', { description: error });
+            setIsSubmitting(false);
+            return;
+          }
+          photoUrl = url ?? undefined;
+        } else {
+          // Anonymous user: compress to base64
+          photoUrl = await compressImageToDataUrl(photoData.file);
+        }
+
+        // If overwriting and there was an existing image, delete it
+        if (
+          overwrite &&
+          existingCard?.photoUrl &&
+          isSupabaseStorageUrl(existingCard.photoUrl)
+        ) {
+          await deleteImage(existingCard.photoUrl);
+        }
+      }
+
+      // Revoke preview URL to free memory
+      if (photoData?.previewUrl) {
+        URL.revokeObjectURL(photoData.previewUrl);
+      }
+
+      // Convert blocks object to array and filter non-empty ones
+      const blocksArray = Object.values(blocks);
+      const nonEmptyBlocks = blocksArray.filter((block) => {
+        if (block.type === 'number') {
+          return (
+            block.value !== null &&
+            block.value !== undefined &&
+            block.value !== 0
+          );
+        } else if (block.type === 'multiselect') {
+          return Array.isArray(block.value) && block.value.length > 0;
+        }
+        return false;
+      });
+
+      const targetDate = selectedDate || new Date();
+      const cardData = {
+        text: text.trim(),
+        mood,
+        photoUrl,
+        blocks: nonEmptyBlocks.length > 0 ? nonEmptyBlocks : undefined,
+        createdAt: targetDate.toISOString(),
+      };
+
       if (overwrite && existingCard) {
+        const updatedCard = { ...existingCard, ...cardData };
         const success = updateCard(existingCard.id, cardData);
         if (success) {
+          // Sync to cloud if authenticated
+          if (isAuthenticated) {
+            const cloudSuccess = await saveRecapToCloud(updatedCard);
+            if (!cloudSuccess) {
+              toast.error('Cloud sync failed', {
+                description:
+                  'Recap saved locally but failed to sync to cloud. Will retry on next login.',
+              });
+            }
+          }
           onSuccess?.(existingCard.id);
         } else {
           setIsSubmitting(false);
         }
       } else {
         const newCard: DailyCard = {
-          id: generateId(),
           ...cardData,
+          id: generateId(),
         };
         const success = addCard(newCard);
         if (success) {
+          // Sync to cloud if authenticated
+          if (isAuthenticated) {
+            const cloudSuccess = await saveRecapToCloud(newCard);
+            if (!cloudSuccess) {
+              toast.error('Cloud sync failed', {
+                description:
+                  'Recap saved locally but failed to sync to cloud. Will retry on next login.',
+              });
+            }
+          }
           onSuccess?.(newCard.id);
         } else {
           setIsSubmitting(false);
@@ -226,7 +298,7 @@ export function CreateFormContent({
           <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
             Picture of the Day
           </label>
-          <PhotoUploader value={photoUrl} onChange={setPhotoUrl} />
+          <PhotoUploader value={photoData} onChange={setPhotoData} />
         </div>
       </div>
 
@@ -246,7 +318,7 @@ export function CreateFormContent({
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="flex-1 rounded-2xl h-12 text-base font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50"
+            className="flex-1 rounded-2xl h-12 text-base font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-sm shadow-amber-500/20 hover:shadow-md hover:shadow-amber-500/25"
             size="lg"
           >
             {isSubmitting ? (

@@ -4,10 +4,13 @@ import { useState, useEffect } from 'react';
 import { Check, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCardStore } from '@/lib/store';
-import { Mood, CardBlock, BlockId, BLOCK_DEFINITIONS } from '@/lib/types';
+import { useSupabaseSync } from '@/hooks/useSupabaseSync';
+import { useAuth } from '@/components/auth-provider';
+import { Mood, CardBlock, BlockId, BLOCK_DEFINITIONS, DailyCard } from '@/lib/types';
 import { generateId } from '@/lib/export';
+import { uploadImage, compressImageToDataUrl, deleteImage, isSupabaseStorageUrl } from '@/lib/supabase/storage';
 import { MoodSelector } from '@/components/mood-selector';
-import { PhotoUploader } from '@/components/photo-uploader';
+import { PhotoUploader, PhotoData } from '@/components/photo-uploader';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { InlineBlockForm } from '@/components/blocks/inline-block-form';
@@ -26,13 +29,15 @@ export function EditFormContent({
   onCancel,
 }: EditFormContentProps) {
   const { getById, updateCard, hydrated } = useCardStore();
+  const { saveRecapToCloud, isAuthenticated } = useSupabaseSync();
+  const { user } = useAuth();
 
   const card = hydrated ? getById(cardId) : undefined;
 
   // Basic fields
   const [text, setText] = useState('');
   const [mood, setMood] = useState<Mood>('neutral');
-  const [photoUrl, setPhotoUrl] = useState<string | undefined>();
+  const [photoData, setPhotoData] = useState<PhotoData | undefined>();
 
   // Initialize all blocks
   const initializeBlocks = (): Record<BlockId, CardBlock> => {
@@ -73,7 +78,8 @@ export function EditFormContent({
     if (card) {
       setText(card.text);
       setMood(card.mood);
-      setPhotoUrl(card.photoUrl);
+      // Initialize photoData with existing URL if present
+      setPhotoData(card.photoUrl ? { existingUrl: card.photoUrl } : undefined);
 
       // Convert existing blocks array to Record format
       const existingBlocks = initializeBlocks();
@@ -94,37 +100,105 @@ export function EditFormContent({
   const handleSubmit = async () => {
     setIsSubmitting(true);
 
-    // Convert blocks object to array and filter non-empty ones
-    const blocksArray = Object.values(blocks);
-    const nonEmptyBlocks = blocksArray.filter((block) => {
-      if (block.type === 'number') {
-        return (
-          block.value !== null && block.value !== undefined && block.value !== 0
-        );
-      } else if (block.type === 'multiselect') {
-        return Array.isArray(block.value) && block.value.length > 0;
-      }
-      return false;
-    });
-
     if (!card) {
       setIsSubmitting(false);
       return;
     }
 
-    const success = updateCard(card.id, {
-      text: text.trim(),
-      mood,
-      photoUrl,
-      blocks: nonEmptyBlocks.length > 0 ? nonEmptyBlocks : undefined,
-    });
+    try {
+      // Handle image upload/processing
+      let photoUrl: string | undefined;
+      const originalPhotoUrl = card.photoUrl;
 
-    if (success) {
-      toast.success('Recap updated! ✨', {
-        description: 'Your changes have been saved successfully.'
+      // Check if user explicitly removed the photo
+      const photoWasRemoved = photoData?.markedForDeletion === true;
+      // Check if user selected a new photo
+      const hasNewPhoto = !!photoData?.file;
+
+      if (hasNewPhoto && photoData?.file) {
+        // New file selected - need to upload
+        if (user?.id) {
+          // Authenticated user: upload to Supabase Storage
+          const { url, error } = await uploadImage(photoData.file, user.id);
+          if (error) {
+            toast.error('Image upload failed', { description: error });
+            setIsSubmitting(false);
+            return;
+          }
+          photoUrl = url ?? undefined;
+        } else {
+          // Anonymous user: compress to base64
+          photoUrl = await compressImageToDataUrl(photoData.file);
+        }
+
+        // Delete old image from storage if it exists
+        if (originalPhotoUrl && isSupabaseStorageUrl(originalPhotoUrl)) {
+          await deleteImage(originalPhotoUrl);
+        }
+      } else if (photoWasRemoved) {
+        // Photo was removed - delete from storage
+        if (originalPhotoUrl && isSupabaseStorageUrl(originalPhotoUrl)) {
+          await deleteImage(originalPhotoUrl);
+        }
+        photoUrl = undefined;
+      } else {
+        // No change to photo - keep original URL
+        photoUrl = originalPhotoUrl;
+      }
+
+      // Revoke preview URL to free memory
+      if (photoData?.previewUrl) {
+        URL.revokeObjectURL(photoData.previewUrl);
+      }
+
+      // Convert blocks object to array and filter non-empty ones
+      const blocksArray = Object.values(blocks);
+      const nonEmptyBlocks = blocksArray.filter((block) => {
+        if (block.type === 'number') {
+          return (
+            block.value !== null && block.value !== undefined && block.value !== 0
+          );
+        } else if (block.type === 'multiselect') {
+          return Array.isArray(block.value) && block.value.length > 0;
+        }
+        return false;
       });
-      onSuccess?.(card.id);
-    } else {
+
+      const updates = {
+        text: text.trim(),
+        mood,
+        photoUrl,
+        blocks: nonEmptyBlocks.length > 0 ? nonEmptyBlocks : undefined,
+      };
+
+      const success = updateCard(card.id, updates);
+
+      if (success) {
+        // Sync to cloud if authenticated
+        if (isAuthenticated) {
+          const updatedCard: DailyCard = { ...card, ...updates };
+          const cloudSuccess = await saveRecapToCloud(updatedCard);
+          if (!cloudSuccess) {
+            toast.error('Cloud sync failed', {
+              description: 'Recap saved locally but failed to sync to cloud. Will retry on next login.',
+            });
+          }
+        }
+        toast.success('Recap updated!', {
+          description: 'Your changes have been saved successfully.'
+        });
+        onSuccess?.(card.id);
+      } else {
+        toast.error('Failed to save', {
+          description: 'Could not update the recap. Please try again.',
+        });
+        setIsSubmitting(false);
+      }
+    } catch (err) {
+      console.error('Failed to update card', err);
+      toast.error('Failed to save', {
+        description: 'Could not update the recap. Please try again.',
+      });
       setIsSubmitting(false);
     }
   };
@@ -183,7 +257,7 @@ export function EditFormContent({
           <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-3">
             Picture of the Day
           </label>
-          <PhotoUploader value={photoUrl} onChange={setPhotoUrl} />
+          <PhotoUploader value={photoData} onChange={setPhotoData} />
         </div>
       </div>
 
@@ -203,7 +277,7 @@ export function EditFormContent({
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="flex-1 rounded-2xl h-12 text-base font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50"
+            className="flex-1 rounded-2xl h-12 text-base font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-sm shadow-amber-500/20 hover:shadow-md hover:shadow-amber-500/25"
             size="lg"
           >
             {isSubmitting ? (
