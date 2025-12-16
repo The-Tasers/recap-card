@@ -3,7 +3,7 @@
 import { createClient } from './client';
 
 const BUCKET_NAME = 'recap-images';
-const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB in bytes
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
 
 export interface ImageValidationResult {
@@ -27,7 +27,7 @@ export function validateImage(file: File): ImageValidationResult {
   // Check file size
   if (file.size > MAX_FILE_SIZE) {
     const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
-    return { valid: false, error: `Image too large (${sizeMB}MB). Maximum size is 1MB.` };
+    return { valid: false, error: `Image too large (${sizeMB}MB). Maximum size is 5MB.` };
   }
 
   return { valid: true };

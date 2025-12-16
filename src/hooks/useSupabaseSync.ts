@@ -14,80 +14,12 @@ type AnySupabase = SupabaseClient<any, any, any>;
 
 export function useSupabaseSync() {
   const { user } = useAuth();
-  const { cards, userName, setUserName, setCards } = useCardStore();
+  const { cards, setCards } = useCardStore();
   const supabase = createClient() as AnySupabase;
 
   // Track if initial sync has been done for this session
   const hasSyncedRef = useRef(false);
   const previousUserIdRef = useRef<string | null>(null);
-
-  // Sync user profile when user logs in (creates profile if not exists)
-  const syncProfile = useCallback(async () => {
-    if (!user) return;
-
-    try {
-      // Get existing profile
-      const { data: profile, error: fetchError } = await supabase
-        .from('profiles')
-        .select('name, email')
-        .eq('id', user.id)
-        .single();
-
-      if (fetchError && fetchError.code === 'PGRST116') {
-        // Profile doesn't exist - create it
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert({
-            id: user.id,
-            email: user.email,
-            name: userName || user.user_metadata?.name || user.user_metadata?.full_name || null,
-            avatar_url: user.user_metadata?.avatar_url || null,
-          });
-
-        if (insertError) {
-          console.error('Error creating profile:', insertError);
-          toast.error('Profile creation failed', {
-            description: 'Could not create your profile. Please try again.',
-          });
-        }
-        return;
-      }
-
-      if (profile) {
-        // If user has a name in Supabase but not locally, use Supabase name
-        if (profile.name && !userName) {
-          setUserName(profile.name);
-        }
-        // If user has a local name but not in Supabase, update Supabase
-        else if (userName && !profile.name) {
-          await supabase
-            .from('profiles')
-            .update({ name: userName })
-            .eq('id', user.id);
-        }
-      }
-    } catch (error) {
-      console.error('Error syncing profile:', error);
-    }
-  }, [user, userName, setUserName, supabase]);
-
-  // Update profile name
-  const updateProfileName = useCallback(
-    async (name: string) => {
-      if (!user) return;
-
-      try {
-        await supabase
-          .from('profiles')
-          .update({ name })
-          .eq('id', user.id);
-        setUserName(name);
-      } catch (error) {
-        console.error('Error updating profile name:', error);
-      }
-    },
-    [user, setUserName, supabase]
-  );
 
   // Sync local recaps to Supabase (upload local recaps that don't exist in cloud)
   const syncRecapsToCloud = useCallback(async () => {
@@ -304,17 +236,12 @@ export function useSupabaseSync() {
     if (user && !hasSyncedRef.current) {
       hasSyncedRef.current = true;
 
-      // Sync profile
-      syncProfile();
-
       // Perform full sync (upload local to cloud, download cloud to local)
       performFullSync();
     }
-  }, [user, syncProfile, performFullSync]);
+  }, [user, performFullSync]);
 
   return {
-    syncProfile,
-    updateProfileName,
     syncRecapsToCloud,
     fetchRecapsFromCloud,
     saveRecapToCloud,

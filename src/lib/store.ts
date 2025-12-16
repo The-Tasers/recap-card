@@ -3,7 +3,17 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
 import { toast } from 'sonner';
-import { DailyCard } from './types';
+import { DailyCard, Mood, CardBlock, BlockId } from './types';
+
+// Draft entry type for preserving state across sessions
+export interface DraftEntry {
+  mood?: Mood;
+  text?: string;
+  blocks?: Record<BlockId, CardBlock>;
+  photoDataUrl?: string;
+  selectedDate?: string;
+  lastUpdated: string;
+}
 
 const DB_NAME = 'recapp-db';
 const STORE_NAME = 'recapp-store';
@@ -109,22 +119,17 @@ interface CardStore {
   cards: DailyCard[];
   hydrated: boolean;
   error: string | null;
-  hasSeenOnboarding: boolean;
-  hasSeenFirstRecapCelebration: boolean;
-  userName: string;
-  theme: 'light' | 'dark' | 'system';
+  draftEntry: DraftEntry | null;
   setHydrated: (state: boolean) => void;
   setError: (error: string | null) => void;
-  setHasSeenOnboarding: (seen: boolean) => void;
-  setHasSeenFirstRecapCelebration: (seen: boolean) => void;
-  setUserName: (name: string) => void;
-  setTheme: (theme: 'light' | 'dark' | 'system') => void;
   addCard: (card: DailyCard) => boolean;
   updateCard: (id: string, updates: Partial<DailyCard>) => boolean;
   deleteCard: (id: string) => void;
   getById: (id: string) => DailyCard | undefined;
   getCardByDate: (date: string) => DailyCard | undefined;
   setCards: (cards: DailyCard[]) => void;
+  saveDraft: (draft: Omit<DraftEntry, 'lastUpdated'>) => void;
+  clearDraft: () => void;
 }
 
 // IndexedDB helpers
@@ -314,16 +319,9 @@ export const useCardStore = create<CardStore>()(
       cards: [],
       hydrated: false,
       error: null,
-      hasSeenOnboarding: false,
-      hasSeenFirstRecapCelebration: false,
-      userName: '',
-      theme: 'system',
+      draftEntry: null,
       setHydrated: (state) => set({ hydrated: state }),
       setError: (error) => set({ error }),
-      setHasSeenOnboarding: (seen) => set({ hasSeenOnboarding: seen }),
-      setHasSeenFirstRecapCelebration: (seen) => set({ hasSeenFirstRecapCelebration: seen }),
-      setUserName: (name) => set({ userName: name }),
-      setTheme: (theme) => set({ theme }),
       setCards: (cards) => set({ cards }),
       addCard: (card) => {
         try {
@@ -367,6 +365,15 @@ export const useCardStore = create<CardStore>()(
           (card) => new Date(card.createdAt).toDateString() === targetDate
         );
       },
+      saveDraft: (draft) => {
+        set({
+          draftEntry: {
+            ...draft,
+            lastUpdated: new Date().toISOString(),
+          },
+        });
+      },
+      clearDraft: () => set({ draftEntry: null }),
     }),
     {
       name: 'recap-cards',

@@ -9,6 +9,7 @@ import {
   FONT_PRESETS,
   MOODS,
 } from '@/lib/types';
+import { MOOD_ICONS } from '@/lib/icons';
 import { MoodBadge } from '@/components/mood-selector';
 import { DateBadge } from '@/components/date-badge';
 import { BlockDisplay } from './block-editor';
@@ -119,7 +120,10 @@ export const PhotoHeaderTemplate = forwardRef<
                   day: 'numeric',
                 })}
               </span>
-              <span className="text-2xl">{moodData?.emoji}</span>
+              {(() => {
+                const MoodIconComp = MOOD_ICONS[card.mood];
+                return <MoodIconComp className="h-6 w-6" />;
+              })()}
             </div>
           </div>
         </div>
@@ -177,8 +181,11 @@ export const UltraMinimalTemplate = forwardRef<
       )}
     >
       <CardContent className={cn('p-8 space-y-6', fontClasses)}>
-        <div className="text-center">
-          <span className="text-4xl">{moodData?.emoji}</span>
+        <div className="text-center flex justify-center">
+          {(() => {
+            const MoodIconComp = MOOD_ICONS[card.mood];
+            return <MoodIconComp className="h-10 w-10" />;
+          })()}
         </div>
 
         <p className="text-lg leading-relaxed text-center">{card.text}</p>
@@ -231,7 +238,10 @@ export const MixedGridTemplate = forwardRef<HTMLDivElement, CardTemplateProps>(
           )}
         >
           <div className="flex items-start gap-3">
-            <span className="text-3xl">{moodData?.emoji}</span>
+            {(() => {
+              const MoodIconComp = MOOD_ICONS[card.mood];
+              return <MoodIconComp className="h-8 w-8" />;
+            })()}
             <div className="flex-1">
               <DateBadge date={card.createdAt} />
             </div>

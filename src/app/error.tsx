@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { AlertCircle } from 'lucide-react';
 
 export default function Error({
   error,
@@ -17,7 +18,9 @@ export default function Error({
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="text-center max-w-md">
-        <div className="text-6xl mb-4">😕</div>
+        <div className="flex justify-center mb-4">
+          <AlertCircle className="h-16 w-16 text-amber-500" />
+        </div>
         <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
           Something went wrong
         </h1>

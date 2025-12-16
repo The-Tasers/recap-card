@@ -2,15 +2,10 @@ import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/components/auth-provider';
-import { LayoutWrapper } from '@/components/layout-wrapper';
 import { AppLoader } from '@/components/app-loader';
 import { Geist } from 'next/font/google';
 import './globals.css';
-import { BottomNav } from '@/components/bottom-nav';
-import { DesktopNav } from '@/components/desktop-nav';
-import { MainContainer } from '@/components/main-container';
 import { Toaster } from '@/components/ui/toaster';
-import { FirstRecapCelebration } from '@/components/first-recap-celebration';
 import { SyncProvider } from '@/components/sync-provider';
 
 // Inline script to prevent theme flash - runs before React hydration
@@ -47,9 +42,9 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: {
     template: '%s | Recapp',
-    default: 'Home | Recapp',
+    default: 'Recapp',
   },
-  description: 'Capture your daily moments in beautiful shareable recaps',
+  description: 'Notice your day, one moment at a time',
 };
 
 export const viewport: Viewport = {
@@ -68,38 +63,30 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className="bg-neutral-100 dark:bg-neutral-950"
+      className="bg-white dark:bg-neutral-950"
       suppressHydrationWarning
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body
-        className={`${geistSans.variable} font-sans antialiased min-h-screen bg-neutral-100 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100`}
+        className={`${geistSans.variable} font-sans antialiased min-h-screen bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100`}
       >
         <AuthProvider>
           <ThemeProvider>
             <SyncProvider>
               <AppLoader>
-                <LayoutWrapper>
-                  {/* Desktop Sidebar */}
-                  <Suspense fallback={null}>
-                    <DesktopNav />
-                  </Suspense>
-
-                  {/* Main Container */}
-                  <MainContainer>
-                    {children}
-
-                    {/* Mobile Bottom Nav */}
-                    <Suspense fallback={null}>
-                      <BottomNav />
-                    </Suspense>
-                  </MainContainer>
-                </LayoutWrapper>
+                <Suspense
+                  fallback={
+                    <div className="flex items-center justify-center min-h-screen text-muted-foreground">
+                      Loading...
+                    </div>
+                  }
+                >
+                  {children}
+                </Suspense>
               </AppLoader>
               <Toaster />
-              <FirstRecapCelebration />
             </SyncProvider>
           </ThemeProvider>
         </AuthProvider>

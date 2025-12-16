@@ -110,71 +110,75 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Mood accent colors - set dynamically based on today's mood */
+  --mood-accent: oklch(0.75 0.15 145); /* default: neutral/amber */
+  --mood-accent-soft: oklch(0.75 0.15 145 / 20%);
+  --mood-accent-glow: oklch(0.75 0.15 145 / 30%);
+
+  /* Dark theme by default - elegant dark with mood accents */
+  --background: oklch(0.12 0.005 280);
+  --foreground: oklch(0.95 0.01 280);
+  --card: oklch(0.16 0.008 280);
+  --card-foreground: oklch(0.95 0.01 280);
+  --popover: oklch(0.16 0.008 280);
+  --popover-foreground: oklch(0.95 0.01 280);
+  --primary: var(--mood-accent);
+  --primary-foreground: oklch(0.12 0.005 280);
+  --secondary: oklch(0.22 0.01 280);
+  --secondary-foreground: oklch(0.90 0.01 280);
+  --muted: oklch(0.20 0.008 280);
+  --muted-foreground: oklch(0.65 0.02 280);
+  --accent: var(--mood-accent-soft);
+  --accent-foreground: oklch(0.95 0.01 280);
+  --destructive: oklch(0.60 0.22 25);
+  --border: oklch(0.28 0.01 280);
+  --input: oklch(0.22 0.008 280);
+  --ring: var(--mood-accent);
+  --chart-1: oklch(0.65 0.20 145);
+  --chart-2: oklch(0.65 0.18 180);
+  --chart-3: oklch(0.65 0.15 220);
+  --chart-4: oklch(0.70 0.18 85);
+  --chart-5: oklch(0.60 0.20 25);
+  --sidebar: oklch(0.14 0.006 280);
+  --sidebar-foreground: oklch(0.95 0.01 280);
+  --sidebar-primary: var(--mood-accent);
+  --sidebar-primary-foreground: oklch(0.12 0.005 280);
+  --sidebar-accent: oklch(0.22 0.01 280);
+  --sidebar-accent-foreground: oklch(0.95 0.01 280);
+  --sidebar-border: oklch(0.28 0.01 280);
+  --sidebar-ring: var(--mood-accent);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+/* Mood-specific accent colors */
+.mood-great {
+  --mood-accent: oklch(0.70 0.18 145);
+  --mood-accent-soft: oklch(0.70 0.18 145 / 15%);
+  --mood-accent-glow: oklch(0.70 0.18 145 / 25%);
+}
+
+.mood-good {
+  --mood-accent: oklch(0.72 0.16 130);
+  --mood-accent-soft: oklch(0.72 0.16 130 / 15%);
+  --mood-accent-glow: oklch(0.72 0.16 130 / 25%);
+}
+
+.mood-neutral {
+  --mood-accent: oklch(0.78 0.14 85);
+  --mood-accent-soft: oklch(0.78 0.14 85 / 15%);
+  --mood-accent-glow: oklch(0.78 0.14 85 / 25%);
+}
+
+.mood-bad {
+  --mood-accent: oklch(0.70 0.18 45);
+  --mood-accent-soft: oklch(0.70 0.18 45 / 15%);
+  --mood-accent-glow: oklch(0.70 0.18 45 / 25%);
+}
+
+.mood-terrible {
+  --mood-accent: oklch(0.65 0.20 25);
+  --mood-accent-soft: oklch(0.65 0.20 25 / 15%);
+  --mood-accent-glow: oklch(0.65 0.20 25 / 25%);
 }
 
 @layer base {
