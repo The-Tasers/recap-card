@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   motion,
   useMotionValue,
@@ -8,6 +8,20 @@ import {
   PanInfo,
   useAnimationControls,
 } from 'framer-motion';
+
+// Hook to detect if we're on mobile (for swipe behavior)
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+}
 import { Trash2 } from 'lucide-react';
 import {
   Tooltip,
@@ -25,6 +39,7 @@ import {
 import {
   DailyCard,
   MOODS,
+  Mood,
   CardBlock,
   WEATHER_OPTIONS,
   MEAL_OPTIONS,
@@ -32,6 +47,15 @@ import {
   HEALTH_OPTIONS,
 } from '@/lib/types';
 import { cn } from '@/lib/utils';
+
+// Mood color mapping for gradient overlay
+const MOOD_COLORS: Record<Mood, string> = {
+  great: 'rgba(16, 185, 129, 0.85)', // emerald
+  good: 'rgba(34, 197, 94, 0.85)', // green
+  neutral: 'rgba(245, 158, 11, 0.85)', // amber
+  bad: 'rgba(249, 115, 22, 0.85)', // orange
+  terrible: 'rgba(239, 68, 68, 0.85)', // red
+};
 
 // Format relative date for stream
 function formatRelativeDate(date: Date): string {
@@ -209,6 +233,7 @@ export function StreamCard({
   const moodData = MOODS.find((m) => m.value === card.mood);
   const cardDate = new Date(card.createdAt);
   const MoodIcon = MOOD_ICONS[card.mood];
+  const isMobile = useIsMobile();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
@@ -227,7 +252,7 @@ export function StreamCard({
 
   // Initial mount animation
   useEffect(() => {
-    controls.start({ opacity: 1, y: 0 });
+    controls.start({ opacity: 1, scale: 1 });
   }, [controls]);
 
   // Handle click outside to reset
@@ -266,14 +291,14 @@ export function StreamCard({
   };
 
   return (
-    <div ref={containerRef} className="relative overflow-hidden rounded-2xl">
+    <div ref={containerRef} className="relative py-2 -my-2">
       {/* Delete button (revealed on swipe) - mobile only */}
       <motion.button
         onClick={(e) => {
           e.stopPropagation();
           onDelete();
         }}
-        className="absolute right-0 h-[calc(100%-4rem)] top-[2rem] rounded-2xl w-14 bg-red-500/50 flex items-center justify-center md:hidden cursor-pointer"
+        className="absolute -right-2 h-[calc(100%-1rem)] top-2 rounded-2xl w-14 bg-red-500 flex items-center justify-center md:hidden cursor-pointer"
         style={{ opacity: deleteOpacity }}
         whileTap={{ scale: 0.95 }}
       >
@@ -283,12 +308,12 @@ export function StreamCard({
       <motion.div
         className="w-full relative group cursor-pointer"
         onClick={() => !isDragging && !isRevealed && onEdit()}
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, scale: 0.98 }}
         animate={controls}
-        style={{ x }}
-        drag="x"
+        style={{ x: isMobile ? x : 0 }}
+        drag={isMobile ? 'x' : false}
         dragDirectionLock
-        dragConstraints={{ left: SWIPE_THRESHOLD, right: 0 }}
+        dragConstraints={{ left: -70, right: 0 }}
         dragElastic={{ left: 0.2, right: 0 }}
         onDragStart={() => setIsDragging(true)}
         onDragEnd={handleDragEnd}
@@ -296,15 +321,11 @@ export function StreamCard({
         transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       >
         <motion.div
-          className={cn(
-            'rounded-2xl p-5 relative overflow-hidden',
-            'shadow-lg hover:shadow-xl transition-shadow duration-300',
-            card.mood === 'great' && 'bg-emerald-500/75',
-            card.mood === 'good' && 'bg-green-500/75',
-            card.mood === 'neutral' && 'bg-amber-500/75',
-            card.mood === 'bad' && 'bg-orange-500/75',
-            card.mood === 'terrible' && 'bg-red-500/75'
-          )}
+          className="rounded-2xl p-5 relative overflow-hidden transition-shadow duration-300"
+          style={{
+            background: `linear-gradient(135deg, ${MOOD_COLORS[card.mood]} 0%, var(--primary) 50%, var(--primary) 100%)`,
+            boxShadow: `0 10px 25px -5px ${MOOD_COLORS[card.mood].replace('0.85', '0.4')}, 0 4px 6px -2px rgba(0, 0, 0, 0.1)`,
+          }}
         >
           {/* Desktop delete button */}
           <motion.button
@@ -365,6 +386,7 @@ export function TodayCard({
 }) {
   const moodData = MOODS.find((m) => m.value === card.mood);
   const MoodIcon = MOOD_ICONS[card.mood];
+  const isMobile = useIsMobile();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
@@ -383,7 +405,7 @@ export function TodayCard({
 
   // Initial mount animation
   useEffect(() => {
-    controls.start({ opacity: 1, y: 0, scale: 1 });
+    controls.start({ opacity: 1, scale: 1 });
   }, [controls]);
 
   // Handle click outside to reset
@@ -422,14 +444,14 @@ export function TodayCard({
   };
 
   return (
-    <div ref={containerRef} className="relative overflow-hidden rounded-3xl">
+    <div ref={containerRef} className="relative py-3 -my-3">
       {/* Delete button (revealed on swipe) - mobile only */}
       <motion.button
         onClick={(e) => {
           e.stopPropagation();
           onDelete();
         }}
-        className="absolute right-0 h-[calc(100%-4rem)] top-[2rem] rounded-3xl w-16 bg-red-500/50 flex items-center justify-center md:hidden cursor-pointer"
+        className="absolute -right-2 h-[calc(100%-1.5rem)] top-3 rounded-3xl w-16 bg-red-500 flex items-center justify-center md:hidden cursor-pointer"
         style={{ opacity: deleteOpacity }}
         whileTap={{ scale: 0.95 }}
       >
@@ -439,12 +461,12 @@ export function TodayCard({
       <motion.div
         className="w-full group cursor-pointer"
         onClick={() => !isDragging && !isRevealed && onEdit()}
-        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.95 }}
         animate={controls}
-        style={{ x }}
-        drag="x"
+        style={{ x: isMobile ? x : 0 }}
+        drag={isMobile ? 'x' : false}
         dragDirectionLock
-        dragConstraints={{ left: SWIPE_THRESHOLD, right: 0 }}
+        dragConstraints={{ left: -80, right: 0 }}
         dragElastic={{ left: 0.3, right: 0 }}
         onDragStart={() => setIsDragging(true)}
         onDragEnd={handleDragEnd}
@@ -452,15 +474,11 @@ export function TodayCard({
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       >
         <motion.div
-          className={cn(
-            'rounded-3xl p-6 md:p-8 min-h-[200px] relative overflow-hidden',
-            'shadow-xl hover:shadow-2xl transition-shadow duration-500',
-            card.mood === 'great' && 'bg-emerald-500/75',
-            card.mood === 'good' && 'bg-green-500/75',
-            card.mood === 'neutral' && 'bg-amber-500/75',
-            card.mood === 'bad' && 'bg-orange-500/75',
-            card.mood === 'terrible' && 'bg-red-500/75'
-          )}
+          className="rounded-3xl p-6 md:p-8 min-h-[200px] relative overflow-hidden transition-shadow duration-500"
+          style={{
+            background: `linear-gradient(135deg, ${MOOD_COLORS[card.mood]} 0%, var(--primary) 50%, var(--primary) 100%)`,
+            boxShadow: `0 20px 40px -10px ${MOOD_COLORS[card.mood].replace('0.85', '0.5')}, 0 8px 16px -4px rgba(0, 0, 0, 0.15)`,
+          }}
         >
           {/* Desktop delete button */}
           <motion.button

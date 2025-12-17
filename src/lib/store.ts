@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
 import { toast } from 'sonner';
-import { DailyCard, Mood, CardBlock, BlockId } from './types';
+import { DailyCard, Mood, CardBlock, BlockId, ColorTheme } from './types';
 
 // Draft entry type for preserving state across sessions
 export interface DraftEntry {
@@ -120,6 +120,7 @@ interface CardStore {
   hydrated: boolean;
   error: string | null;
   draftEntry: DraftEntry | null;
+  colorTheme: ColorTheme;
   setHydrated: (state: boolean) => void;
   setError: (error: string | null) => void;
   addCard: (card: DailyCard) => boolean;
@@ -130,6 +131,7 @@ interface CardStore {
   setCards: (cards: DailyCard[]) => void;
   saveDraft: (draft: Omit<DraftEntry, 'lastUpdated'>) => void;
   clearDraft: () => void;
+  setColorTheme: (theme: ColorTheme) => void;
 }
 
 // IndexedDB helpers
@@ -320,9 +322,11 @@ export const useCardStore = create<CardStore>()(
       hydrated: false,
       error: null,
       draftEntry: null,
+      colorTheme: 'midnight' as ColorTheme,
       setHydrated: (state) => set({ hydrated: state }),
       setError: (error) => set({ error }),
       setCards: (cards) => set({ cards }),
+      setColorTheme: (theme) => set({ colorTheme: theme }),
       addCard: (card) => {
         try {
           set((state) => ({

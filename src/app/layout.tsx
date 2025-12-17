@@ -12,25 +12,23 @@ import { SyncProvider } from '@/components/sync-provider';
 const themeScript = `
 (function() {
   try {
+    var lightThemes = ['linen', 'sage', 'rose'];
     var stored = localStorage.getItem('recap-cards');
+    var colorTheme = 'midnight';
     if (stored) {
       var parsed = JSON.parse(stored);
-      var theme = parsed.state && parsed.state.theme;
-      if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else if (theme === 'light') {
-        document.documentElement.classList.remove('dark');
-      } else {
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          document.documentElement.classList.add('dark');
-        }
-      }
-    } else {
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.documentElement.classList.add('dark');
-      }
+      colorTheme = (parsed.state && parsed.state.colorTheme) || 'midnight';
     }
-  } catch (e) {}
+    document.documentElement.setAttribute('data-color-theme', colorTheme);
+    if (lightThemes.indexOf(colorTheme) !== -1) {
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.classList.add('dark');
+    }
+  } catch (e) {
+    document.documentElement.classList.add('dark');
+    document.documentElement.setAttribute('data-color-theme', 'midnight');
+  }
 })();
 `;
 

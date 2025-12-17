@@ -175,18 +175,18 @@ export function PhotoUploader({ value, onChange, collapsible = false }: PhotoUpl
         onClick={() => setIsExpanded(!isExpanded)}
         className={cn(
           'w-full flex items-center justify-between p-3 rounded-xl transition-colors cursor-pointer',
-          'bg-neutral-100 dark:bg-neutral-800/50 hover:bg-neutral-200 dark:hover:bg-neutral-800'
+          'bg-muted hover:bg-muted/80'
         )}
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
       >
         <div className="flex items-center gap-3">
           <Camera className="h-5 w-5 text-muted-foreground" />
-          <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+          <span className="text-sm font-medium text-foreground">
             Picture of the Day
           </span>
           {hasPhoto && (
-            <span className="text-xs text-green-600 dark:text-green-400">
+            <span className="text-xs font-medium text-primary">
               ✓ Added
             </span>
           )}

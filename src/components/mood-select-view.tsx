@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { MoodSelector } from '@/components/mood-selector';
 import { Mood } from '@/lib/types';
+import { formatDate } from '@/lib/date-utils';
 
 interface MoodSelectViewProps {
   mood: Mood | undefined;
@@ -18,32 +19,28 @@ export function MoodSelectView({
   return (
     <motion.div
       key="mood-select"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3 }}
-      className="flex flex-col items-center justify-center min-h-[60vh] space-y-10"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
+      className="flex-1 flex flex-col items-center justify-center"
     >
-      <motion.h1
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="text-center text-2xl md:text-3xl font-medium text-neutral-700 dark:text-neutral-300"
-      >
-        How does today feel?
-      </motion.h1>
+      <p className="text-center text-lg text-foreground mb-8">
+        {formatDate(new Date())}
+      </p>
 
-      <MoodSelector value={mood} onChange={onMoodChange} size="lg" />
+      <h1 className="text-center text-2xl md:text-3xl font-medium text-neutral-700 dark:text-neutral-300 mb-8">
+        How does today feel?
+      </h1>
+
+      <div className="py-4">
+        <MoodSelector value={mood} onChange={onMoodChange} size="lg" />
+      </div>
 
       {!hasEntries && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="text-center text-sm text-muted-foreground"
-        >
+        <p className="text-center text-sm text-muted-foreground mt-8">
           Your journey starts with one moment.
-        </motion.p>
+        </p>
       )}
     </motion.div>
   );

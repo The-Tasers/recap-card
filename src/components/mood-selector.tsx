@@ -80,33 +80,25 @@ export function MoodSelector({
   // Container animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.08,
-        delayChildren: 0.1,
-      },
-    },
+    show: { opacity: 1 },
   };
 
-  // Individual button animation variants
-  const buttonVariants = {
+  // Individual button animation variants - simple fade with scale
+  const getButtonVariants = (isSelected: boolean) => ({
     hidden: {
       opacity: 0,
-      y: 30,
       scale: 0.8,
     },
     show: {
       opacity: 1,
-      y: 0,
-      scale: 1,
+      scale: isSelected ? 1.1 : 1,
       transition: {
         type: 'spring' as const,
-        stiffness: 300,
-        damping: 20,
+        stiffness: 400,
+        damping: 25,
       },
     },
-  };
+  });
 
   return (
     <div className="space-y-4">
@@ -133,14 +125,9 @@ export function MoodSelector({
                   : `${styles.base} ${styles.hover}`
               )}
               title={mood.label}
-              variants={buttonVariants}
-              animate={{
-                scale: isSelected ? 1.15 : 1,
-                y: isSelected ? -6 : 0,
-              }}
+              variants={getButtonVariants(isSelected)}
               whileHover={{
-                scale: isSelected ? 1.2 : 1.12,
-                y: -8,
+                scale: isSelected ? 1.15 : 1.08,
                 transition: {
                   type: 'spring',
                   stiffness: 400,
@@ -148,9 +135,8 @@ export function MoodSelector({
                 },
               }}
               whileTap={{
-                scale: 0.9,
-                rotate: [-2, 2, -2, 0],
-                transition: { duration: 0.2 },
+                scale: 0.95,
+                transition: { duration: 0.1 },
               }}
               transition={{
                 type: 'spring',
@@ -174,11 +160,10 @@ export function MoodSelector({
                   isSelected ? 'text-white' : styles.iconColor
                 )}
                 animate={{
-                  rotate: isSelected ? [0, -15, 15, -10, 10, -5, 5, 0] : 0,
-                  scale: isSelected ? [1, 1.2, 1] : 1,
+                  scale: isSelected ? [1, 1.1, 1] : 1,
                 }}
                 transition={{
-                  duration: isSelected ? 0.6 : 0.3,
+                  duration: 0.3,
                   ease: 'easeInOut',
                 }}
               >
@@ -194,8 +179,8 @@ export function MoodSelector({
       {showPreview && value && (
         <motion.div
           className="flex flex-col items-center gap-2"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
         >
           <motion.div

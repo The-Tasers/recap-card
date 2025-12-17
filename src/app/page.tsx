@@ -6,7 +6,6 @@ import { Laugh, Smile, Meh, Frown, Angry } from 'lucide-react';
 import { useCardStore, clearIndexedDB } from '@/lib/store';
 import { getTodayRecap } from '@/lib/daily-utils';
 import { formatDate, groupCardsByWeek } from '@/lib/date-utils';
-import { applyMoodClass } from '@/components/theme-provider';
 import { createClient } from '@/lib/supabase/client';
 import { SignupPrompt } from '@/components/signup-prompt';
 import { PhotoData } from '@/components/photo-uploader';
@@ -15,7 +14,6 @@ import { SettingsPanel } from '@/components/settings-panel';
 import { MoodSelectView } from '@/components/mood-select-view';
 import { TodayView } from '@/components/today-view';
 import { FormHeader } from '@/components/form-header';
-import { DoneButton } from '@/components/done-button';
 import { SettingsButton } from '@/components/settings-button';
 import { uploadImage, compressImageToDataUrl } from '@/lib/supabase/storage';
 import { Button } from '@/components/ui/button';
@@ -119,10 +117,6 @@ export default function Canvas() {
     [pastEntries]
   );
 
-  // Current mood for theming
-  const currentMood: Mood =
-    todayEntry?.mood || (cards.length > 0 ? cards[0].mood : 'neutral');
-
   // Auto-save draft
   useEffect(() => {
     if (mood && !todayEntry) {
@@ -214,16 +208,6 @@ export default function Canvas() {
     }
   };
 
-  // Handle question selection
-  const handleSelectQuestion = (question: string) => {
-    if (editingCard) {
-      setEditText((prev) => (prev ? `${prev}\n\n${question}` : question));
-    } else {
-      setText((prev) => (prev ? `${prev}\n\n${question}` : question));
-    }
-    textareaRef.current?.focus();
-  };
-
   // Start editing a card
   const startEdit = (card: DailyCard) => {
     setEditingCard(card);
@@ -232,7 +216,6 @@ export default function Canvas() {
     setEditPhotoData(
       card.photoUrl ? { existingUrl: card.photoUrl } : undefined
     );
-    applyMoodClass(card.mood);
 
     const existingBlocks = initializeBlocks();
     if (card.blocks) {
@@ -438,7 +421,6 @@ export default function Canvas() {
     } else {
       setMood(newMood);
     }
-    applyMoodClass(newMood);
   };
 
   // Loading state
@@ -480,26 +462,12 @@ export default function Canvas() {
     (!showSettings && !editingCard && !todayEntry && mood) || editingCard;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Settings button */}
+    <div className="h-screen flex flex-col bg-background">
+      {/* Settings button - hide when in form mode */}
       <SettingsButton
-        isVisible={!showSettings && !editingCard}
+        isVisible={!showSettings && !editingCard && !isInFormMode}
         isAuthenticated={!!user}
-        currentMood={currentMood}
         onClick={() => setShowSettings(true)}
-      />
-
-      {/* Done button */}
-      <DoneButton
-        isVisible={!!isInFormMode}
-        mood={editingCard ? editMood : mood}
-        isSubmitting={isSubmitting}
-        disabled={
-          isSubmitting ||
-          (!editingCard && !mood) ||
-          (!!editingCard && !editMood)
-        }
-        onSave={editingCard ? handleSaveEdit : handleSave}
       />
 
       {/* Form header */}
@@ -512,76 +480,77 @@ export default function Canvas() {
         onMoodChange={handleMoodChange}
       />
 
-      <div className="max-w-lg mx-auto px-6 py-8 md:py-12">
-        {/* Date header */}
-        {!showSettings && !editingCard && (todayEntry || !mood) && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center text-lg text-foreground mb-8"
-          >
-            {formatDate(new Date())}
-          </motion.p>
-        )}
-
-        <AnimatePresence mode="wait">
-          {/* Edit mode */}
-          {editingCard && (
-            <RecapForm
-              mode="edit"
-              text={editText}
-              setText={setEditText}
-              blocks={editBlocks}
-              setBlocks={setEditBlocks}
-              photoData={editPhotoData}
-              setPhotoData={setEditPhotoData}
-              mood={editMood}
-              textareaRef={textareaRef}
-              onSelectQuestion={handleSelectQuestion}
-            />
-          )}
-
-          {/* Settings */}
-          {showSettings && (
+      {/* Settings - wider container on desktop */}
+      {showSettings && (
+        <div className="max-w-lg w-full mx-auto h-full px-6 relative flex flex-col">
+          <AnimatePresence>
             <SettingsPanel
               onBack={() => setShowSettings(false)}
               user={user}
               authLoading={authLoading}
-              currentMood={currentMood}
               cardsCount={cards.length}
               onSignOut={handleSignOut}
               onClearAll={handleClearAll}
               onDeleteAccount={handleDeleteAccount}
             />
-          )}
+          </AnimatePresence>
+        </div>
+      )}
 
-          {/* Initial mood selection */}
-          {!showSettings && !editingCard && !todayEntry && !mood && (
-            <MoodSelectView
-              mood={mood}
-              onMoodChange={handleMoodChange}
-              hasEntries={cards.length > 0}
-            />
-          )}
+      {/* Form modes - narrow container for focused writing */}
+      {!showSettings && (editingCard || !todayEntry) && (
+        <div className="max-w-lg mx-auto h-full px-6 relative flex flex-col overflow-hidden">
+          <AnimatePresence>
+            {/* Edit mode */}
+            {editingCard && (
+              <RecapForm
+                mode="edit"
+                text={editText}
+                setText={setEditText}
+                blocks={editBlocks}
+                setBlocks={setEditBlocks}
+                photoData={editPhotoData}
+                setPhotoData={setEditPhotoData}
+                mood={editMood}
+                textareaRef={textareaRef}
+                isSubmitting={isSubmitting}
+                onSave={handleSaveEdit}
+              />
+            )}
 
-          {/* Create form */}
-          {!showSettings && !editingCard && !todayEntry && mood && (
-            <RecapForm
-              mode="create"
-              text={text}
-              setText={setText}
-              blocks={blocks}
-              setBlocks={setBlocks}
-              photoData={photoData}
-              setPhotoData={setPhotoData}
-              mood={mood}
-              textareaRef={textareaRef}
-              onSelectQuestion={handleSelectQuestion}
-            />
-          )}
+            {/* Initial mood selection */}
+            {!editingCard && !todayEntry && !mood && (
+              <MoodSelectView
+                mood={mood}
+                onMoodChange={handleMoodChange}
+                hasEntries={cards.length > 0}
+              />
+            )}
 
-          {/* Today view with memory stream */}
-          {!showSettings && !editingCard && todayEntry && (
+            {/* Create form */}
+            {!editingCard && !todayEntry && mood && (
+              <RecapForm
+                mode="create"
+                text={text}
+                setText={setText}
+                blocks={blocks}
+                setBlocks={setBlocks}
+                photoData={photoData}
+                setPhotoData={setPhotoData}
+                mood={mood}
+                textareaRef={textareaRef}
+                isSubmitting={isSubmitting}
+                onSave={handleSave}
+              />
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* Today view - wider container on desktop */}
+      {!showSettings && !editingCard && todayEntry && (
+        <div className="max-w-lg w-full mx-auto h-full px-6 relative flex flex-col overflow-hidden">
+          <AnimatePresence>
             <TodayView
               todayEntry={todayEntry}
               groupedEntries={groupedEntries}
@@ -589,9 +558,9 @@ export default function Canvas() {
               onEdit={startEdit}
               onDelete={setDeleteCardId}
             />
-          )}
-        </AnimatePresence>
-      </div>
+          </AnimatePresence>
+        </div>
+      )}
 
       {/* Sign-up prompt */}
       <SignupPrompt />

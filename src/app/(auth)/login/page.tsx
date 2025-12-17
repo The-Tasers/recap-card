@@ -9,59 +9,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/components/auth-provider';
-import { useCardStore } from '@/lib/store';
-import { Mood } from '@/lib/types';
-import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-
-// Mood-specific button colors
-const MOOD_BUTTON_CLASSES: Record<Mood, string> = {
-  great: 'bg-emerald-500 hover:bg-emerald-600',
-  good: 'bg-green-500 hover:bg-green-600',
-  neutral: 'bg-amber-500 hover:bg-amber-600',
-  bad: 'bg-orange-500 hover:bg-orange-600',
-  terrible: 'bg-red-500 hover:bg-red-600',
-};
-
-// Mood-specific icon colors
-const MOOD_ICON_CLASSES: Record<Mood, string> = {
-  great: 'text-emerald-500',
-  good: 'text-green-500',
-  neutral: 'text-amber-500',
-  bad: 'text-orange-500',
-  terrible: 'text-red-500',
-};
-
-// Mood-specific link colors
-const MOOD_LINK_CLASSES: Record<Mood, string> = {
-  great: 'text-emerald-500 hover:text-emerald-600',
-  good: 'text-green-500 hover:text-green-600',
-  neutral: 'text-amber-500 hover:text-amber-600',
-  bad: 'text-orange-500 hover:text-orange-600',
-  terrible: 'text-red-500 hover:text-red-600',
-};
-
-// Mood-specific input focus ring colors
-const MOOD_INPUT_CLASSES: Record<Mood, string> = {
-  great: 'focus-visible:ring-emerald-500 focus-visible:border-emerald-500',
-  good: 'focus-visible:ring-green-500 focus-visible:border-green-500',
-  neutral: 'focus-visible:ring-amber-500 focus-visible:border-amber-500',
-  bad: 'focus-visible:ring-orange-500 focus-visible:border-orange-500',
-  terrible: 'focus-visible:ring-red-500 focus-visible:border-red-500',
-};
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { signInWithEmail, signInWithGoogle, user } = useAuth();
-  const { cards, hydrated } = useCardStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-
-  // Get mood from most recent card, default to neutral
-  const currentMood: Mood = hydrated && cards.length > 0 ? cards[0].mood : 'neutral';
 
   useEffect(() => {
     if (user) {
@@ -135,23 +92,23 @@ export default function LoginPage() {
               transition={{ delay: 0.1, duration: 0.4 }}
               className="mb-2 lg:mb-4 flex justify-center"
             >
-              <Hand className={cn('h-10 w-10 lg:h-12 lg:w-12', MOOD_ICON_CLASSES[currentMood])} />
+              <Hand className="h-10 w-10 lg:h-12 lg:w-12 text-primary" />
             </motion.div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-1 lg:mb-2">
+            <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-1 lg:mb-2">
               Welcome back
             </h1>
-            <p className="text-sm lg:text-base text-neutral-600 dark:text-neutral-400">
+            <p className="text-sm lg:text-base text-muted-foreground">
               Sign in to continue your journey
             </p>
           </div>
 
           {/* Login Form */}
-          <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-2xl lg:rounded-3xl p-5 lg:p-8 shadow-xl shadow-neutral-200/50 dark:shadow-none border border-neutral-200/50 dark:border-neutral-800">
+          <div className="bg-card/80 backdrop-blur-sm rounded-2xl lg:rounded-3xl p-5 lg:p-8 shadow-xl border border-border/50">
             {/* Google Login */}
             <Button
               type="button"
               variant="outline"
-              className="w-full h-11 lg:h-12 rounded-xl text-sm lg:text-base font-medium mb-4 lg:mb-6 border-neutral-300 dark:border-neutral-700"
+              className="w-full h-11 lg:h-12 rounded-xl text-sm lg:text-base font-medium mb-4 lg:mb-6"
               onClick={handleGoogleLogin}
               disabled={googleLoading}
             >
@@ -182,10 +139,10 @@ export default function LoginPage() {
 
             <div className="relative mb-4 lg:mb-6">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-neutral-300 dark:border-neutral-700" />
+                <span className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white dark:bg-neutral-900 px-2 text-neutral-500">
+                <span className="bg-card px-2 text-muted-foreground">
                   Or continue with email
                 </span>
               </div>
@@ -198,14 +155,14 @@ export default function LoginPage() {
                   Email
                 </Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 lg:h-5 lg:w-5 text-neutral-400" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 lg:h-5 lg:w-5 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className={cn('pl-9 lg:pl-10 h-10 lg:h-12 rounded-xl text-sm lg:text-base', MOOD_INPUT_CLASSES[currentMood])}
+                    className="pl-9 lg:pl-10 h-10 lg:h-12 rounded-xl text-sm lg:text-base focus-visible:ring-primary/50"
                     required
                   />
                 </div>
@@ -216,14 +173,14 @@ export default function LoginPage() {
                   Password
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 lg:h-5 lg:w-5 text-neutral-400" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 lg:h-5 lg:w-5 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
                     placeholder="Your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className={cn('pl-9 lg:pl-10 h-10 lg:h-12 rounded-xl text-sm lg:text-base', MOOD_INPUT_CLASSES[currentMood])}
+                    className="pl-9 lg:pl-10 h-10 lg:h-12 rounded-xl text-sm lg:text-base focus-visible:ring-primary/50"
                     required
                   />
                 </div>
@@ -231,7 +188,7 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                className={cn('w-full h-10 lg:h-12 rounded-xl text-sm lg:text-base font-semibold text-white shadow-sm', MOOD_BUTTON_CLASSES[currentMood])}
+                className="w-full h-10 lg:h-12 rounded-xl text-sm lg:text-base font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
                 disabled={loading}
               >
                 {loading ? (
@@ -245,11 +202,11 @@ export default function LoginPage() {
           </div>
 
           {/* Sign Up Link */}
-          <p className="text-center mt-4 lg:mt-6 text-sm lg:text-base text-neutral-600 dark:text-neutral-400">
+          <p className="text-center mt-4 lg:mt-6 text-sm lg:text-base text-muted-foreground">
             Don&apos;t have an account?{' '}
             <Link
               href="/signup"
-              className={cn('hover:underline font-medium', MOOD_LINK_CLASSES[currentMood])}
+              className="hover:underline font-medium text-primary"
             >
               Sign up
             </Link>

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { TodayCard, StreamCard } from '@/components/recap-cards';
 import { DailyCard } from '@/lib/types';
+import { formatDate } from '@/lib/date-utils';
 
 interface CardGroup {
   label: string;
@@ -28,12 +29,16 @@ export function TodayView({
   return (
     <motion.div
       key="today"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, position: 'relative' as const }}
+      exit={{ opacity: 0, position: 'absolute' as const, top: 0, left: 0, right: 0 }}
+      transition={{ duration: 0.15 }}
+      className="space-y-8 pt-8 md:pt-12"
     >
+      <p className="text-center text-lg text-foreground">
+        {formatDate(new Date())}
+      </p>
+
       <TodayCard
         card={todayEntry}
         onEdit={() => onEdit(todayEntry)}

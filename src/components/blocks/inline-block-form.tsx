@@ -23,42 +23,12 @@ import {
 import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
 
-// Mood-specific styles for selected options (matching mood-selector.tsx)
-const MOOD_OPTION_STYLES: Record<Mood, { border: string; bg: string; text: string }> = {
-  great: {
-    border: 'border-emerald-500 dark:border-emerald-600',
-    bg: 'bg-emerald-100 dark:bg-emerald-900/40',
-    text: 'text-emerald-600 dark:text-emerald-400',
-  },
-  good: {
-    border: 'border-green-500 dark:border-green-600',
-    bg: 'bg-green-100 dark:bg-green-900/40',
-    text: 'text-green-600 dark:text-green-400',
-  },
-  neutral: {
-    border: 'border-amber-500 dark:border-amber-600',
-    bg: 'bg-amber-100 dark:bg-amber-900/40',
-    text: 'text-amber-600 dark:text-amber-400',
-  },
-  bad: {
-    border: 'border-orange-500 dark:border-orange-600',
-    bg: 'bg-orange-100 dark:bg-orange-900/40',
-    text: 'text-orange-600 dark:text-orange-400',
-  },
-  terrible: {
-    border: 'border-red-500 dark:border-red-600',
-    bg: 'bg-red-100 dark:bg-red-900/40',
-    text: 'text-red-600 dark:text-red-400',
-  },
-};
-
 // Animated option button component
 function OptionButton({
   isSelected,
   onClick,
   icon: Icon,
   label,
-  mood,
 }: {
   isSelected: boolean;
   onClick: () => void;
@@ -66,8 +36,6 @@ function OptionButton({
   label: string;
   mood?: Mood;
 }) {
-  const moodStyles = mood ? MOOD_OPTION_STYLES[mood] : MOOD_OPTION_STYLES.neutral;
-
   return (
     <motion.button
       type="button"
@@ -75,8 +43,8 @@ function OptionButton({
       className={cn(
         'flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl border-2 shrink-0 w-20 cursor-pointer',
         isSelected
-          ? `${moodStyles.border} ${moodStyles.bg}`
-          : 'border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/50'
+          ? 'border-primary bg-primary/15'
+          : 'border-border bg-muted/50'
       )}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
@@ -89,14 +57,14 @@ function OptionButton({
         <Icon
           className={cn(
             'h-5 w-5 transition-colors',
-            isSelected ? moodStyles.text : 'text-neutral-500 dark:text-neutral-400'
+            isSelected ? 'text-primary' : 'text-muted-foreground'
           )}
         />
       </motion.div>
       <span
         className={cn(
           'text-[10px] font-medium whitespace-nowrap transition-colors',
-          isSelected ? moodStyles.text : 'text-neutral-600 dark:text-neutral-400'
+          isSelected ? 'text-primary' : 'text-muted-foreground'
         )}
       >
         {label}
@@ -114,14 +82,12 @@ interface SelectedItem {
 
 function SelectedItemsSummary({
   items,
-  mood,
   maxVisible = 3,
 }: {
   items: SelectedItem[];
   mood?: Mood;
   maxVisible?: number;
 }) {
-  const moodStyles = mood ? MOOD_OPTION_STYLES[mood] : MOOD_OPTION_STYLES.neutral;
   const visibleItems = items.slice(0, maxVisible);
   const remainingCount = items.length - maxVisible;
 
@@ -132,8 +98,8 @@ function SelectedItemsSummary({
       {visibleItems.map((item) => (
         <Tooltip key={item.value}>
           <TooltipTrigger asChild>
-            <span className={cn('p-1 rounded-lg', moodStyles.bg)}>
-              <item.icon className={cn('h-4 w-4', moodStyles.text)} />
+            <span className="p-1 rounded-lg bg-primary/15">
+              <item.icon className="h-4 w-4 text-primary" />
             </span>
           </TooltipTrigger>
           <TooltipContent side="top" className="text-xs">
@@ -142,7 +108,7 @@ function SelectedItemsSummary({
         </Tooltip>
       ))}
       {remainingCount > 0 && (
-        <span className={cn('text-xs font-medium px-1.5 py-0.5 rounded-lg', moodStyles.bg, moodStyles.text)}>
+        <span className="text-xs font-medium px-1.5 py-0.5 rounded-lg bg-primary/15 text-primary">
           +{remainingCount}
         </span>
       )}
@@ -234,7 +200,7 @@ export function InlineBlockForm({ blocks, onChange, mood, collapsible = true }: 
 
     return (
       <div>
-        <label className="flex items-center gap-1.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+        <label className="flex items-center gap-1.5 text-sm font-medium text-foreground mb-2">
           <WeatherBlockIcon className="h-4 w-4" /> {BLOCK_DEFINITIONS.weather.label}
         </label>
         <div className="flex flex-wrap gap-1.5">
@@ -268,7 +234,7 @@ export function InlineBlockForm({ blocks, onChange, mood, collapsible = true }: 
 
     return (
       <div>
-        <label className="flex items-center gap-1.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+        <label className="flex items-center gap-1.5 text-sm font-medium text-foreground mb-2">
           <MealsBlockIcon className="h-4 w-4" /> {BLOCK_DEFINITIONS.meals.label}
         </label>
         <div className="flex flex-wrap gap-1.5">
@@ -302,7 +268,7 @@ export function InlineBlockForm({ blocks, onChange, mood, collapsible = true }: 
 
     return (
       <div>
-        <label className="flex items-center gap-1.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+        <label className="flex items-center gap-1.5 text-sm font-medium text-foreground mb-2">
           <SelfcareBlockIcon className="h-4 w-4" /> {BLOCK_DEFINITIONS.selfcare.label}
         </label>
         <div className="flex flex-wrap gap-1.5">
@@ -336,7 +302,7 @@ export function InlineBlockForm({ blocks, onChange, mood, collapsible = true }: 
 
     return (
       <div>
-        <label className="flex items-center gap-1.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+        <label className="flex items-center gap-1.5 text-sm font-medium text-foreground mb-2">
           <HealthBlockIcon className="h-4 w-4" /> {BLOCK_DEFINITIONS.health.label}
         </label>
         <div className="flex flex-wrap gap-1.5">
@@ -359,18 +325,9 @@ export function InlineBlockForm({ blocks, onChange, mood, collapsible = true }: 
     const block = blocks.sleep;
     const SleepBlockIcon = BLOCK_ICONS.sleep;
 
-    // Map mood to focus ring color
-    const focusRingClasses: Record<Mood, string> = {
-      great: 'focus-visible:ring-emerald-500',
-      good: 'focus-visible:ring-green-500',
-      neutral: 'focus-visible:ring-amber-500',
-      bad: 'focus-visible:ring-orange-500',
-      terrible: 'focus-visible:ring-red-500',
-    };
-
     return (
       <div>
-        <label className="flex items-center gap-1.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+        <label className="flex items-center gap-1.5 text-sm font-medium text-foreground mb-2">
           <SleepBlockIcon className="h-4 w-4" /> {BLOCK_DEFINITIONS.sleep.label}
         </label>
         <Input
@@ -388,7 +345,7 @@ export function InlineBlockForm({ blocks, onChange, mood, collapsible = true }: 
             )
           }
           placeholder="Hours of sleep"
-          className={cn('rounded-xl', mood && focusRingClasses[mood])}
+          className="rounded-xl focus-visible:ring-primary/50"
           min={0}
           max={24}
           step={0.5}
@@ -412,8 +369,6 @@ export function InlineBlockForm({ blocks, onChange, mood, collapsible = true }: 
     return content;
   }
 
-  const moodStyles = mood ? MOOD_OPTION_STYLES[mood] : MOOD_OPTION_STYLES.neutral;
-
   // Collapsible mode
   return (
     <div className="space-y-2">
@@ -422,23 +377,23 @@ export function InlineBlockForm({ blocks, onChange, mood, collapsible = true }: 
         onClick={() => setIsExpanded(!isExpanded)}
         className={cn(
           'w-full flex items-center justify-between p-3 rounded-xl transition-colors cursor-pointer',
-          'bg-neutral-100 dark:bg-neutral-800/50 hover:bg-neutral-200 dark:hover:bg-neutral-800'
+          'bg-muted hover:bg-muted/80'
         )}
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
       >
         <div className="flex items-center gap-3">
           <BLOCK_ICONS.weather className="h-5 w-5 text-muted-foreground" />
-          <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+          <span className="text-sm font-medium text-foreground">
             Add Details
           </span>
           {hasSelections && !isExpanded && (
             <div className="flex items-center gap-2">
-              <SelectedItemsSummary items={selectedItems} mood={mood} maxVisible={3} />
+              <SelectedItemsSummary items={selectedItems} maxVisible={3} />
               {hasSleep && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className={cn('flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs font-medium', moodStyles.bg, moodStyles.text)}>
+                    <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs font-medium bg-primary/15 text-primary">
                       <Moon className="h-3 w-3" />
                       {sleepValue}h
                     </span>
