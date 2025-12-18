@@ -32,6 +32,13 @@ import {
   Dices,
   CloudSun,
   Waves,
+  Dumbbell,
+  Footprints,
+  Bike,
+  Volleyball,
+  Mountain,
+  Music,
+  Goal,
   type LucideIcon,
 } from 'lucide-react';
 import { Mood, BlockId } from './types';
@@ -52,6 +59,7 @@ export const BLOCK_ICONS: Record<BlockId, LucideIcon> = {
   meals: UtensilsCrossed,
   selfcare: ShowerHead,
   health: Stethoscope,
+  exercise: Dumbbell,
 };
 
 // Weather option icons
@@ -90,6 +98,20 @@ export const HEALTH_ICONS: Record<string, LucideIcon> = {
   medicine: Pill,
 };
 
+// Exercise option icons
+export const EXERCISE_ICONS: Record<string, LucideIcon> = {
+  running: Footprints,
+  walking: Footprints,
+  cycling: Bike,
+  swimming: Waves,
+  gym: Dumbbell,
+  yoga: Sparkles,
+  stretching: Sparkles,
+  hiking: Mountain,
+  dancing: Music,
+  sports: Goal,
+};
+
 // Question category icons
 export const CATEGORY_ICONS: Record<string, LucideIcon> = {
   reflection: Eye,
@@ -112,7 +134,7 @@ export function MoodIcon({ mood, className = 'h-6 w-6' }: MoodIconProps) {
 
 // Helper to get icon component for options
 export function getOptionIcon(
-  type: 'weather' | 'meals' | 'selfcare' | 'health',
+  type: 'weather' | 'meals' | 'selfcare' | 'health' | 'exercise',
   value: string
 ): LucideIcon {
   switch (type) {
@@ -124,5 +146,7 @@ export function getOptionIcon(
       return SELFCARE_ICONS[value] || ShowerHead;
     case 'health':
       return HEALTH_ICONS[value] || Stethoscope;
+    case 'exercise':
+      return EXERCISE_ICONS[value] || Dumbbell;
   }
 }

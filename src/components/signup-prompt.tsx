@@ -98,7 +98,7 @@ export function SignupPrompt() {
           className="fixed bottom-20 left-4 right-4 z-40 max-w-md mx-auto"
         >
           <div className={cn(
-            'bg-gradient-to-br rounded-2xl p-5 shadow-xl border',
+            'bg-gradient-to-br rounded-2xl p-5 border',
             MOOD_BG_CLASSES[latestMood]
           )}>
             {/* Close button */}

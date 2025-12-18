@@ -20,34 +20,34 @@ const MOOD_STYLES = {
     base: 'bg-emerald-100 dark:bg-emerald-900/40 border-emerald-300 dark:border-emerald-700',
     hover: 'hover:bg-emerald-200 dark:hover:bg-emerald-800/50',
     selected:
-      'bg-emerald-500 border-emerald-600 border-3 shadow-lg shadow-emerald-500/30',
+      'bg-emerald-500 border-emerald-600 border-3',
     iconColor: 'text-emerald-600 dark:text-emerald-400',
   },
   good: {
     base: 'bg-green-100 dark:bg-green-900/40 border-green-300 dark:border-green-700',
     hover: 'hover:bg-green-200 dark:hover:bg-green-800/50',
     selected:
-      'bg-green-500 border-green-600 border-3 shadow-lg shadow-green-500/30',
+      'bg-green-500 border-green-600 border-3',
     iconColor: 'text-green-600 dark:text-green-400',
   },
   neutral: {
     base: 'bg-amber-100 dark:bg-amber-900/40 border-amber-300 dark:border-amber-700',
     hover: 'hover:bg-amber-200 dark:hover:bg-amber-800/50',
     selected:
-      'bg-amber-500 border-amber-600 border-3 shadow-lg shadow-amber-500/30',
+      'bg-amber-500 border-amber-600 border-3',
     iconColor: 'text-amber-600 dark:text-amber-400',
   },
   bad: {
     base: 'bg-orange-100 dark:bg-orange-900/40 border-orange-300 dark:border-orange-700',
     hover: 'hover:bg-orange-200 dark:hover:bg-orange-800/50',
     selected:
-      'bg-orange-500 border-orange-600 border-3 shadow-lg shadow-orange-500/30',
+      'bg-orange-500 border-orange-600 border-3',
     iconColor: 'text-orange-600 dark:text-orange-400',
   },
   terrible: {
     base: 'bg-red-100 dark:bg-red-900/40 border-red-300 dark:border-red-700',
     hover: 'hover:bg-red-200 dark:hover:bg-red-800/50',
-    selected: 'bg-red-500 border-red-600 border-3 shadow-lg shadow-red-500/30',
+    selected: 'bg-red-500 border-red-600 border-3',
     iconColor: 'text-red-600 dark:text-red-400',
   },
 };
@@ -57,6 +57,7 @@ interface MoodSelectorProps {
   onChange: (mood: Mood) => void;
   size?: 'sm' | 'md' | 'lg';
   showPreview?: boolean;
+  highlightedIndex?: number;
 }
 
 export function MoodSelector({
@@ -64,17 +65,18 @@ export function MoodSelector({
   onChange,
   size = 'sm',
   showPreview = false,
+  highlightedIndex,
 }: MoodSelectorProps) {
   const sizeClasses = {
-    sm: 'py-2 px-3',
+    sm: 'p-1.5 sm:py-2 sm:px-3',
     md: 'p-3',
-    lg: 'p-2 md:p-4',
+    lg: 'p-2.5 md:p-4',
   };
 
   const iconSizeClasses = {
-    sm: 'h-6 w-6',
+    sm: 'h-5 w-5 sm:h-6 sm:w-6',
     md: 'h-8 w-8',
-    lg: 'h-6 w-6 md:h-10 md:w-10',
+    lg: 'h-8 w-8 md:h-10 md:w-10',
   };
 
   // Container animation variants
@@ -103,13 +105,14 @@ export function MoodSelector({
   return (
     <div className="space-y-4">
       <motion.div
-        className="flex flex-wrap justify-center gap-3 py-1 px-1"
+        className="flex justify-center gap-1 sm:gap-2 md:gap-3 py-1 px-1"
         variants={containerVariants}
         initial="hidden"
         animate="show"
       >
-        {MOODS.map((mood) => {
+        {MOODS.map((mood, index) => {
           const isSelected = value === mood.value;
+          const isHighlighted = highlightedIndex === index;
           const styles = MOOD_STYLES[mood.value];
 
           return (
@@ -122,26 +125,25 @@ export function MoodSelector({
                 sizeClasses[size],
                 isSelected
                   ? `${styles.selected}`
-                  : `${styles.base} ${styles.hover}`
+                  : `${styles.base} ${styles.hover}`,
+                // Keyboard highlight - subtle ring
+                isHighlighted && !isSelected && 'ring-2 ring-primary/50 ring-offset-2 ring-offset-background'
               )}
               title={mood.label}
               variants={getButtonVariants(isSelected)}
+              animate={{
+                scale: isSelected ? 1.1 : isHighlighted ? 1.08 : 1,
+              }}
               whileHover={{
                 scale: isSelected ? 1.15 : 1.08,
-                transition: {
-                  type: 'spring',
-                  stiffness: 400,
-                  damping: 15,
-                },
               }}
               whileTap={{
                 scale: 0.95,
-                transition: { duration: 0.1 },
               }}
               transition={{
                 type: 'spring',
                 stiffness: 400,
-                damping: 20,
+                damping: 15,
               }}
             >
               {/* Ripple effect on selection */}

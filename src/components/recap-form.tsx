@@ -1,10 +1,12 @@
 'use client';
 
-import { RefObject, useEffect, useState, useCallback } from 'react';
+import { RefObject, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { InlineBlockForm } from '@/components/blocks/inline-block-form';
-import { PhotoUploader, PhotoData } from '@/components/photo-uploader';
+import { QuickAdditions } from '@/components/blocks/quick-additions';
+import { PhotoData } from '@/components/photo-uploader';
 import { CardBlock, BlockId, Mood } from '@/lib/types';
+
+type SaveStatus = 'idle' | 'saving' | 'saved';
 
 interface RecapFormProps {
   mode: 'create' | 'edit';
@@ -18,17 +20,7 @@ interface RecapFormProps {
   textareaRef: RefObject<HTMLTextAreaElement | null>;
   isSubmitting?: boolean;
   onSave?: () => void;
-}
-
-// Auto-resize textarea hook
-function useAutoResize(ref: RefObject<HTMLTextAreaElement | null>, value: string) {
-  useEffect(() => {
-    const textarea = ref.current;
-    if (textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = `${Math.max(120, textarea.scrollHeight)}px`;
-    }
-  }, [ref, value]);
+  saveStatus?: SaveStatus;
 }
 
 // Track if user is actively typing
@@ -58,27 +50,32 @@ export function RecapForm({
   textareaRef,
   isSubmitting,
   onSave,
+  saveStatus = 'idle',
 }: RecapFormProps) {
   // Track typing state to hide UI while actively writing
   const isTyping = useTypingState(text);
 
-  // Track if user has finished their initial thought (paused typing with content)
-  const hasContent = text.trim().length > 0;
-  const showSecondaryUI = hasContent && !isTyping;
+  // Show quick additions always - text is optional
+  const showSecondaryUI = !isTyping;
 
-  // Auto-resize the textarea
-  useAutoResize(textareaRef, text);
-
-  // Handle keyboard shortcut for save
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && onSave && !isSubmitting) {
+  // Handle keyboard shortcut for save - works globally
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        e.key === 'Enter' &&
+        onSave &&
+        !isSubmitting &&
+        mood
+      ) {
         e.preventDefault();
         onSave();
       }
-    },
-    [onSave, isSubmitting]
-  );
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onSave, isSubmitting, mood]);
 
   return (
     <motion.div
@@ -87,72 +84,86 @@ export function RecapForm({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="flex-1 flex flex-col pt-4 pb-8"
+      className="flex-1 flex flex-col pt-4 pb-4 min-h-0"
     >
-      {/* Writing area - takes focus */}
-      <div className="flex-1">
+      {/* Writing area - scrollable */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
         <textarea
           ref={textareaRef}
           value={text}
           onChange={(e) => setText(e.target.value)}
-          onKeyDown={handleKeyDown}
           placeholder=""
           autoFocus
-          className="w-full min-h-32 resize-none text-xl leading-relaxed bg-transparent border-0 outline-none placeholder:text-muted-foreground/30 focus:outline-none caret-primary"
+          className="w-full h-full flex resize-none text-xl leading-relaxed bg-transparent border-0 outline-none placeholder:text-muted-foreground/30 focus:outline-none caret-primary"
         />
       </div>
 
-      {/* Secondary UI - only appears after user pauses writing */}
-      <AnimatePresence>
-        {showSecondaryUI && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-            className="mt-8 space-y-4"
-          >
-            {/* Optional additions - collapsed by default */}
-            <div className="space-y-3 opacity-60 hover:opacity-100 transition-opacity duration-300">
-              <InlineBlockForm blocks={blocks} onChange={setBlocks} mood={mood} />
-              <PhotoUploader
-                value={photoData}
-                onChange={setPhotoData}
-                collapsible
+      {/* Bottom section - fixed at bottom, doesn't scroll */}
+      <div className="shrink-0 pt-4 space-y-3">
+        {/* Quick additions - show after typing */}
+        <AnimatePresence>
+          {showSecondaryUI && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <QuickAdditions
+                blocks={blocks}
+                onBlocksChange={setBlocks}
+                photoData={photoData}
+                onPhotoChange={setPhotoData}
               />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Save button (create mode) or auto-save status (edit mode) */}
+        {onSave ? (
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground/40">⌘ + Enter</span>
+            <motion.button
+              initial={{ opacity: 0.6 }}
+              whileHover={{ opacity: 1 }}
+              onClick={onSave}
+              disabled={isSubmitting || !mood}
+              className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            >
+              {isSubmitting ? 'Saving...' : 'Save'}
+            </motion.button>
+          </div>
+        ) : (
+          mode === 'edit' && (
+            <div className="flex items-center justify-end h-6">
+              <AnimatePresence mode="wait">
+                {saveStatus === 'saving' && (
+                  <motion.span
+                    key="saving"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-xs text-muted-foreground/60"
+                  >
+                    Saving...
+                  </motion.span>
+                )}
+                {saveStatus === 'saved' && (
+                  <motion.span
+                    key="saved"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-xs text-muted-foreground/60"
+                  >
+                    Saved
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </div>
-
-            {/* Save - appears subtly */}
-            {onSave && (
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.7 }}
-                whileHover={{ opacity: 1 }}
-                transition={{ duration: 0.2 }}
-                onClick={onSave}
-                disabled={isSubmitting || !mood}
-                className="w-full py-3 text-sm text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-              >
-                {isSubmitting ? 'Saving...' : 'Save entry'}
-              </motion.button>
-            )}
-          </motion.div>
+          )
         )}
-      </AnimatePresence>
-
-      {/* Minimal save hint when no content yet */}
-      <AnimatePresence>
-        {!hasContent && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.3 }}
-            exit={{ opacity: 0 }}
-            className="mt-auto pt-8 text-center text-xs text-muted-foreground"
-          >
-            ⌘ + Enter to save
-          </motion.p>
-        )}
-      </AnimatePresence>
+      </div>
     </motion.div>
   );
 }

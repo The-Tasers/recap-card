@@ -6,7 +6,7 @@ import {
   User,
   Cloud,
   CloudOff,
-  ArrowLeft,
+  ChevronLeft,
   LogOut,
   Loader2,
   Check,
@@ -75,11 +75,11 @@ export function SettingsPanel({
       <div className="flex items-center justify-between mb-8">
         <motion.button
           onClick={onBack}
-          className="flex items-center gap-1.5 text-muted-foreground/50 hover:text-foreground transition-colors cursor-pointer py-2 -ml-2 pl-2 pr-3"
+          className="p-2 -ml-2 text-muted-foreground/50 hover:text-foreground transition-colors cursor-pointer rounded-full hover:bg-muted/30"
           whileTap={{ scale: 0.95 }}
+          aria-label="Go back"
         >
-          <ArrowLeft className="h-4 w-4" />
-          <span className="text-sm">Back</span>
+          <ChevronLeft className="h-5 w-5" />
         </motion.button>
 
         <h1 className="text-lg font-medium text-foreground">Settings</h1>
@@ -89,7 +89,7 @@ export function SettingsPanel({
       </div>
 
       {/* Content - scrollable, calm */}
-      <div className="flex-1 space-y-6 overflow-y-auto">
+      <div className="flex-1 space-y-6">
         {/* Account Section */}
         <section className="space-y-3">
           <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -134,8 +134,8 @@ export function SettingsPanel({
                   <DialogHeader>
                     <DialogTitle>Delete Account</DialogTitle>
                     <DialogDescription>
-                      This will permanently delete your account, all your recaps,
-                      and photos. This action cannot be undone.
+                      This will permanently delete your account, all your
+                      recaps, and photos. This action cannot be undone.
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter className="gap-2">
@@ -192,7 +192,9 @@ export function SettingsPanel({
                   'relative rounded-xl p-2 transition-all cursor-pointer border-2',
                   colorTheme === theme.value
                     ? 'border-primary'
-                    : 'border-transparent hover:border-border/50'
+                    : !theme.isDark
+                      ? 'border-border/40 hover:border-border/70'
+                      : 'border-transparent hover:border-border/50'
                 )}
                 style={{ backgroundColor: theme.preview.bg }}
               >
@@ -246,7 +248,7 @@ export function SettingsPanel({
 
           <div className="p-3 rounded-xl bg-muted/30">
             <p className="text-sm text-muted-foreground">
-              {cardsCount} {cardsCount === 1 ? 'entry' : 'entries'} saved
+              {cardsCount} {cardsCount === 1 ? 'recap' : 'recaps'} saved
               {user ? ' locally and in the cloud' : ' locally'}
             </p>
           </div>
@@ -261,7 +263,7 @@ export function SettingsPanel({
               <DialogHeader>
                 <DialogTitle>Clear All Data</DialogTitle>
                 <DialogDescription>
-                  This will permanently delete all your entries
+                  This will permanently delete all your recaps
                   {user ? ' from both your device and the cloud' : ''}. This
                   cannot be undone.
                 </DialogDescription>
@@ -290,7 +292,7 @@ export function SettingsPanel({
         {/* About - minimal footer */}
         <section className="pt-4 mt-auto">
           <p className="text-xs text-muted-foreground/40 text-center">
-            Recapp · Version 0.1.0
+            Recapz · Version 0.1.0
           </p>
         </section>
       </div>

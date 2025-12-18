@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Laugh, Smile, Meh, Frown, Angry } from 'lucide-react';
 import { useCardStore, clearIndexedDB } from '@/lib/store';
 import { getTodayRecap } from '@/lib/daily-utils';
-import { formatDate, groupCardsByWeek } from '@/lib/date-utils';
+import { groupCardsByWeek } from '@/lib/date-utils';
 import { createClient } from '@/lib/supabase/client';
 import { SignupPrompt } from '@/components/signup-prompt';
 import { PhotoData } from '@/components/photo-uploader';
@@ -16,15 +15,6 @@ import { TodayView } from '@/components/today-view';
 import { FormHeader } from '@/components/form-header';
 import { SettingsButton } from '@/components/settings-button';
 import { uploadImage, compressImageToDataUrl } from '@/lib/supabase/storage';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { useAuth } from '@/components/auth-provider';
 import {
   DailyCard,
@@ -33,10 +23,13 @@ import {
   BlockId,
   BLOCK_DEFINITIONS,
 } from '@/lib/types';
+import { Laugh, Smile, Meh, Frown, Angry } from 'lucide-react';
 import { generateId } from '@/lib/export';
-import { useSupabaseSync } from '@/hooks/useSupabaseSync';
-import { toast } from 'sonner';
+import { useSyncContext } from '@/components/sync-provider';
+import { useDebouncedCallback } from '@/hooks/useDebounce';
 import { deleteImage, isSupabaseStorageUrl } from '@/lib/supabase/storage';
+
+type SaveStatus = 'idle' | 'saving' | 'saved';
 
 export default function Canvas() {
   const {
@@ -44,14 +37,20 @@ export default function Canvas() {
     hydrated,
     addCard,
     updateCard,
-    deleteCard,
-    getById,
-    draftEntry,
-    saveDraft,
+    softDeleteCard,
+    restoreCard,
+    removePendingDelete,
+    pendingDeletes,
     clearDraft,
   } = useCardStore();
-  const { saveRecapToCloud, deleteRecapFromCloud, isAuthenticated } =
-    useSupabaseSync();
+  const {
+    saveRecapToCloud,
+    deleteRecapFromCloud,
+    restoreRecapInCloud,
+    isAuthenticated,
+    syncNotification,
+    showNotification,
+  } = useSyncContext();
   const { user, signOut, loading: authLoading } = useAuth();
 
   // Initialize blocks helper
@@ -62,6 +61,7 @@ export default function Canvas() {
       'meals',
       'selfcare',
       'health',
+      'exercise',
     ];
     const initialBlocks: Record<BlockId, CardBlock> = {} as Record<
       BlockId,
@@ -83,13 +83,7 @@ export default function Canvas() {
     return initialBlocks;
   };
 
-  // Check-in state
-  const [mood, setMood] = useState<Mood | undefined>(draftEntry?.mood);
-  const [text, setText] = useState(draftEntry?.text || '');
-  const [blocks, setBlocks] =
-    useState<Record<BlockId, CardBlock>>(initializeBlocks);
-  const [photoData, setPhotoData] = useState<PhotoData | undefined>();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Edit state
   const [editingCard, setEditingCard] = useState<DailyCard | null>(null);
   const [editMood, setEditMood] = useState<Mood | undefined>();
   const [editText, setEditText] = useState('');
@@ -97,13 +91,31 @@ export default function Canvas() {
     useState<Record<BlockId, CardBlock>>(initializeBlocks);
   const [editPhotoData, setEditPhotoData] = useState<PhotoData | undefined>();
   const [showSettings, setShowSettings] = useState(false);
-  const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isSavingRef = useRef(false);
 
-  // Today's entry
-  const todayEntry = useMemo(() => getTodayRecap(cards), [cards]);
+  // Today's entry (including pending deletes to show undo state)
+  const todayEntry = useMemo(() => {
+    // First check active cards
+    const activeToday = getTodayRecap(cards);
+    if (activeToday) return activeToday;
+
+    // Check if today's entry is pending delete (so we can show undo)
+    const today = new Date().toDateString();
+    const pendingToday = pendingDeletes.find(
+      (pd) => new Date(pd.card.createdAt).toDateString() === today
+    );
+    return pendingToday?.card ?? null;
+  }, [cards, pendingDeletes]);
+
+  // Check if today's entry is in pending delete state
+  const isTodayPendingDelete = useMemo(() => {
+    if (!todayEntry) return false;
+    return pendingDeletes.some((pd) => pd.card.id === todayEntry.id);
+  }, [todayEntry, pendingDeletes]);
 
   // Past entries (excluding today)
   const pastEntries = useMemo(() => {
@@ -117,50 +129,41 @@ export default function Canvas() {
     [pastEntries]
   );
 
-  // Auto-save draft
+  // Global keyboard navigation
   useEffect(() => {
-    if (mood && !todayEntry) {
-      saveDraft({ mood, text });
-    }
-  }, [mood, text, todayEntry, saveDraft]);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Escape - exit current mode
+      if (e.key === 'Escape') {
+        // If in settings, close settings
+        if (showSettings) {
+          e.preventDefault();
+          setShowSettings(false);
+          return;
+        }
 
-  // Auto-focus textarea when mood selected
-  useEffect(() => {
-    if (mood && !todayEntry && textareaRef.current) {
-      const timer = setTimeout(() => {
-        textareaRef.current?.focus();
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [mood, todayEntry]);
-
-  // Handle save
-  const handleSave = async () => {
-    if (!mood) return;
-
-    setIsSubmitting(true);
-
-    try {
-      let photoUrl: string | undefined;
-      if (photoData?.file) {
-        if (user?.id) {
-          const { url, error } = await uploadImage(photoData.file, user.id);
-          if (error) {
-            toast.error('Image upload failed', { description: error });
-            setIsSubmitting(false);
-            return;
-          }
-          photoUrl = url ?? undefined;
-        } else {
-          photoUrl = await compressImageToDataUrl(photoData.file);
+        // If editing, exit edit mode
+        if (editingCard) {
+          e.preventDefault();
+          cancelEdit();
+          return;
         }
       }
+    };
 
-      if (photoData?.previewUrl) {
-        URL.revokeObjectURL(photoData.previewUrl);
-      }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showSettings, editingCard]);
 
-      const blocksArray = Object.values(blocks);
+  // Auto-save function for edit mode (handles text, mood, blocks, and photos)
+  const performAutoSave = useCallback(async () => {
+    if (!editingCard || !editMood) return;
+    if (isSavingRef.current) return; // Prevent re-entry during save
+
+    isSavingRef.current = true;
+    setSaveStatus('saving');
+
+    try {
+      const blocksArray = Object.values(editBlocks);
       const nonEmptyBlocks = blocksArray.filter((block) => {
         if (block.type === 'number') {
           return (
@@ -174,39 +177,126 @@ export default function Canvas() {
         return false;
       });
 
-      const newCard: DailyCard = {
-        id: generateId(),
-        mood,
-        text: text.trim(),
+      // Handle photo changes
+      let photoUrl: string | undefined;
+      const originalPhotoUrl = editingCard.photoUrl;
+      const photoWasRemoved = editPhotoData?.markedForDeletion === true;
+      const hasNewPhoto = !!editPhotoData?.file;
+
+      if (hasNewPhoto && editPhotoData?.file) {
+        // Upload new photo
+        if (user?.id) {
+          const { url, error } = await uploadImage(editPhotoData.file, user.id);
+          if (error) {
+            showNotification('error', 'Image upload failed');
+            setSaveStatus('idle');
+            return;
+          }
+          photoUrl = url ?? undefined;
+        } else {
+          photoUrl = await compressImageToDataUrl(editPhotoData.file);
+        }
+
+        // Delete old photo if it was in Supabase storage and user is authenticated
+        if (
+          originalPhotoUrl &&
+          isSupabaseStorageUrl(originalPhotoUrl) &&
+          isAuthenticated
+        ) {
+          await deleteImage(originalPhotoUrl);
+        }
+
+        // Clear the file from editPhotoData to prevent re-upload, keep previewUrl for display
+        if (editPhotoData.previewUrl) {
+          URL.revokeObjectURL(editPhotoData.previewUrl);
+        }
+        setEditPhotoData({ existingUrl: photoUrl });
+      } else if (photoWasRemoved) {
+        // Photo was removed - only delete from cloud if authenticated
+        if (
+          originalPhotoUrl &&
+          isSupabaseStorageUrl(originalPhotoUrl) &&
+          isAuthenticated
+        ) {
+          await deleteImage(originalPhotoUrl);
+        }
+        photoUrl = undefined;
+      } else {
+        // Keep existing photo
+        photoUrl = editPhotoData?.existingUrl || originalPhotoUrl;
+      }
+
+      const updates = {
+        text: editText.trim(),
+        mood: editMood,
         photoUrl,
         blocks: nonEmptyBlocks.length > 0 ? nonEmptyBlocks : undefined,
-        createdAt: new Date().toISOString(),
       };
 
-      const success = addCard(newCard);
-      if (success) {
-        clearDraft();
-        setMood(undefined);
-        setText('');
-        setBlocks(initializeBlocks());
-        setPhotoData(undefined);
+      const success = updateCard(editingCard.id, updates);
 
-        if (isAuthenticated) {
-          const cloudSuccess = await saveRecapToCloud(newCard);
-          if (!cloudSuccess) {
-            toast.error('Cloud sync failed', {
-              description: 'Saved locally. Will sync when possible.',
-            });
-          }
-        }
+      if (success && isAuthenticated) {
+        const updatedCard: DailyCard = { ...editingCard, ...updates };
+        await saveRecapToCloud(updatedCard);
       }
+
+      // Update editingCard reference with new photoUrl
+      if (success && photoUrl !== editingCard.photoUrl) {
+        setEditingCard({ ...editingCard, ...updates });
+      }
+
+      setSaveStatus('saved');
+
+      // Clear "saved" status after a delay
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+      autoSaveTimeoutRef.current = setTimeout(() => {
+        setSaveStatus('idle');
+      }, 2000);
     } catch (err) {
-      console.error('Failed to save', err);
-      toast.error('Failed to save');
+      console.error('Auto-save failed', err);
+      setSaveStatus('idle');
     } finally {
-      setIsSubmitting(false);
+      isSavingRef.current = false;
     }
-  };
+  }, [
+    editingCard,
+    editMood,
+    editText,
+    editBlocks,
+    editPhotoData,
+    updateCard,
+    isAuthenticated,
+    saveRecapToCloud,
+    user?.id,
+  ]);
+
+  // Debounced auto-save for text changes (1 second delay)
+  const debouncedAutoSave = useDebouncedCallback(performAutoSave, 1000);
+
+  // Trigger auto-save when edit fields change (including photo)
+  useEffect(() => {
+    if (editingCard && editMood) {
+      debouncedAutoSave();
+    }
+  }, [
+    editText,
+    editMood,
+    editBlocks,
+    editPhotoData,
+    editingCard,
+    debouncedAutoSave,
+  ]);
+
+  // Cleanup auto-save timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Start editing a card
   const startEdit = (card: DailyCard) => {
@@ -237,116 +327,59 @@ export default function Canvas() {
     setEditPhotoData(undefined);
   };
 
-  // Save edit
-  const handleSaveEdit = async () => {
-    if (!editingCard || !editMood) return;
+  // Done editing - save immediately then exit
+  const handleDone = useCallback(async () => {
+    // Force immediate save before exiting
+    await performAutoSave();
+    cancelEdit();
+  }, [performAutoSave]);
 
-    setIsSubmitting(true);
-
-    try {
-      let photoUrl: string | undefined;
-      const originalPhotoUrl = editingCard.photoUrl;
-      const photoWasRemoved = editPhotoData?.markedForDeletion === true;
-      const hasNewPhoto = !!editPhotoData?.file;
-
-      if (hasNewPhoto && editPhotoData?.file) {
-        if (user?.id) {
-          const { url, error } = await uploadImage(editPhotoData.file, user.id);
-          if (error) {
-            toast.error('Image upload failed', { description: error });
-            setIsSubmitting(false);
-            return;
-          }
-          photoUrl = url ?? undefined;
-        } else {
-          photoUrl = await compressImageToDataUrl(editPhotoData.file);
-        }
-
-        if (originalPhotoUrl && isSupabaseStorageUrl(originalPhotoUrl)) {
-          await deleteImage(originalPhotoUrl);
-        }
-      } else if (photoWasRemoved) {
-        if (originalPhotoUrl && isSupabaseStorageUrl(originalPhotoUrl)) {
-          await deleteImage(originalPhotoUrl);
-        }
-        photoUrl = undefined;
-      } else {
-        photoUrl = originalPhotoUrl;
-      }
-
-      if (editPhotoData?.previewUrl) {
-        URL.revokeObjectURL(editPhotoData.previewUrl);
-      }
-
-      const blocksArray = Object.values(editBlocks);
-      const nonEmptyBlocks = blocksArray.filter((block) => {
-        if (block.type === 'number') {
-          return (
-            block.value !== null &&
-            block.value !== undefined &&
-            block.value !== 0
-          );
-        } else if (block.type === 'multiselect') {
-          return Array.isArray(block.value) && block.value.length > 0;
-        }
-        return false;
-      });
-
-      const updates = {
-        text: editText.trim(),
-        mood: editMood,
-        photoUrl,
-        blocks: nonEmptyBlocks.length > 0 ? nonEmptyBlocks : undefined,
-      };
-
-      const success = updateCard(editingCard.id, updates);
-
-      if (success) {
-        if (isAuthenticated) {
-          const updatedCard: DailyCard = { ...editingCard, ...updates };
-          const cloudSuccess = await saveRecapToCloud(updatedCard);
-          if (!cloudSuccess) {
-            toast.error('Cloud sync failed', {
-              description: 'Saved locally. Will sync when possible.',
-            });
-          }
-        }
-        cancelEdit();
-      } else {
-        toast.error('Failed to save');
-      }
-    } catch (err) {
-      console.error('Failed to update card', err);
-      toast.error('Failed to save');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Handle delete
-  const handleDelete = async () => {
-    if (!deleteCardId) return;
-    const card = getById(deleteCardId);
+  // Handle soft delete - moves card to pending deletes with undo window
+  const handleDelete = async (cardId: string) => {
+    const card = softDeleteCard(cardId);
     if (!card) return;
 
-    setIsDeleting(true);
-
     try {
-      if (card.photoUrl && isSupabaseStorageUrl(card.photoUrl)) {
-        await deleteImage(card.photoUrl);
-      }
-
+      // Soft delete in cloud (set deleted_at timestamp)
       if (isAuthenticated) {
         await deleteRecapFromCloud(card.id);
       }
 
-      deleteCard(card.id);
-      setDeleteCardId(null);
+      // After undo window expires, permanently delete
+      setTimeout(async () => {
+        const stillPending = useCardStore.getState().getPendingDelete(cardId);
+        if (stillPending) {
+          // User didn't undo, permanently delete
+          removePendingDelete(cardId);
+
+          // Delete photo from cloud if exists and user is authenticated
+          if (
+            card.photoUrl &&
+            isSupabaseStorageUrl(card.photoUrl) &&
+            isAuthenticated
+          ) {
+            await deleteImage(card.photoUrl);
+          }
+        }
+      }, 5000); // 5 second undo window
     } catch (err) {
       console.error('Failed to delete card', err);
-      toast.error('Failed to delete');
-    } finally {
-      setIsDeleting(false);
+    }
+  };
+
+  // Handle undo delete - restores card from pending deletes
+  const handleUndo = async (cardId: string) => {
+    const restored = restoreCard(cardId);
+    if (!restored) return;
+
+    try {
+      // Restore in cloud (clear deleted_at timestamp)
+      if (isAuthenticated) {
+        await restoreRecapInCloud(cardId);
+      }
+      showNotification('success', 'Entry restored');
+    } catch (err) {
+      console.error('Failed to restore card', err);
     }
   };
 
@@ -362,24 +395,24 @@ export default function Canvas() {
 
         if (error) {
           console.error('Error deleting cloud recaps:', error);
-          toast.error('Failed to delete cloud data');
+          showNotification('error', 'Failed to delete cloud data');
           return;
         }
       }
 
       await clearIndexedDB();
-      toast.success('All data cleared');
+      showNotification('success', 'All data cleared');
       setShowSettings(false);
       setTimeout(() => window.location.reload(), 100);
     } catch (error) {
       console.error('Error clearing data:', error);
-      toast.error('Failed to clear data');
+      showNotification('error', 'Failed to clear data');
     }
   };
 
   const handleSignOut = async () => {
     await signOut();
-    toast.success('Signed out');
+    showNotification('success', 'Signed out');
     setShowSettings(false);
   };
 
@@ -395,88 +428,94 @@ export default function Canvas() {
       await clearIndexedDB();
       await signOut();
 
-      toast.success('Account deleted successfully');
+      showNotification('success', 'Account deleted');
       setShowSettings(false);
 
       setTimeout(() => window.location.reload(), 100);
     } catch (error) {
       console.error('Error deleting account:', error);
-      toast.error('Failed to delete account');
+      showNotification('error', 'Failed to delete account');
     }
   };
 
-  // Handle back from create form
-  const handleBackFromCreate = () => {
-    setMood(undefined);
-    setText('');
-    setBlocks(initializeBlocks());
-    setPhotoData(undefined);
-    clearDraft();
-  };
-
-  // Handle mood change
-  const handleMoodChange = (newMood: Mood) => {
+  // Handle mood change - creates card immediately when selecting mood for new entry
+  const handleMoodChange = async (newMood: Mood) => {
     if (editingCard) {
+      // Just update mood for existing card being edited
       setEditMood(newMood);
-    } else {
-      setMood(newMood);
+      setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 100);
+      return;
+    }
+
+    // Create a new card immediately when mood is selected
+    const newCard: DailyCard = {
+      id: generateId(),
+      mood: newMood,
+      text: '',
+      createdAt: new Date().toISOString(),
+    };
+
+    const success = addCard(newCard);
+    if (success) {
+      clearDraft();
+      // Immediately start editing the new card
+      startEdit(newCard);
+
+      // Sync to cloud in background
+      if (isAuthenticated) {
+        saveRecapToCloud(newCard).catch(console.error);
+      }
     }
   };
 
   // Loading state
   if (!hydrated) {
     const moodIcons = [
-      { Icon: Laugh, color: 'text-green-500' },
-      { Icon: Smile, color: 'text-lime-500' },
-      { Icon: Meh, color: 'text-yellow-500' },
+      { Icon: Laugh, color: 'text-emerald-500' },
+      { Icon: Smile, color: 'text-green-500' },
+      { Icon: Meh, color: 'text-amber-500' },
       { Icon: Frown, color: 'text-orange-500' },
       { Icon: Angry, color: 'text-red-500' },
     ];
 
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white dark:bg-neutral-950">
-        <div className="flex flex-col items-center gap-8">
-          <h1 className="text-4xl font-black text-neutral-900 dark:text-neutral-100 tracking-tight">
-            RECAPP
-          </h1>
-          <div className="flex gap-3">
-            {moodIcons.map(({ Icon, color }, i) => (
-              <span
-                key={i}
-                className={`animate-bounce ${color}`}
-                style={{
-                  animationDelay: `${i * 100}ms`,
-                  animationDuration: '0.6s',
-                }}
-              >
-                <Icon className="h-7 w-7" />
-              </span>
-            ))}
-          </div>
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
+        <div className="flex items-center gap-1">
+          {moodIcons.map(({ Icon, color }, i) => (
+            <Icon
+              key={i}
+              className={`w-7 h-7 animate-bounce ${color}`}
+              style={{
+                animationDelay: `${i * 80}ms`,
+                animationDuration: '0.8s',
+              }}
+            />
+          ))}
         </div>
       </div>
     );
   }
 
-  const isInFormMode =
-    (!showSettings && !editingCard && !todayEntry && mood) || editingCard;
+  const isInFormMode = !!editingCard;
 
   return (
     <div className="h-screen flex flex-col bg-background">
-      {/* Settings button - hide when in form mode */}
+      {/* Settings button - hide when in form mode or settings */}
       <SettingsButton
-        isVisible={!showSettings && !editingCard && !isInFormMode}
+        isVisible={!showSettings && !editingCard}
         isAuthenticated={!!user}
         onClick={() => setShowSettings(true)}
       />
 
       {/* Form header */}
       <FormHeader
-        isVisible={!!isInFormMode}
+        isVisible={isInFormMode}
         editingCard={editingCard}
-        mood={mood}
+        mood={undefined}
         editMood={editMood}
-        onBack={editingCard ? cancelEdit : handleBackFromCreate}
+        onBack={handleDone}
         onMoodChange={handleMoodChange}
       />
 
@@ -497,52 +536,37 @@ export default function Canvas() {
         </div>
       )}
 
-      {/* Form modes - narrow container for focused writing */}
-      {!showSettings && (editingCard || !todayEntry) && (
-        <div className="max-w-lg mx-auto h-full px-6 relative flex flex-col overflow-hidden">
+      {/* Edit mode */}
+      {!showSettings && editingCard && (
+        <div className="max-w-lg w-full mx-auto h-full px-6 relative flex flex-col overflow-hidden">
           <AnimatePresence>
-            {/* Edit mode */}
-            {editingCard && (
-              <RecapForm
-                mode="edit"
-                text={editText}
-                setText={setEditText}
-                blocks={editBlocks}
-                setBlocks={setEditBlocks}
-                photoData={editPhotoData}
-                setPhotoData={setEditPhotoData}
-                mood={editMood}
-                textareaRef={textareaRef}
-                isSubmitting={isSubmitting}
-                onSave={handleSaveEdit}
-              />
-            )}
+            <RecapForm
+              mode="edit"
+              text={editText}
+              setText={setEditText}
+              blocks={editBlocks}
+              setBlocks={setEditBlocks}
+              photoData={editPhotoData}
+              setPhotoData={setEditPhotoData}
+              mood={editMood}
+              textareaRef={textareaRef}
+              saveStatus={saveStatus}
+            />
+          </AnimatePresence>
+        </div>
+      )}
 
-            {/* Initial mood selection */}
-            {!editingCard && !todayEntry && !mood && (
-              <MoodSelectView
-                mood={mood}
-                onMoodChange={handleMoodChange}
-                hasEntries={cards.length > 0}
-              />
-            )}
-
-            {/* Create form */}
-            {!editingCard && !todayEntry && mood && (
-              <RecapForm
-                mode="create"
-                text={text}
-                setText={setText}
-                blocks={blocks}
-                setBlocks={setBlocks}
-                photoData={photoData}
-                setPhotoData={setPhotoData}
-                mood={mood}
-                textareaRef={textareaRef}
-                isSubmitting={isSubmitting}
-                onSave={handleSave}
-              />
-            )}
+      {/* Mood selection - show when no today entry and not editing */}
+      {!showSettings && !editingCard && !todayEntry && (
+        <div className="max-w-lg w-full mx-auto h-full px-6 relative flex flex-col overflow-hidden">
+          <AnimatePresence>
+            <MoodSelectView
+              mood={undefined}
+              onMoodChange={handleMoodChange}
+              hasEntries={cards.length > 0}
+              isAuthenticated={!!user}
+              syncNotification={syncNotification}
+            />
           </AnimatePresence>
         </div>
       )}
@@ -556,7 +580,11 @@ export default function Canvas() {
               groupedEntries={groupedEntries}
               pastEntriesCount={pastEntries.length}
               onEdit={startEdit}
-              onDelete={setDeleteCardId}
+              onDelete={handleDelete}
+              onUndo={handleUndo}
+              isTodayPendingDelete={isTodayPendingDelete}
+              isAuthenticated={!!user}
+              syncNotification={syncNotification}
             />
           </AnimatePresence>
         </div>
@@ -564,38 +592,6 @@ export default function Canvas() {
 
       {/* Sign-up prompt */}
       <SignupPrompt />
-
-      {/* Delete confirmation dialog */}
-      <Dialog
-        open={!!deleteCardId}
-        onOpenChange={(open) => !open && setDeleteCardId(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Recap</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this recap? This action cannot be
-              undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setDeleteCardId(null)}
-              disabled={isDeleting}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? 'Deleting...' : 'Delete'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

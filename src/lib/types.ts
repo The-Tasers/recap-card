@@ -79,7 +79,7 @@ export const TYPOGRAPHY_SETS = TYPOGRAPHY_SETS_IMPL;
 // Block types for modular card content
 export type BlockType = 'text' | 'number' | 'link' | 'slider' | 'weather' | 'multiselect' | 'checkbox';
 
-export type BlockId = 'sleep' | 'weather' | 'meals' | 'selfcare' | 'health';
+export type BlockId = 'sleep' | 'weather' | 'meals' | 'selfcare' | 'health' | 'exercise';
 
 export interface CardBlock {
   id: string;
@@ -171,6 +171,12 @@ export const BLOCK_DEFINITIONS: Record<
     label: 'Health',
     placeholder: 'Select items...',
     icon: '🩺',
+  },
+  exercise: {
+    type: 'multiselect',
+    label: 'Exercise',
+    placeholder: 'Select activities...',
+    icon: '🏃',
   },
 };
 
@@ -274,4 +280,17 @@ export const HEALTH_OPTIONS = [
   { value: 'hospital', label: 'hospital', icon: '🏥' },
   { value: 'checkup', label: 'checkup', icon: '🩺' },
   { value: 'medicine', label: 'medicine', icon: '💊' },
+];
+
+export const EXERCISE_OPTIONS = [
+  { value: 'running', label: 'running', icon: '🏃' },
+  { value: 'walking', label: 'walking', icon: '🚶' },
+  { value: 'cycling', label: 'cycling', icon: '🚴' },
+  { value: 'swimming', label: 'swimming', icon: '🏊' },
+  { value: 'gym', label: 'gym', icon: '🏋️' },
+  { value: 'yoga', label: 'yoga', icon: '🧘' },
+  { value: 'stretching', label: 'stretching', icon: '🤸' },
+  { value: 'hiking', label: 'hiking', icon: '🥾' },
+  { value: 'dancing', label: 'dancing', icon: '💃' },
+  { value: 'sports', label: 'sports', icon: '⚽' },
 ];

@@ -115,8 +115,15 @@ function getErrorCode(error: unknown): StorageErrorCode {
   return STORAGE_ERROR_CODES.UNKNOWN_ERROR;
 }
 
+// Pending delete state for undo functionality
+interface PendingDelete {
+  card: DailyCard;
+  deletedAt: number;
+}
+
 interface CardStore {
   cards: DailyCard[];
+  pendingDeletes: PendingDelete[];
   hydrated: boolean;
   error: string | null;
   draftEntry: DraftEntry | null;
@@ -126,8 +133,12 @@ interface CardStore {
   addCard: (card: DailyCard) => boolean;
   updateCard: (id: string, updates: Partial<DailyCard>) => boolean;
   deleteCard: (id: string) => void;
+  softDeleteCard: (id: string) => DailyCard | undefined;
+  restoreCard: (id: string) => boolean;
+  removePendingDelete: (id: string) => void;
   getById: (id: string) => DailyCard | undefined;
   getCardByDate: (date: string) => DailyCard | undefined;
+  getPendingDelete: (id: string) => PendingDelete | undefined;
   setCards: (cards: DailyCard[]) => void;
   saveDraft: (draft: Omit<DraftEntry, 'lastUpdated'>) => void;
   clearDraft: () => void;
@@ -319,6 +330,7 @@ export const useCardStore = create<CardStore>()(
   persist(
     (set, get) => ({
       cards: [],
+      pendingDeletes: [],
       hydrated: false,
       error: null,
       draftEntry: null,
@@ -360,7 +372,51 @@ export const useCardStore = create<CardStore>()(
       deleteCard: (id) =>
         set((state) => ({
           cards: state.cards.filter((card) => card.id !== id),
+          pendingDeletes: state.pendingDeletes.filter((pd) => pd.card.id !== id),
           error: null,
+        })),
+      softDeleteCard: (id) => {
+        const card = get().cards.find((c) => c.id === id);
+        if (!card) return undefined;
+
+        set((state) => ({
+          cards: state.cards.filter((c) => c.id !== id),
+          pendingDeletes: [
+            ...state.pendingDeletes,
+            { card, deletedAt: Date.now() },
+          ],
+          error: null,
+        }));
+        return card;
+      },
+      restoreCard: (id) => {
+        const pendingDelete = get().pendingDeletes.find((pd) => pd.card.id === id);
+        if (!pendingDelete) return false;
+
+        set((state) => {
+          // Find the right position to insert based on createdAt
+          const restoredCard = pendingDelete.card;
+          const newCards = [...state.cards];
+          const insertIndex = newCards.findIndex(
+            (c) => new Date(c.createdAt) < new Date(restoredCard.createdAt)
+          );
+          if (insertIndex === -1) {
+            newCards.push(restoredCard);
+          } else {
+            newCards.splice(insertIndex, 0, restoredCard);
+          }
+
+          return {
+            cards: newCards,
+            pendingDeletes: state.pendingDeletes.filter((pd) => pd.card.id !== id),
+            error: null,
+          };
+        });
+        return true;
+      },
+      removePendingDelete: (id) =>
+        set((state) => ({
+          pendingDeletes: state.pendingDeletes.filter((pd) => pd.card.id !== id),
         })),
       getById: (id) => get().cards.find((card) => card.id === id),
       getCardByDate: (date) => {
@@ -369,6 +425,7 @@ export const useCardStore = create<CardStore>()(
           (card) => new Date(card.createdAt).toDateString() === targetDate
         );
       },
+      getPendingDelete: (id) => get().pendingDeletes.find((pd) => pd.card.id === id),
       saveDraft: (draft) => {
         set({
           draftEntry: {
