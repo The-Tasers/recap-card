@@ -1,5 +1,59 @@
 export type Mood = 'great' | 'good' | 'neutral' | 'bad' | 'terrible';
 
+// App color themes
+export type ColorTheme = 'midnight' | 'ocean' | 'ember' | 'linen' | 'sage' | 'rose';
+
+export const COLOR_THEMES: {
+  value: ColorTheme;
+  label: string;
+  description: string;
+  preview: { bg: string; card: string; accent: string };
+  isDark: boolean;
+}[] = [
+  {
+    value: 'midnight',
+    label: 'Midnight',
+    description: 'Deep violet dark',
+    preview: { bg: '#1f1d2b', card: '#2a2839', accent: '#8b7cf5' },
+    isDark: true,
+  },
+  {
+    value: 'ocean',
+    label: 'Ocean',
+    description: 'Calming teal depths',
+    preview: { bg: '#1a2e38', card: '#243d4a', accent: '#5eb8b0' },
+    isDark: true,
+  },
+  {
+    value: 'ember',
+    label: 'Ember',
+    description: 'Warm charcoal',
+    preview: { bg: '#1f1a18', card: '#2a2320', accent: '#e8a87c' },
+    isDark: true,
+  },
+  {
+    value: 'linen',
+    label: 'Linen',
+    description: 'Warm, creamy light',
+    preview: { bg: '#f7f5f0', card: '#fdfcfa', accent: '#c4a484' },
+    isDark: false,
+  },
+  {
+    value: 'sage',
+    label: 'Sage',
+    description: 'Fresh mint light',
+    preview: { bg: '#f2f7f4', card: '#fafcfb', accent: '#6b9e8a' },
+    isDark: false,
+  },
+  {
+    value: 'rose',
+    label: 'Rose',
+    description: 'Soft blush pink',
+    preview: { bg: '#faf5f7', card: '#fefcfd', accent: '#d4a5b5' },
+    isDark: false,
+  },
+];
+
 // Import design system types
 import {
   type PaletteId as PaletteIdType,
@@ -25,7 +79,7 @@ export const TYPOGRAPHY_SETS = TYPOGRAPHY_SETS_IMPL;
 // Block types for modular card content
 export type BlockType = 'text' | 'number' | 'link' | 'slider' | 'weather' | 'multiselect' | 'checkbox';
 
-export type BlockId = 'sleep' | 'weather' | 'meals' | 'selfcare' | 'health';
+export type BlockId = 'sleep' | 'weather' | 'meals' | 'selfcare' | 'health' | 'exercise';
 
 export interface CardBlock {
   id: string;
@@ -81,10 +135,6 @@ export interface DailyCard {
   theme?: ThemeId;
   font?: FontPreset;
   darkMode?: boolean;
-
-  // Share settings
-  shareId?: string;
-  shareExpiresAt?: string;
 }
 
 // Predefined block definitions
@@ -121,6 +171,12 @@ export const BLOCK_DEFINITIONS: Record<
     label: 'Health',
     placeholder: 'Select items...',
     icon: '🩺',
+  },
+  exercise: {
+    type: 'multiselect',
+    label: 'Exercise',
+    placeholder: 'Select activities...',
+    icon: '🏃',
   },
 };
 
@@ -224,4 +280,17 @@ export const HEALTH_OPTIONS = [
   { value: 'hospital', label: 'hospital', icon: '🏥' },
   { value: 'checkup', label: 'checkup', icon: '🩺' },
   { value: 'medicine', label: 'medicine', icon: '💊' },
+];
+
+export const EXERCISE_OPTIONS = [
+  { value: 'running', label: 'running', icon: '🏃' },
+  { value: 'walking', label: 'walking', icon: '🚶' },
+  { value: 'cycling', label: 'cycling', icon: '🚴' },
+  { value: 'swimming', label: 'swimming', icon: '🏊' },
+  { value: 'gym', label: 'gym', icon: '🏋️' },
+  { value: 'yoga', label: 'yoga', icon: '🧘' },
+  { value: 'stretching', label: 'stretching', icon: '🤸' },
+  { value: 'hiking', label: 'hiking', icon: '🥾' },
+  { value: 'dancing', label: 'dancing', icon: '💃' },
+  { value: 'sports', label: 'sports', icon: '⚽' },
 ];

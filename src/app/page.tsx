@@ -1,655 +1,597 @@
 'use client';
 
-import { useMemo, useState, Suspense, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Flame, Clock, CalendarDays } from 'lucide-react';
-
-import { useCardStore } from '@/lib/store';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useCardStore, clearIndexedDB } from '@/lib/store';
+import { getTodayRecap } from '@/lib/daily-utils';
+import { groupCardsByWeek } from '@/lib/date-utils';
+import { createClient } from '@/lib/supabase/client';
+import { SignupPrompt } from '@/components/signup-prompt';
+import { PhotoData } from '@/components/photo-uploader';
+import { RecapForm } from '@/components/recap-form';
+import { SettingsPanel } from '@/components/settings-panel';
+import { MoodSelectView } from '@/components/mood-select-view';
+import { TodayView } from '@/components/today-view';
+import { FormHeader } from '@/components/form-header';
+import { SettingsButton } from '@/components/settings-button';
+import { uploadImage, compressImageToDataUrl } from '@/lib/supabase/storage';
+import { useAuth } from '@/components/auth-provider';
 import {
-  getGreeting,
-  getTodayDateFormatted,
-  getTodayRecap,
-  getLastNDaysMoodData,
-  type MoodDayData,
-} from '@/lib/daily-utils';
-import { MoodMapTile } from '@/components/mood-map-tile';
-import { CreateSheet } from '@/components/create-sheet';
-import { cn } from '@/lib/utils';
+  DailyCard,
+  Mood,
+  CardBlock,
+  BlockId,
+  BLOCK_DEFINITIONS,
+} from '@/lib/types';
+import { Laugh, Smile, Meh, Frown, Angry } from 'lucide-react';
+import { generateId } from '@/lib/export';
+import { useSyncContext } from '@/components/sync-provider';
+import { useDebouncedCallback } from '@/hooks/useDebounce';
+import { deleteImage, isSupabaseStorageUrl } from '@/lib/supabase/storage';
 
-// Countdown Timer with CTA Component
-export function DayCountdown({
-  hasRecapToday,
-  onCreateClick,
-}: {
-  hasRecapToday: boolean;
-  onCreateClick?: () => void;
-}) {
-  const [timeLeft, setTimeLeft] = useState('');
-  const [message, setMessage] = useState('');
+type SaveStatus = 'idle' | 'saving' | 'saved';
 
-  useEffect(() => {
-    const updateCountdown = () => {
-      const now = new Date();
-      const midnight = new Date();
-      midnight.setHours(24, 0, 0, 0);
+export default function Canvas() {
+  const {
+    cards,
+    hydrated,
+    addCard,
+    updateCard,
+    softDeleteCard,
+    restoreCard,
+    removePendingDelete,
+    pendingDeletes,
+    clearDraft,
+  } = useCardStore();
+  const {
+    saveRecapToCloud,
+    deleteRecapFromCloud,
+    restoreRecapInCloud,
+    isAuthenticated,
+    syncNotification,
+    showNotification,
+  } = useSyncContext();
+  const { user, signOut, loading: authLoading } = useAuth();
 
-      const diff = midnight.getTime() - now.getTime();
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  // Initialize blocks helper
+  const initializeBlocks = (): Record<BlockId, CardBlock> => {
+    const blockIds: BlockId[] = [
+      'sleep',
+      'weather',
+      'meals',
+      'selfcare',
+      'health',
+      'exercise',
+    ];
+    const initialBlocks: Record<BlockId, CardBlock> = {} as Record<
+      BlockId,
+      CardBlock
+    >;
 
-      setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+    blockIds.forEach((blockId, index) => {
+      const definition = BLOCK_DEFINITIONS[blockId];
+      initialBlocks[blockId] = {
+        id: generateId(),
+        type: definition.type,
+        blockId,
+        label: definition.label,
+        value: definition.type === 'number' ? 0 : [],
+        order: index,
+      };
+    });
 
-      // Contextual messages based on time of day
-      const currentHour = now.getHours();
-      if (currentHour >= 5 && currentHour < 12) {
-        setMessage('A quiet moment to notice today ✨');
-      } else if (currentHour >= 12 && currentHour < 17) {
-        setMessage('How does this moment feel? 🌟');
-      } else if (currentHour >= 17 && currentHour < 22) {
-        setMessage('A moment to pause and reflect 🌙');
-      } else if (currentHour >= 22 || currentHour < 2) {
-        setMessage('Before the day ends, notice one thing 💫');
-      } else {
-        // 2am-5am - very late night/early morning
-        setMessage('Rest well. Tomorrow awaits 🌅');
-      }
-    };
-
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000); // Update every second
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Only show countdown in the evening (after 6pm until midnight)
-  const currentHour = new Date().getHours();
-  const shouldShowCountdown = currentHour >= 18;
-
-  if (hasRecapToday || !shouldShowCountdown) return null;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="mb-6"
-    >
-      <div className="relative flex flex-col items-center gap-2 md:gap-2.5 px-3 py-3 md:px-4 md:py-3 bg-linear-to-r from-amber-50 via-orange-50 to-rose-50 dark:from-amber-950/30 dark:via-orange-950/30 dark:to-rose-950/30 border border-amber-300/60 dark:border-amber-800/50 rounded-xl md:rounded-2xl shadow-sm">
-        {/* Subtle glow effect */}
-        <div className="absolute inset-0 bg-linear-to-r from-amber-400/5 via-orange-400/5 to-rose-400/5 dark:from-amber-400/10 dark:via-orange-400/10 dark:to-rose-400/10 rounded-xl md:rounded-2xl blur-xl" />
-
-        <div className="relative flex items-center gap-1.5 md:gap-2">
-          <Clock className="h-3 w-3 md:h-4 md:w-4 text-amber-600 dark:text-amber-400 animate-pulse" />
-          <span className="text-xs md:text-sm font-bold text-amber-800 dark:text-amber-300 tabular-nums">
-            {timeLeft} to reflect
-          </span>
-        </div>
-        <p className="relative text-[10px] md:text-xs text-amber-700/90 dark:text-amber-400/90 font-semibold">
-          {message}
-        </p>
-
-        {/* CTA Button */}
-        {onCreateClick && (
-          <button
-            onClick={onCreateClick}
-            className="relative w-full h-8 md:h-9 bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold text-xs md:text-sm rounded-lg md:rounded-xl shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
-          >
-            Notice this moment
-          </button>
-        )}
-      </div>
-    </motion.div>
-  );
-}
-
-// Header Component (Mobile only - desktop has sidebar)
-function Header() {
-  return (
-    <header className="lg:hidden sticky top-0 left-0 right-0 z-50 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-200/50 dark:border-neutral-800/50">
-      <div className="max-w-md mx-auto px-5 py-4">
-        <h1 className="relative text-4xl font-black text-neutral-900 dark:text-neutral-100 tracking-tight inline-block">
-          RECAP<span className="text-amber-500 absolute -right-1 -z-1">P</span>
-        </h1>
-      </div>
-    </header>
-  );
-}
-
-// Unified Dashboard Component (greeting + progress tiles)
-function Dashboard({
-  userName,
-  hasRecapToday,
-  isEmptyState = true,
-  stats,
-  moodData,
-  onCreateClick,
-}: {
-  userName: string;
-  hasRecapToday: boolean;
-  isEmptyState?: boolean;
-  stats: { streak: number; total: number };
-  moodData: MoodDayData[];
-  onCreateClick: () => void;
-}) {
-  const router = useRouter();
-  const greeting = getGreeting(userName);
-  const todayDate = getTodayDateFormatted();
-
-  const handleStreakClick = () => {
-    router.push('/timeline?view=calendar');
+    return initialBlocks;
   };
 
-  const handleTotalClick = () => {
-    router.push('/timeline?view=list');
-  };
+  // Edit state
+  const [editingCard, setEditingCard] = useState<DailyCard | null>(null);
+  const [editMood, setEditMood] = useState<Mood | undefined>();
+  const [editText, setEditText] = useState('');
+  const [editBlocks, setEditBlocks] =
+    useState<Record<BlockId, CardBlock>>(initializeBlocks);
+  const [editPhotoData, setEditPhotoData] = useState<PhotoData | undefined>();
+  const [showSettings, setShowSettings] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
-  const handleCreateClick = () => {
-    onCreateClick();
-  };
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isSavingRef = useRef(false);
 
-  return (
-    <>
-      {/* Greeting Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="my-6"
-      >
-        {/* Date and Greeting */}
-        <div className="mb-4">
-          <p className="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-2">
-            {todayDate}
-          </p>
-          <h2 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
-            {greeting}
-          </h2>
-          {!isEmptyState && (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-2">
-              Notice your day, one moment at a time
-            </p>
-          )}
-        </div>
+  // Today's entry (including pending deletes to show undo state)
+  const todayEntry = useMemo(() => {
+    // First check active cards
+    const activeToday = getTodayRecap(cards);
+    if (activeToday) return activeToday;
 
-        {/* Countdown Timer with CTA - under greeting */}
-        <DayCountdown
-          hasRecapToday={hasRecapToday}
-          onCreateClick={handleCreateClick}
-        />
-      </motion.div>
+    // Check if today's entry is pending delete (so we can show undo)
+    const today = new Date().toDateString();
+    const pendingToday = pendingDeletes.find(
+      (pd) => new Date(pd.card.createdAt).toDateString() === today
+    );
+    return pendingToday?.card ?? null;
+  }, [cards, pendingDeletes]);
 
-      {/* Progress Section - Hide until first recap */}
-      {!isEmptyState && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="space-y-4 mb-4"
-        >
-          <div className="mb-4">
-            <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-              How your days felt
-            </h2>
-          </div>
+  // Check if today's entry is in pending delete state
+  const isTodayPendingDelete = useMemo(() => {
+    if (!todayEntry) return false;
+    return pendingDeletes.some((pd) => pd.card.id === todayEntry.id);
+  }, [todayEntry, pendingDeletes]);
 
-          <div className="grid grid-cols-2 gap-3 md:gap-4">
-            {/* Streak Tile - Different styles based on state */}
-            <div
-              onClick={handleStreakClick}
-              className={cn(
-                'rounded-2xl p-3 md:p-5 shadow-sm border cursor-pointer hover:shadow-md hover:scale-[1.02] transition-all duration-200',
-                isEmptyState
-                  ? 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800'
-                  : 'bg-linear-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border-orange-200 dark:border-orange-900/50'
-              )}
-            >
-              <div className="flex items-center gap-1.5 md:gap-2 mb-2 md:mb-3">
-                <Flame className="h-4 w-4 md:h-5 md:w-5 text-orange-500" />
-                <h3 className="font-semibold text-sm md:text-base text-neutral-900 dark:text-neutral-100">
-                  Streak
-                </h3>
-              </div>
-              <div className="flex flex-col items-center justify-center h-16 md:h-20">
-                <div
-                  className={cn(
-                    'text-4xl md:text-5xl font-black',
-                    stats.streak > 0
-                      ? 'text-orange-500'
-                      : 'text-neutral-300 dark:text-neutral-700'
-                  )}
-                >
-                  {stats.streak}
-                </div>
-                <p
-                  className={cn(
-                    'text-[10px] md:text-xs mt-1',
-                    stats.streak > 0
-                      ? 'text-orange-500'
-                      : 'text-neutral-400 dark:text-neutral-600'
-                  )}
-                >
-                  {stats.streak === 0
-                    ? 'days yet'
-                    : stats.streak === 1
-                    ? 'day'
-                    : 'days'}
-                </p>
-              </div>
-              <p className="text-[10px] md:text-xs text-center text-neutral-500 dark:text-neutral-500 mt-2 md:mt-3">
-                Build momentum daily
-              </p>
-            </div>
-
-            {/* Total Recaps Tile */}
-            <div
-              onClick={handleTotalClick}
-              className="rounded-2xl p-3 md:p-5 shadow-sm border bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer"
-            >
-              <div className="flex items-center gap-1.5 md:gap-2 mb-2 md:mb-3">
-                <CalendarDays className="h-4 w-4 md:h-5 md:w-5 text-blue-500" />
-                <h3 className="font-semibold text-sm md:text-base text-neutral-900 dark:text-neutral-100">
-                  Total
-                </h3>
-              </div>
-              <div className="flex flex-col items-center justify-center h-16 md:h-20">
-                <div className="text-4xl md:text-5xl font-black text-blue-500">
-                  {stats.total}
-                </div>
-                <p className="text-[10px] md:text-xs text-blue-500 mt-1">
-                  all time
-                </p>
-              </div>
-              <p className="text-[10px] md:text-xs text-center text-neutral-500 dark:text-neutral-500 mt-2 md:mt-3">
-                Every moment counts
-              </p>
-            </div>
-          </div>
-
-          {/* Mood Map - Full width */}
-          <div className="mt-4">
-            <MoodMapTile moodData={moodData} />
-          </div>
-        </motion.div>
-      )}
-
-      {/* Motivational Message - Empty State */}
-      {isEmptyState && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="mt-8 lg:mt-12"
-        >
-          <div className="bg-linear-to-br from-amber-50 via-orange-50 to-rose-50 dark:from-amber-950/30 dark:via-orange-950/30 dark:to-rose-950/30 rounded-3xl p-6 lg:p-10 border border-amber-200 dark:border-amber-900/50 shadow-sm">
-            <div className="text-center max-w-2xl mx-auto">
-              <div className="mb-4 lg:mb-6">
-                <span className="text-5xl lg:text-7xl">✨</span>
-              </div>
-              <h3 className="text-xl lg:text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-3 lg:mb-4">
-                Notice your day
-              </h3>
-              <p className="text-sm lg:text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed mb-6 lg:mb-8">
-                This is a space for awareness, not achievement.
-                <br />
-                Just one small moment each day is enough.
-              </p>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-4 text-left">
-                <div className="bg-white/50 dark:bg-neutral-900/50 rounded-2xl p-4 lg:p-5">
-                  <div className="text-2xl lg:text-3xl mb-2">🌱</div>
-                  <h4 className="font-semibold text-sm lg:text-base text-neutral-900 dark:text-neutral-100 mb-1">
-                    Notice without pressure
-                  </h4>
-                  <p className="text-xs lg:text-sm text-neutral-600 dark:text-neutral-400">
-                    One moment that stood out to you today
-                  </p>
-                </div>
-                <div className="bg-white/50 dark:bg-neutral-900/50 rounded-2xl p-4 lg:p-5">
-                  <div className="text-2xl lg:text-3xl mb-2">🌙</div>
-                  <h4 className="font-semibold text-sm lg:text-base text-neutral-900 dark:text-neutral-100 mb-1">
-                    See how your days feel
-                  </h4>
-                  <p className="text-xs lg:text-sm text-neutral-600 dark:text-neutral-400">
-                    Patterns emerge naturally over time
-                  </p>
-                </div>
-                <div className="bg-white/50 dark:bg-neutral-900/50 rounded-2xl p-4 lg:p-5">
-                  <div className="text-2xl lg:text-3xl mb-2">☁️</div>
-                  <h4 className="font-semibold text-sm lg:text-base text-neutral-900 dark:text-neutral-100 mb-1">
-                    A calm daily ritual
-                  </h4>
-                  <p className="text-xs lg:text-sm text-neutral-600 dark:text-neutral-400">
-                    No streaks to maintain, no goals to hit
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={handleCreateClick}
-                className="mt-6 lg:mt-8 w-full cursor-pointer lg:w-auto lg:px-12 h-12 lg:h-14 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm lg:text-base rounded-2xl shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50 transition-all duration-200 hover:scale-[1.02]"
-              >
-                Capture today&apos;s moment
-              </button>
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </>
-  );
-}
-
-// Main Home Page Component
-function HomePageInner() {
-  const router = useRouter();
-  const { cards, hydrated, userName } = useCardStore();
-  const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
-
-  // Calculate stats
-  const stats = useMemo(() => {
-    const thisMonth = new Date();
-    thisMonth.setDate(1);
-    thisMonth.setHours(0, 0, 0, 0);
-
-    const cardsThisMonth = cards.filter(
-      (c) => new Date(c.createdAt) >= thisMonth
-    ).length;
-
-    // Calculate streak
-    let streak = 0;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    for (let i = 0; i < 365; i++) {
-      const checkDate = new Date(today);
-      checkDate.setDate(checkDate.getDate() - i);
-      const hasCard = cards.some(
-        (c) => new Date(c.createdAt).toDateString() === checkDate.toDateString()
-      );
-      if (hasCard) {
-        streak++;
-      } else if (i > 0) {
-        break;
-      }
-    }
-
-    // Calculate this week's progress (Mon-Sun)
-    const startOfWeek = new Date(today);
-    const dayOfWeek = startOfWeek.getDay();
-    const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Adjust to Monday
-    startOfWeek.setDate(startOfWeek.getDate() + diff);
-    startOfWeek.setHours(0, 0, 0, 0);
-
-    const cardsThisWeek = cards.filter(
-      (c) => new Date(c.createdAt) >= startOfWeek
-    ).length;
-
-    const weekProgress = Math.round((cardsThisWeek / 7) * 100);
-
-    return {
-      total: cards.length,
-      thisMonth: cardsThisMonth,
-      streak,
-      thisWeek: cardsThisWeek,
-      weekProgress,
-    };
+  // Past entries (excluding today)
+  const pastEntries = useMemo(() => {
+    const today = new Date().toDateString();
+    return cards.filter((c) => new Date(c.createdAt).toDateString() !== today);
   }, [cards]);
 
-  const handleStreakClick = () => {
-    router.push('/timeline?view=calendar');
+  // Grouped past entries
+  const groupedEntries = useMemo(
+    () => groupCardsByWeek(pastEntries),
+    [pastEntries]
+  );
+
+  // Global keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Escape - exit current mode
+      if (e.key === 'Escape') {
+        // If in settings, close settings
+        if (showSettings) {
+          e.preventDefault();
+          setShowSettings(false);
+          return;
+        }
+
+        // If editing, exit edit mode
+        if (editingCard) {
+          e.preventDefault();
+          cancelEdit();
+          return;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showSettings, editingCard]);
+
+  // Auto-save function for edit mode (handles text, mood, blocks, and photos)
+  const performAutoSave = useCallback(async () => {
+    if (!editingCard || !editMood) return;
+    if (isSavingRef.current) return; // Prevent re-entry during save
+
+    isSavingRef.current = true;
+    setSaveStatus('saving');
+
+    try {
+      const blocksArray = Object.values(editBlocks);
+      const nonEmptyBlocks = blocksArray.filter((block) => {
+        if (block.type === 'number') {
+          return (
+            block.value !== null &&
+            block.value !== undefined &&
+            block.value !== 0
+          );
+        } else if (block.type === 'multiselect') {
+          return Array.isArray(block.value) && block.value.length > 0;
+        }
+        return false;
+      });
+
+      // Handle photo changes
+      let photoUrl: string | undefined;
+      const originalPhotoUrl = editingCard.photoUrl;
+      const photoWasRemoved = editPhotoData?.markedForDeletion === true;
+      const hasNewPhoto = !!editPhotoData?.file;
+
+      if (hasNewPhoto && editPhotoData?.file) {
+        // Upload new photo
+        if (user?.id) {
+          const { url, error } = await uploadImage(editPhotoData.file, user.id);
+          if (error) {
+            showNotification('error', 'Image upload failed');
+            setSaveStatus('idle');
+            return;
+          }
+          photoUrl = url ?? undefined;
+        } else {
+          photoUrl = await compressImageToDataUrl(editPhotoData.file);
+        }
+
+        // Delete old photo if it was in Supabase storage and user is authenticated
+        if (
+          originalPhotoUrl &&
+          isSupabaseStorageUrl(originalPhotoUrl) &&
+          isAuthenticated
+        ) {
+          await deleteImage(originalPhotoUrl);
+        }
+
+        // Clear the file from editPhotoData to prevent re-upload, keep previewUrl for display
+        if (editPhotoData.previewUrl) {
+          URL.revokeObjectURL(editPhotoData.previewUrl);
+        }
+        setEditPhotoData({ existingUrl: photoUrl });
+      } else if (photoWasRemoved) {
+        // Photo was removed - only delete from cloud if authenticated
+        if (
+          originalPhotoUrl &&
+          isSupabaseStorageUrl(originalPhotoUrl) &&
+          isAuthenticated
+        ) {
+          await deleteImage(originalPhotoUrl);
+        }
+        photoUrl = undefined;
+      } else {
+        // Keep existing photo
+        photoUrl = editPhotoData?.existingUrl || originalPhotoUrl;
+      }
+
+      const updates = {
+        text: editText.trim(),
+        mood: editMood,
+        photoUrl,
+        blocks: nonEmptyBlocks.length > 0 ? nonEmptyBlocks : undefined,
+      };
+
+      const success = updateCard(editingCard.id, updates);
+
+      if (success && isAuthenticated) {
+        const updatedCard: DailyCard = { ...editingCard, ...updates };
+        await saveRecapToCloud(updatedCard);
+      }
+
+      // Update editingCard reference with new photoUrl
+      if (success && photoUrl !== editingCard.photoUrl) {
+        setEditingCard({ ...editingCard, ...updates });
+      }
+
+      setSaveStatus('saved');
+
+      // Clear "saved" status after a delay
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+      autoSaveTimeoutRef.current = setTimeout(() => {
+        setSaveStatus('idle');
+      }, 2000);
+    } catch (err) {
+      console.error('Auto-save failed', err);
+      setSaveStatus('idle');
+    } finally {
+      isSavingRef.current = false;
+    }
+  }, [
+    editingCard,
+    editMood,
+    editText,
+    editBlocks,
+    editPhotoData,
+    updateCard,
+    isAuthenticated,
+    saveRecapToCloud,
+    user?.id,
+  ]);
+
+  // Debounced auto-save for text changes (1 second delay)
+  const debouncedAutoSave = useDebouncedCallback(performAutoSave, 1000);
+
+  // Trigger auto-save when edit fields change (including photo)
+  useEffect(() => {
+    if (editingCard && editMood) {
+      debouncedAutoSave();
+    }
+  }, [
+    editText,
+    editMood,
+    editBlocks,
+    editPhotoData,
+    editingCard,
+    debouncedAutoSave,
+  ]);
+
+  // Cleanup auto-save timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Start editing a card
+  const startEdit = (card: DailyCard) => {
+    setEditingCard(card);
+    setEditMood(card.mood);
+    setEditText(card.text);
+    setEditPhotoData(
+      card.photoUrl ? { existingUrl: card.photoUrl } : undefined
+    );
+
+    const existingBlocks = initializeBlocks();
+    if (card.blocks) {
+      card.blocks.forEach((block) => {
+        if (block.blockId in existingBlocks) {
+          existingBlocks[block.blockId] = block;
+        }
+      });
+    }
+    setEditBlocks(existingBlocks);
   };
 
-  const handleTotalClick = () => {
-    router.push('/timeline?view=list');
+  // Cancel editing
+  const cancelEdit = () => {
+    setEditingCard(null);
+    setEditMood(undefined);
+    setEditText('');
+    setEditBlocks(initializeBlocks());
+    setEditPhotoData(undefined);
   };
 
-  // Get mood data for last 28 days (4 weeks) - before early return
-  const moodData = useMemo(() => getLastNDaysMoodData(cards, 28), [cards]);
+  // Done editing - save immediately then exit
+  const handleDone = useCallback(async () => {
+    // Force immediate save before exiting
+    await performAutoSave();
+    cancelEdit();
+  }, [performAutoSave]);
 
+  // Handle soft delete - moves card to pending deletes with undo window
+  const handleDelete = async (cardId: string) => {
+    const card = softDeleteCard(cardId);
+    if (!card) return;
+
+    try {
+      // Soft delete in cloud (set deleted_at timestamp)
+      if (isAuthenticated) {
+        await deleteRecapFromCloud(card.id);
+      }
+
+      // After undo window expires, permanently delete
+      setTimeout(async () => {
+        const stillPending = useCardStore.getState().getPendingDelete(cardId);
+        if (stillPending) {
+          // User didn't undo, permanently delete
+          removePendingDelete(cardId);
+
+          // Delete photo from cloud if exists and user is authenticated
+          if (
+            card.photoUrl &&
+            isSupabaseStorageUrl(card.photoUrl) &&
+            isAuthenticated
+          ) {
+            await deleteImage(card.photoUrl);
+          }
+        }
+      }, 5000); // 5 second undo window
+    } catch (err) {
+      console.error('Failed to delete card', err);
+    }
+  };
+
+  // Handle undo delete - restores card from pending deletes
+  const handleUndo = async (cardId: string) => {
+    const restored = restoreCard(cardId);
+    if (!restored) return;
+
+    try {
+      // Restore in cloud (clear deleted_at timestamp)
+      if (isAuthenticated) {
+        await restoreRecapInCloud(cardId);
+      }
+      showNotification('success', 'Entry restored');
+    } catch (err) {
+      console.error('Failed to restore card', err);
+    }
+  };
+
+  // Settings handlers
+  const handleClearAll = async () => {
+    try {
+      if (user) {
+        const supabase = createClient();
+        const { error } = await supabase
+          .from('recaps')
+          .delete()
+          .eq('user_id', user.id);
+
+        if (error) {
+          console.error('Error deleting cloud recaps:', error);
+          showNotification('error', 'Failed to delete cloud data');
+          return;
+        }
+      }
+
+      await clearIndexedDB();
+      showNotification('success', 'All data cleared');
+      setShowSettings(false);
+      setTimeout(() => window.location.reload(), 100);
+    } catch (error) {
+      console.error('Error clearing data:', error);
+      showNotification('error', 'Failed to clear data');
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    showNotification('success', 'Signed out');
+    setShowSettings(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      const response = await fetch('/api/account/delete', { method: 'DELETE' });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete account');
+      }
+
+      await clearIndexedDB();
+      await signOut();
+
+      showNotification('success', 'Account deleted');
+      setShowSettings(false);
+
+      setTimeout(() => window.location.reload(), 100);
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      showNotification('error', 'Failed to delete account');
+    }
+  };
+
+  // Handle mood change - creates card immediately when selecting mood for new entry
+  const handleMoodChange = async (newMood: Mood) => {
+    if (editingCard) {
+      // Just update mood for existing card being edited
+      setEditMood(newMood);
+      setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 100);
+      return;
+    }
+
+    // Create a new card immediately when mood is selected
+    const newCard: DailyCard = {
+      id: generateId(),
+      mood: newMood,
+      text: '',
+      createdAt: new Date().toISOString(),
+    };
+
+    const success = addCard(newCard);
+    if (success) {
+      clearDraft();
+      // Immediately start editing the new card
+      startEdit(newCard);
+
+      // Sync to cloud in background
+      if (isAuthenticated) {
+        saveRecapToCloud(newCard).catch(console.error);
+      }
+    }
+  };
+
+  // Loading state
   if (!hydrated) {
+    const moodIcons = [
+      { Icon: Laugh, color: 'text-emerald-500' },
+      { Icon: Smile, color: 'text-green-500' },
+      { Icon: Meh, color: 'text-amber-500' },
+      { Icon: Frown, color: 'text-orange-500' },
+      { Icon: Angry, color: 'text-red-500' },
+    ];
+
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <motion.div
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ repeat: Infinity, duration: 1.5 }}
-          className="text-muted-foreground"
-        >
-          Loading...
-        </motion.div>
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
+        <div className="flex items-center gap-1">
+          {moodIcons.map(({ Icon, color }, i) => (
+            <Icon
+              key={i}
+              className={`w-7 h-7 animate-bounce ${color}`}
+              style={{
+                animationDelay: `${i * 80}ms`,
+                animationDuration: '0.8s',
+              }}
+            />
+          ))}
+        </div>
       </div>
     );
   }
 
-  const hasCards = cards.length > 0;
-  // Sort cards: pinned first, then by date
+  const isInFormMode = !!editingCard;
 
   return (
-    <>
-      {/* Mobile Header */}
-      <Header />
-
-      {/* Desktop Page Header */}
-      <div className="hidden lg:block sticky top-0 z-10 h-24 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-200/50 dark:border-neutral-800/50">
-        <div className="h-full flex items-center justify-between max-w-4xl mx-auto">
-          <div>
-            <h1 className="text-xl lg:text-3xl font-bold text-neutral-900 dark:text-neutral-100">
-              {getGreeting(userName)}
-            </h1>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              {getTodayDateFormatted()}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="px-5 lg:px-8 pb-24 lg:py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Desktop: Dashboard Grid Layout */}
-          <div className="lg:grid lg:grid-cols-12 lg:gap-6">
-            {/* Top Stats Bar - Desktop Only - Hide until first recap */}
-            {hasCards && (
-              <div className="hidden lg:flex lg:col-span-12 lg:gap-3 xl:gap-4 lg:mb-6 lg:items-stretch">
-                {/* Streak & Total Container - Stack on medium, horizontal on xl */}
-                <div className="flex lg:flex-col xl:flex-row lg:gap-3 xl:gap-4 xl:flex-1 lg:h-full">
-                  {/* Streak Card */}
-                  <div
-                    onClick={handleStreakClick}
-                    className={cn(
-                      'flex-1 rounded-2xl flex flex-col border gap-2 p-4 xl:p-5 hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer',
-                      !hasCards
-                        ? 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800'
-                        : 'bg-linear-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border-orange-200 dark:border-orange-900/50'
-                    )}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Flame className="h-4 w-4 xl:h-5 xl:w-5 text-orange-500" />
-                      <p className="font-semibold text-lg xl:text-2xl text-neutral-900 dark:text-neutral-100">
-                        Streak
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-center justify-center flex-1">
-                      <p className="text-6xl xl:text-9xl font-black text-orange-500">
-                        {stats.streak}
-                      </p>
-                      <p className="text-xl xl:text-3xl text-orange-500 mt-1">
-                        {stats.streak === 0
-                          ? 'days yet'
-                          : stats.streak === 1
-                          ? 'day'
-                          : 'days'}
-                      </p>
-                    </div>
-                    <p className="text-xs text-center text-neutral-500 dark:text-neutral-500 mt-2">
-                      Build momentum daily
-                    </p>
-                  </div>
-
-                  {/* Total Recaps Card */}
-                  <div
-                    onClick={handleTotalClick}
-                    className="flex-1 rounded-2xl flex flex-col gap-2 p-4 xl:p-5 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <CalendarDays className="h-4 w-4 xl:h-5 xl:w-5 text-blue-500" />
-                      <p className="font-semibold text-lg xl:text-2xl text-neutral-900 dark:text-neutral-100">
-                        Total
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-center justify-center flex-1">
-                      <p className="text-6xl xl:text-9xl font-black text-blue-500">
-                        {stats.total}
-                      </p>
-                      <p className="text-xl xl:text-3xl mt-1 text-blue-500">
-                        all time
-                      </p>
-                    </div>
-                    <p className="text-xs text-center text-neutral-500 dark:text-neutral-500 mt-2">
-                      Every moment counts
-                    </p>
-                  </div>
-                </div>
-
-                {/* Mood Map - constrained width */}
-                <div className="flex-1 lg:h-full">
-                  <MoodMapTile moodData={moodData} />
-                </div>
-              </div>
-            )}
-
-            {/* Mobile Dashboard */}
-            <div className="lg:hidden">
-              <Dashboard
-                userName={userName}
-                hasRecapToday={hasCards ? !!getTodayRecap(cards) : false}
-                stats={stats}
-                moodData={moodData}
-                isEmptyState={!hasCards}
-                onCreateClick={() => setIsCreateSheetOpen(true)}
-              />
-            </div>
-
-            {/* Desktop Empty State - Welcome Block */}
-            {!hasCards && (
-              <div className="hidden lg:block lg:col-span-12 mt-8">
-                <div className="bg-linear-to-br from-amber-50 via-orange-50 to-rose-50 dark:from-amber-950/30 dark:via-orange-950/30 dark:to-rose-950/30 rounded-3xl p-12 border border-amber-200 dark:border-amber-900/50 shadow-sm group">
-                  <div className="flex items-center gap-8">
-                    {/* Left side - Content */}
-                    <div className="flex-none">
-                      <div className="mb-6">
-                        <span className="text-6xl">✨</span>
-                      </div>
-                      <h3 className="text-4xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
-                        Notice your day
-                      </h3>
-                      <p className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed mb-10">
-                        This is a space for awareness, not achievement.
-                        <br />
-                        Just one small moment each day is enough.
-                      </p>
-                      <div className="space-y-4 mb-10">
-                        <div className="flex items-start gap-4">
-                          <div className="text-3xl">🌱</div>
-                          <div>
-                            <h4 className="font-semibold text-base text-neutral-900 dark:text-neutral-100 mb-1">
-                              Notice without pressure
-                            </h4>
-                            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                              One moment that stood out to you today
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-4">
-                          <div className="text-3xl">🌙</div>
-                          <div>
-                            <h4 className="font-semibold text-base text-neutral-900 dark:text-neutral-100 mb-1">
-                              See how your days feel
-                            </h4>
-                            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                              Patterns emerge naturally over time
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-4">
-                          <div className="text-3xl">☁️</div>
-                          <div>
-                            <h4 className="font-semibold text-base text-neutral-900 dark:text-neutral-100 mb-1">
-                              A calm daily ritual
-                            </h4>
-                            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                              No streaks to maintain, no goals to hit
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => setIsCreateSheetOpen(true)}
-                        className="w-auto px-12 h-14 cursor-pointer bg-amber-500 hover:bg-amber-600 text-white font-semibold text-base rounded-2xl shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50 transition-all duration-200 hover:scale-[1.02]"
-                      >
-                        Capture today&apos;s moment
-                      </button>
-                    </div>
-
-                    {/* Right side - Visual representation with floating cards */}
-                    <div className="flex-1 relative min-h-[380px] xl:min-h-[420px] flex items-center justify-center">
-                      <div className="flex flex-col gap-3 items-center justify-center">
-                        {/* Example card 1 - Great mood */}
-                        <div className="w-28 h-36 lg:w-32 lg:h-40 rounded-2xl p-3 shadow-xl hover:scale-[1.02] hover:-rotate-2 transition-all duration-200 bg-gradient-to-br from-green-500 to-emerald-500 transform -rotate-2">
-                          <div className="flex flex-col gap-1 h-full">
-                            <span className="text-2xl lg:text-3xl">😄</span>
-                            <p className="text-[10px] lg:text-xs text-white/90 font-medium line-clamp-2">
-                              Morning coffee hit different today
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Example card 2 - Good mood */}
-                        <div className="w-28 h-36 lg:w-32 lg:h-40 rounded-2xl p-3 shadow-xl hover:scale-[1.02] hover:rotate-1 transition-all duration-200 bg-gradient-to-br from-lime-500 to-lime-400 transform rotate-1">
-                          <div className="flex flex-col gap-1 h-full">
-                            <span className="text-2xl lg:text-3xl">🙂</span>
-                            <p className="text-[10px] lg:text-xs text-white/90 font-medium line-clamp-2">
-                              Small wins add up
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Example card 3 - Neutral mood */}
-                        <div className="w-28 h-36 lg:w-32 lg:h-40 rounded-2xl p-3 shadow-xl hover:scale-[1.02] hover:-rotate-1 transition-all duration-200 bg-gradient-to-br from-yellow-400 to-yellow-500 transform -rotate-1">
-                          <div className="flex flex-col gap-1 h-full">
-                            <span className="text-2xl lg:text-3xl">😐</span>
-                            <p className="text-[10px] lg:text-xs text-white/90 font-medium line-clamp-2">
-                              Just another quiet evening
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Create Sheet */}
-      <CreateSheet
-        open={isCreateSheetOpen}
-        onOpenChange={setIsCreateSheetOpen}
+    <div className="h-screen flex flex-col bg-background">
+      {/* Settings button - hide when in form mode or settings */}
+      <SettingsButton
+        isVisible={!showSettings && !editingCard}
+        isAuthenticated={!!user}
+        onClick={() => setShowSettings(true)}
       />
-    </>
-  );
-}
 
-export default function HomePage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center min-h-screen text-muted-foreground">
-          Loading...
+      {/* Form header */}
+      <FormHeader
+        isVisible={isInFormMode}
+        editingCard={editingCard}
+        mood={undefined}
+        editMood={editMood}
+        onBack={handleDone}
+        onMoodChange={handleMoodChange}
+      />
+
+      {/* Settings - wider container on desktop */}
+      {showSettings && (
+        <div className="max-w-lg w-full mx-auto h-full px-6 relative flex flex-col">
+          <AnimatePresence>
+            <SettingsPanel
+              onBack={() => setShowSettings(false)}
+              user={user}
+              authLoading={authLoading}
+              cardsCount={cards.length}
+              onSignOut={handleSignOut}
+              onClearAll={handleClearAll}
+              onDeleteAccount={handleDeleteAccount}
+            />
+          </AnimatePresence>
         </div>
-      }
-    >
-      <HomePageInner />
-    </Suspense>
+      )}
+
+      {/* Edit mode */}
+      {!showSettings && editingCard && (
+        <div className="max-w-lg w-full mx-auto h-full px-6 relative flex flex-col overflow-hidden">
+          <AnimatePresence>
+            <RecapForm
+              mode="edit"
+              text={editText}
+              setText={setEditText}
+              blocks={editBlocks}
+              setBlocks={setEditBlocks}
+              photoData={editPhotoData}
+              setPhotoData={setEditPhotoData}
+              mood={editMood}
+              textareaRef={textareaRef}
+              saveStatus={saveStatus}
+            />
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* Mood selection - show when no today entry and not editing */}
+      {!showSettings && !editingCard && !todayEntry && (
+        <div className="max-w-lg w-full mx-auto h-full px-6 relative flex flex-col overflow-hidden">
+          <AnimatePresence>
+            <MoodSelectView
+              mood={undefined}
+              onMoodChange={handleMoodChange}
+              hasEntries={cards.length > 0}
+              isAuthenticated={!!user}
+              syncNotification={syncNotification}
+            />
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* Today view - wider container on desktop */}
+      {!showSettings && !editingCard && todayEntry && (
+        <div className="max-w-lg w-full mx-auto h-full px-6 relative flex flex-col overflow-hidden">
+          <AnimatePresence>
+            <TodayView
+              todayEntry={todayEntry}
+              groupedEntries={groupedEntries}
+              pastEntriesCount={pastEntries.length}
+              onEdit={startEdit}
+              onDelete={handleDelete}
+              onUndo={handleUndo}
+              isTodayPendingDelete={isTodayPendingDelete}
+              isAuthenticated={!!user}
+              syncNotification={syncNotification}
+            />
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* Sign-up prompt */}
+      <SignupPrompt />
+    </div>
   );
 }

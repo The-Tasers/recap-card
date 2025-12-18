@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import {
   Dices,
   RefreshCw,
@@ -23,6 +23,7 @@ import {
   type DailyQuestion,
 } from '@/lib/questions';
 import { QuestionCategory } from '@/lib/types';
+import { CATEGORY_ICONS } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 interface DailyQuestionCardProps {
@@ -146,21 +147,24 @@ export function QuestionCategoryPicker({
       >
         All
       </button>
-      {QUESTION_CATEGORIES.map((cat) => (
-        <button
-          key={cat.value}
-          onClick={() => onSelect(cat.value)}
-          className={cn(
-            'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors',
-            selected === cat.value
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted text-muted-foreground hover:bg-muted/80'
-          )}
-        >
-          <span>{cat.emoji}</span>
-          <span>{cat.label}</span>
-        </button>
-      ))}
+      {QUESTION_CATEGORIES.map((cat) => {
+        const CategoryIcon = CATEGORY_ICONS[cat.value];
+        return (
+          <button
+            key={cat.value}
+            onClick={() => onSelect(cat.value)}
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors',
+              selected === cat.value
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            )}
+          >
+            <CategoryIcon className="h-3.5 w-3.5" />
+            <span>{cat.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -191,8 +195,11 @@ export function QuestionBrowser({ onSelectQuestion }: QuestionBrowserProps) {
           >
             <p className="text-sm">{q.text}</p>
             <div className="mt-1.5 flex items-center gap-2">
-              <span className="text-xs px-2 py-0.5 rounded-full bg-muted">
-                {QUESTION_CATEGORIES.find((c) => c.value === q.category)?.emoji}{' '}
+              <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-muted">
+                {(() => {
+                  const CatIcon = CATEGORY_ICONS[q.category];
+                  return <CatIcon className="h-3 w-3" />;
+                })()}
                 {QUESTION_CATEGORIES.find((c) => c.value === q.category)?.label}
               </span>
             </div>
@@ -230,5 +237,54 @@ export function RandomQuestionButton({
       <Dices className="h-4 w-4 mr-1.5" />
       Random prompt
     </Button>
+  );
+}
+
+// Inline question hint - minimal prompt suggestion
+interface InlineQuestionHintProps {
+  onSelect: (question: string) => void;
+}
+
+export function InlineQuestionHint({ onSelect }: InlineQuestionHintProps) {
+  const [question, setQuestion] = useState<DailyQuestion | null>(() =>
+    getDailyQuestion()
+  );
+  const [isSpinning, setIsSpinning] = useState(false);
+  const iconRef = useRef<SVGSVGElement>(null);
+
+  const shuffle = () => {
+    setIsSpinning(true);
+    setQuestion(getRandomQuestion());
+    // Reset animation after it completes
+    setTimeout(() => setIsSpinning(false), 300);
+  };
+
+  if (!question) return null;
+
+  return (
+    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <Sparkles className="h-4 w-4 text-violet-400 shrink-0" />
+      <button
+        type="button"
+        onClick={() => onSelect(question.text)}
+        className="flex-1 min-w-0 text-left hover:text-foreground transition-colors truncate"
+      >
+        {question.text}
+      </button>
+      <button
+        type="button"
+        onClick={shuffle}
+        className="shrink-0 p-1.5 rounded-lg hover:bg-muted/50 transition-colors"
+        aria-label="Get another prompt"
+      >
+        <RefreshCw
+          ref={iconRef}
+          className={cn(
+            'h-3.5 w-3.5 transition-transform duration-300',
+            isSpinning && 'animate-spin'
+          )}
+        />
+      </button>
+    </div>
   );
 }

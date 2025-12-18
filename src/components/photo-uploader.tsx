@@ -1,82 +1,65 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { ImagePlus, X, Loader2 } from 'lucide-react';
+import { ImagePlus, X, Loader2, ChevronDown, Camera } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { validateImage } from '@/lib/supabase/storage';
 
-interface PhotoUploaderProps {
-  value?: string;
-  onChange: (photoUrl: string | undefined) => void;
+export interface PhotoData {
+  file?: File; // New file to upload
+  previewUrl?: string; // Local preview URL (blob: or data:)
+  existingUrl?: string; // Existing Supabase URL (for edit mode)
+  markedForDeletion?: boolean; // True if user explicitly removed the photo
 }
 
-// Compress image to reduce localStorage usage (iOS has ~5MB limit)
-const compressImage = (
-  file: File,
-  maxWidth = 800,
-  quality = 0.7
-): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+interface PhotoUploaderProps {
+  value?: PhotoData;
+  onChange: (photo: PhotoData | undefined) => void;
+  collapsible?: boolean;
+}
 
-    img.onload = () => {
-      // Calculate new dimensions
-      let { width, height } = img;
-      if (width > maxWidth) {
-        height = (height * maxWidth) / width;
-        width = maxWidth;
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-
-      if (!ctx) {
-        reject(new Error('Could not get canvas context'));
-        return;
-      }
-
-      // Draw and compress
-      ctx.drawImage(img, 0, 0, width, height);
-      const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-      resolve(compressedDataUrl);
-    };
-
-    img.onerror = () => reject(new Error('Failed to load image'));
-
-    // Read file as data URL
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      img.src = e.target?.result as string;
-    };
-    reader.onerror = () => reject(new Error('Failed to read file'));
-    reader.readAsDataURL(file);
-  });
-};
-
-export function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
+export function PhotoUploader({ value, onChange, collapsible = false }: PhotoUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [isCompressing, setIsCompressing] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Get the URL to display (preview URL or existing URL, unless marked for deletion)
+  const displayUrl = value?.markedForDeletion ? undefined : (value?.previewUrl || value?.existingUrl);
 
   const handleFileChange = async (file: File | undefined) => {
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+    // Validate image (type and size)
+    const validation = validateImage(file);
+    if (!validation.valid) {
+      toast.error('Invalid image', {
+        description: validation.error,
+      });
       return;
     }
 
-    setIsCompressing(true);
+    setIsProcessing(true);
+
     try {
-      const compressedUrl = await compressImage(file);
-      onChange(compressedUrl);
+      // Create a local preview URL
+      const previewUrl = URL.createObjectURL(file);
+
+      onChange({
+        file,
+        previewUrl,
+        existingUrl: value?.existingUrl, // Keep track of existing URL for cleanup
+      });
     } catch (error) {
-      console.error('Image compression failed:', error);
-      alert('Failed to process image. Please try a smaller image.');
+      console.error('Image processing failed:', error);
+      toast.error('Failed to process image', {
+        description: 'Please try a smaller image.',
+      });
     } finally {
-      setIsCompressing(false);
+      setIsProcessing(false);
     }
   };
 
@@ -96,34 +79,53 @@ export function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
     setIsDragging(false);
   };
 
-  if (value) {
-    return (
-      <div className="relative rounded-2xl overflow-hidden aspect-square lg:aspect-video lg:max-h-80">
-        <img src={value} alt="Uploaded" className="w-full h-full object-cover" />
-        <Button
-          type="button"
-          variant="destructive"
-          size="icon"
-          className="absolute top-2 right-2 h-8 w-8 rounded-full"
-          onClick={() => onChange(undefined)}
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-    );
-  }
+  const handleRemove = () => {
+    // Revoke the preview URL to free memory
+    if (value?.previewUrl) {
+      URL.revokeObjectURL(value.previewUrl);
+    }
 
-  if (isCompressing) {
-    return (
-      <div className="border-2 border-dashed rounded-2xl p-12 lg:p-12 text-center border-primary/50 bg-primary/5">
-        <Loader2 className="h-12 w-12 mx-auto text-primary animate-spin mb-2" />
-        <p className="text-sm text-muted-foreground">Processing image...</p>
-      </div>
-    );
-  }
+    // Mark for deletion if there was an existing URL
+    if (value?.existingUrl) {
+      onChange({ existingUrl: value.existingUrl, markedForDeletion: true });
+    } else {
+      onChange(undefined);
+    }
+  };
 
-  return (
-    <div
+  // Photo display when uploaded
+  const photoDisplay = displayUrl && (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="relative rounded-2xl overflow-hidden aspect-square lg:aspect-video lg:max-h-80"
+    >
+      <img src={displayUrl} alt="Uploaded" className="w-full h-full object-cover" />
+      <Button
+        type="button"
+        variant="destructive"
+        size="icon"
+        className="absolute top-2 right-2 h-8 w-8 rounded-full"
+        onClick={handleRemove}
+      >
+        <X className="h-4 w-4" />
+      </Button>
+    </motion.div>
+  );
+
+  // Processing state
+  const processingDisplay = isProcessing && (
+    <div className="border-2 border-dashed rounded-2xl p-12 lg:p-12 text-center border-primary/50 bg-primary/5">
+      <Loader2 className="h-12 w-12 mx-auto text-primary animate-spin mb-2" />
+      <p className="text-sm text-muted-foreground">Processing image...</p>
+    </div>
+  );
+
+  // Upload area
+  const uploadArea = !displayUrl && !isProcessing && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       className={cn(
         'border-2 border-dashed rounded-2xl p-12 lg:p-12 text-center cursor-pointer transition-colors',
         isDragging
@@ -144,8 +146,76 @@ export function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
       />
       <ImagePlus className="h-12 w-12 lg:h-14 lg:w-14 mx-auto text-muted-foreground/50 mb-3" />
       <p className="text-sm lg:text-base text-muted-foreground">
-        Click or drag & drop to add a picture (optional)
+        Click or drag & drop to add a picture
       </p>
+      <p className="text-xs text-muted-foreground/60 mt-1">
+        Max 5MB, JPEG/PNG/GIF/WebP
+      </p>
+    </motion.div>
+  );
+
+  // Non-collapsible mode
+  if (!collapsible) {
+    return (
+      <div>
+        {photoDisplay}
+        {processingDisplay}
+        {uploadArea}
+      </div>
+    );
+  }
+
+  // Collapsible mode
+  const hasPhoto = !!displayUrl;
+
+  return (
+    <div className="space-y-2">
+      <motion.button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className={cn(
+          'w-full flex items-center justify-between p-3 rounded-xl transition-colors cursor-pointer',
+          'bg-muted hover:bg-muted/80'
+        )}
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+      >
+        <div className="flex items-center gap-3">
+          <Camera className="h-5 w-5 text-muted-foreground" />
+          <span className="text-sm font-medium text-foreground">
+            Picture of the Day
+          </span>
+          {hasPhoto && (
+            <span className="text-xs font-medium text-primary">
+              ✓ Added
+            </span>
+          )}
+        </div>
+        <motion.div
+          animate={{ rotate: isExpanded ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        </motion.div>
+      </motion.button>
+
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="pt-2">
+              {photoDisplay}
+              {processingDisplay}
+              {uploadArea}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
