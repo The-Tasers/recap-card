@@ -23,20 +23,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
 
   useEffect(() => {
+    // Clean up OAuth code param from URL if present
+    const cleanupOAuthParams = () => {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has('code') || url.searchParams.has('error')) {
+        url.searchParams.delete('code');
+        url.searchParams.delete('error');
+        url.searchParams.delete('error_description');
+        window.history.replaceState({}, '', url.pathname + url.search);
+      }
+    };
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      // Clean up URL after session is established
+      if (session) {
+        cleanupOAuthParams();
+      }
     });
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      // Clean up URL when user signs in
+      if (event === 'SIGNED_IN') {
+        cleanupOAuthParams();
+      }
     });
 
     return () => subscription.unsubscribe();

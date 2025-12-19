@@ -6,7 +6,6 @@ import { Camera, X, Plus, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   CardBlock,
-  BLOCK_DEFINITIONS,
   WEATHER_OPTIONS,
   MEAL_OPTIONS,
   SELFCARE_OPTIONS,
@@ -223,13 +222,13 @@ export function QuickAdditions({
     }
   };
 
-  // Categories for the picker - use labels from BLOCK_DEFINITIONS
+  // Categories for the picker - compact labels for mobile
   const categories: { id: BlockId; label: string; icon: LucideIcon }[] = [
-    { id: 'weather', label: BLOCK_DEFINITIONS.weather.label, icon: BLOCK_ICONS.weather },
-    { id: 'meals', label: BLOCK_DEFINITIONS.meals.label, icon: BLOCK_ICONS.meals },
-    { id: 'selfcare', label: BLOCK_DEFINITIONS.selfcare.label, icon: BLOCK_ICONS.selfcare },
-    { id: 'health', label: BLOCK_DEFINITIONS.health.label, icon: BLOCK_ICONS.health },
-    { id: 'exercise', label: BLOCK_DEFINITIONS.exercise.label, icon: BLOCK_ICONS.exercise },
+    { id: 'weather', label: 'Weather', icon: BLOCK_ICONS.weather },
+    { id: 'meals', label: 'Meals', icon: BLOCK_ICONS.meals },
+    { id: 'selfcare', label: 'Hygiene', icon: BLOCK_ICONS.selfcare },
+    { id: 'health', label: 'Health', icon: BLOCK_ICONS.health },
+    { id: 'exercise', label: 'Exercise', icon: BLOCK_ICONS.exercise },
   ];
 
   const getCategoryOptions = (blockId: BlockId) => {
@@ -339,23 +338,34 @@ export function QuickAdditions({
             transition={{ duration: 0.2 }}
           >
             <div className="pt-2 space-y-3">
-              {/* Quick presets */}
-              <div className="flex flex-wrap gap-2">
-                {[5, 6, 7, 8, 9].map((h) => (
+              {/* Quick presets + clear button */}
+              <div className="flex items-center gap-2">
+                <div className="flex flex-wrap gap-2">
+                  {[5, 6, 7, 8, 9].map((h) => (
+                    <button
+                      key={h}
+                      type="button"
+                      onClick={() => setSleepValue(h)}
+                      className={cn(
+                        'h-9 w-12 rounded-xl text-sm font-medium transition-colors',
+                        sleepValue === h
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+                      )}
+                    >
+                      {h}h
+                    </button>
+                  ))}
+                </div>
+                {sleepValue > 0 && (
                   <button
-                    key={h}
                     type="button"
-                    onClick={() => setSleepValue(h)}
-                    className={cn(
-                      'h-9 w-12 rounded-xl text-sm font-medium transition-colors',
-                      sleepValue === h
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted/50 text-muted-foreground hover:bg-muted'
-                    )}
+                    onClick={() => setSleepValue(0)}
+                    className="h-9 px-3 ml-auto text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    {h}h
+                    Clear
                   </button>
-                ))}
+                )}
               </div>
               {/* Fine-tune slider */}
               <div className="flex items-center gap-3">
@@ -377,16 +387,6 @@ export function QuickAdditions({
                   {sleepValue > 0 ? `${sleepValue}h` : '—'}
                 </span>
               </div>
-              {/* Clear button */}
-              {sleepValue > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setSleepValue(0)}
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Clear
-                </button>
-              )}
             </div>
           </motion.div>
         )}

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { QuickAdditions } from '@/components/blocks/quick-additions';
 import { PhotoData } from '@/components/photo-uploader';
 import { CardBlock, BlockId, Mood } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 type SaveStatus = 'idle' | 'saving' | 'saved';
 
@@ -23,22 +24,7 @@ interface RecapFormProps {
   saveStatus?: SaveStatus;
 }
 
-// Track if user is actively typing
-function useTypingState(text: string, delay = 1500) {
-  const [isTyping, setIsTyping] = useState(false);
-
-  useEffect(() => {
-    if (text) {
-      setIsTyping(true);
-      const timer = setTimeout(() => setIsTyping(false), delay);
-      return () => clearTimeout(timer);
-    }
-  }, [text, delay]);
-
-  return isTyping;
-}
-
-const MAX_TEXT_LENGTH = 500;
+const MAX_TEXT_LENGTH = 1000;
 
 export function RecapForm({
   mode,
@@ -54,24 +40,46 @@ export function RecapForm({
   onSave,
   saveStatus = 'idle',
 }: RecapFormProps) {
-  // Track typing state to hide UI while actively writing
-  const isTyping = useTypingState(text);
+  const [isFlashing, setIsFlashing] = useState(false);
 
-  // Character limit tracking
-  const charCount = text.length;
-  const isNearLimit = charCount >= MAX_TEXT_LENGTH - 50;
-  const isAtLimit = charCount >= MAX_TEXT_LENGTH;
-
-  // Handle text change with character limit
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newText = e.target.value;
-    if (newText.length <= MAX_TEXT_LENGTH) {
-      setText(newText);
-    }
+  // Trigger flash + shake effect
+  const triggerFlash = () => {
+    // Reset to restart animation
+    setIsFlashing(false);
+    // Use requestAnimationFrame to ensure the class is removed before re-adding
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setIsFlashing(true);
+      });
+    });
+    // Auto-reset after animation completes
+    setTimeout(() => setIsFlashing(false), 300);
   };
 
-  // Show quick additions always - text is optional
-  const showSecondaryUI = !isTyping;
+  // Handle text change with character limit and visual feedback
+  // We don't use maxLength prop because it blocks input before events fire on mobile
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newText = e.target.value;
+
+    // If trying to exceed limit, flash and truncate
+    if (newText.length > MAX_TEXT_LENGTH) {
+      triggerFlash();
+      setText(newText.slice(0, MAX_TEXT_LENGTH));
+      return;
+    }
+
+    setText(newText);
+  };
+
+  // Move cursor to end of text on mount
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea && text) {
+      textarea.setSelectionRange(text.length, text.length);
+    }
+    // Only run on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Handle keyboard shortcut for save - works globally
   useEffect(() => {
@@ -102,55 +110,29 @@ export function RecapForm({
       className="flex-1 flex flex-col pt-4 pb-4 min-h-0"
     >
       {/* Writing area - scrollable */}
-      <div className="flex-1 min-h-0 overflow-y-auto relative">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden relative">
         <textarea
           ref={textareaRef}
           value={text}
           onChange={handleTextChange}
           placeholder="What happened today..."
           autoFocus
-          maxLength={MAX_TEXT_LENGTH}
-          className="w-full h-full flex resize-none text-xl leading-relaxed bg-transparent border-0 outline-none placeholder:text-muted-foreground/30 focus:outline-none caret-primary"
-        />
-        {/* Character count indicator - shows when near limit */}
-        <AnimatePresence>
-          {isNearLimit && (
-            <motion.div
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 5 }}
-              className={`absolute bottom-0 right-0 text-xs transition-colors ${
-                isAtLimit
-                  ? 'text-destructive/70 font-medium'
-                  : 'text-muted-foreground/50'
-              }`}
-            >
-              {charCount}/{MAX_TEXT_LENGTH}
-            </motion.div>
+          className={cn(
+            'w-full h-full flex resize-none text-xl leading-relaxed bg-transparent border-0 outline-none placeholder:text-muted-foreground/30 focus:outline-none caret-primary scrollbar-themed',
+            isFlashing && 'animate-limit-shake text-rose-400/60'
           )}
-        </AnimatePresence>
+        />
       </div>
 
       {/* Bottom section - fixed at bottom, doesn't scroll */}
       <div className="shrink-0 pt-4 space-y-3">
-        {/* Quick additions - show after typing */}
-        <AnimatePresence>
-          {showSecondaryUI && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{ duration: 0.2 }}
-            >
-              <QuickAdditions
-                blocks={blocks}
-                onBlocksChange={setBlocks}
-                photoData={photoData}
-                onPhotoChange={setPhotoData}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Quick additions - always visible */}
+        <QuickAdditions
+          blocks={blocks}
+          onBlocksChange={setBlocks}
+          photoData={photoData}
+          onPhotoChange={setPhotoData}
+        />
 
         {/* Save button (create mode) or auto-save status (edit mode) */}
         {onSave ? (
