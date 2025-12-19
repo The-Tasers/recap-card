@@ -10,7 +10,7 @@ const MOOD_ICONS = [
 
 export default function Loading() {
   return (
-    <div className="min-h-[50vh] flex items-center justify-center bg-background">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="flex items-center gap-1">
         {MOOD_ICONS.map(({ Icon, color }, i) => (
           <Icon
