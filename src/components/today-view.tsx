@@ -54,47 +54,50 @@ export function TodayView({
         right: 0,
       }}
       transition={{ duration: 0.15 }}
-      className="pt-8 md:pt-12 pb-16 h-full flex flex-col"
+      className="pt-8 md:pt-12 h-full flex flex-col"
     >
-      {/* Sync status */}
+      {/* Sync status - fixed */}
       <SyncStatusIndicator
         isAuthenticated={isAuthenticated}
         syncNotification={syncNotification}
-        className="justify-center mb-4"
+        className="justify-center mb-4 shrink-0 px-6"
       />
 
-      {/* Today's entry - given prominence */}
-      <TimelineEntry
-        card={todayEntry}
-        isToday
-        onEdit={() => onEdit(todayEntry)}
-        onDelete={() => onDelete(todayEntry.id)}
-        onUndo={() => onUndo(todayEntry.id)}
-        onDismissUndo={() => onDismissUndo(todayEntry.id)}
-        isPendingDelete={isTodayPendingDelete}
-      />
+      {/* Scrollable content area */}
+      <div className="flex-1 min-h-0 px-6 overflow-y-auto overflow-x-hidden py-2">
+        {/* Today's entry - given prominence */}
+        <TimelineEntry
+          card={todayEntry}
+          isToday
+          onEdit={() => onEdit(todayEntry)}
+          onDelete={() => onDelete(todayEntry.id)}
+          onUndo={() => onUndo(todayEntry.id)}
+          onDismissUndo={() => onDismissUndo(todayEntry.id)}
+          isPendingDelete={isTodayPendingDelete}
+        />
 
-      {/* Past entries - continuous flow */}
-      {allPastEntries.length > 0 && (
-        <div className="mt-8 pt-6 border-t border-border/30">
-          <div className="space-y-1">
-            {allPastEntries.map((card) => (
-              <TimelineEntry
-                key={card.id}
-                card={card}
-                onEdit={() => onEdit(card)}
-                onDelete={() => onDelete(card.id)}
-                onUndo={() => onUndo(card.id)}
-                onDismissUndo={() => onDismissUndo(card.id)}
-                isPendingDelete={pendingDeleteIds.includes(card.id)}
-              />
-            ))}
+        {/* Past entries - continuous flow */}
+        {allPastEntries.length > 0 && (
+          <div className="mt-8 pt-6 border-t border-border/30">
+            <div className="space-y-1">
+              {allPastEntries.map((card) => (
+                <TimelineEntry
+                  key={card.id}
+                  card={card}
+                  onEdit={() => onEdit(card)}
+                  onDelete={() => onDelete(card.id)}
+                  onUndo={() => onUndo(card.id)}
+                  onDismissUndo={() => onDismissUndo(card.id)}
+                  isPendingDelete={pendingDeleteIds.includes(card.id)}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Footer */}
-      <AppFooter className="mt-auto" />
+      {/* Footer - fixed at bottom */}
+      <AppFooter className="px-6" />
     </motion.div>
   );
 }

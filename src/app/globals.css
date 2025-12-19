@@ -3,6 +3,18 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Dynamic viewport height for mobile browsers with collapsible UI */
+/* Uses dvh (dynamic) with vh fallback for older browsers */
+.h-screen-dynamic {
+  height: 100vh;
+  height: 100dvh;
+}
+
+.min-h-screen-dynamic {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
 /* Prevent flash of unstyled content during hydration */
 .app-loading {
   opacity: 0;

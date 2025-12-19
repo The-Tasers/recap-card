@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, X, Plus, Check } from 'lucide-react';
 import { toast } from 'sonner';
@@ -116,21 +116,120 @@ export function QuickAdditions({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
 
-  // Close pickers when clicking outside
+  // Sleep state - stored as number of hours
+  const sleepValue = (blocks.sleep?.value as number) || 0;
+
+  // Time picker state - separate hours, minutes, period for wheel-style picker
+  const [bedHour, setBedHour] = useState(11);
+  const [bedMinute, setBedMinute] = useState(0);
+  const [bedPeriod, setBedPeriod] = useState<'AM' | 'PM'>('PM');
+  const [wakeHour, setWakeHour] = useState(7);
+  const [wakeMinute, setWakeMinute] = useState(0);
+  const [wakePeriod, setWakePeriod] = useState<'AM' | 'PM'>('AM');
+  const [bedtimePickerOpen, setBedtimePickerOpen] = useState(false);
+  const [wakePickerOpen, setWakePickerOpen] = useState(false);
+  const [sleepPickerTouched, setSleepPickerTouched] = useState(false);
+  const bedtimeRef = useRef<HTMLDivElement>(null);
+  const wakeRef = useRef<HTMLDivElement>(null);
+
+  // Convert picker state to minutes from midnight
+  const getMinutesFromPicker = (hour: number, minute: number, period: 'AM' | 'PM'): number => {
+    let h = hour;
+    if (period === 'AM' && hour === 12) h = 0;
+    else if (period === 'PM' && hour !== 12) h = hour + 12;
+    return h * 60 + minute;
+  };
+
+  // Calculate sleep duration in minutes from times
+  const calculateSleepMinutes = (bedMin: number, wakeMin: number): number => {
+    if (wakeMin > bedMin) {
+      return wakeMin - bedMin;
+    } else {
+      return 24 * 60 - bedMin + wakeMin;
+    }
+  };
+
+  // Format sleep duration compactly (e.g., "7h 30m" or "8h")
+  const formatSleepDuration = (totalMinutes: number): string => {
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+    if (mins === 0) return `${hours}h`;
+    return `${hours}h ${mins}m`;
+  };
+
+  // Get current calculated minutes
+  const currentBedMinutes = getMinutesFromPicker(bedHour, bedMinute, bedPeriod);
+  const currentWakeMinutes = getMinutesFromPicker(wakeHour, wakeMinute, wakePeriod);
+  const calculatedMinutes = calculateSleepMinutes(currentBedMinutes, currentWakeMinutes);
+
+  // Save sleep value helper (stores minutes)
+  const saveSleep = useCallback((minutes: number) => {
+    onBlocksChange({
+      ...blocks,
+      sleep: {
+        ...blocks.sleep,
+        value: minutes,
+      },
+    });
+  }, [blocks, onBlocksChange]);
+
+  // Close pickers when clicking outside - auto-save sleep
   useEffect(() => {
     if (!showPicker && !showSleepPicker) return;
 
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        // Prevent the click from reaching other elements (like textarea) which would open keyboard
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Only auto-save sleep if user actually changed values
+        if (showSleepPicker && sleepPickerTouched) {
+          saveSleep(calculatedMinutes);
+        }
         setShowPicker(false);
         setShowSleepPicker(false);
+        setSleepPickerTouched(false);
         setActiveCategory(null);
+        setBedtimePickerOpen(false);
+        setWakePickerOpen(false);
+      }
+    };
+
+    // Use capture phase to intercept before other handlers
+    document.addEventListener('mousedown', handleClickOutside, { capture: true });
+    document.addEventListener('touchstart', handleClickOutside, { capture: true });
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside, { capture: true });
+      document.removeEventListener('touchstart', handleClickOutside, { capture: true });
+    };
+  }, [showPicker, showSleepPicker, calculatedMinutes, sleepPickerTouched, saveSleep]);
+
+  // Close bedtime/wake dropdowns when clicking outside them (but inside sleep picker)
+  useEffect(() => {
+    if (!bedtimePickerOpen && !wakePickerOpen) return;
+
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node;
+
+      // Close bedtime picker if clicking outside it
+      if (bedtimePickerOpen && bedtimeRef.current && !bedtimeRef.current.contains(target)) {
+        setBedtimePickerOpen(false);
+      }
+
+      // Close wake picker if clicking outside it
+      if (wakePickerOpen && wakeRef.current && !wakeRef.current.contains(target)) {
+        setWakePickerOpen(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showPicker, showSleepPicker]);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [bedtimePickerOpen, wakePickerOpen]);
 
   const allOptions = getAllOptions();
 
@@ -146,7 +245,15 @@ export function QuickAdditions({
     return getSelectedValues(blockId).includes(value);
   };
 
+  // Throttle ref for option toggle - prevents rapid clicks
+  const lastToggleRef = useRef<number>(0);
+  const THROTTLE_MS = 150;
+
   const toggleOption = (blockId: BlockId, value: string) => {
+    const now = Date.now();
+    if (now - lastToggleRef.current < THROTTLE_MS) return;
+    lastToggleRef.current = now;
+
     const currentValues = getSelectedValues(blockId);
     const newValues = currentValues.includes(value)
       ? currentValues.filter((v) => v !== value)
@@ -166,18 +273,65 @@ export function QuickAdditions({
     isSelected(opt.blockId as BlockId, opt.value)
   );
 
-  // Sleep value
-  const sleepValue = (blocks.sleep?.value as number) || 0;
-
-  const setSleepValue = (hours: number) => {
-    onBlocksChange({
-      ...blocks,
-      sleep: {
-        ...blocks.sleep,
-        value: hours,
-      },
-    });
+  // Clear sleep values
+  const clearSleep = () => {
+    setBedHour(11);
+    setBedMinute(0);
+    setBedPeriod('PM');
+    setWakeHour(7);
+    setWakeMinute(0);
+    setWakePeriod('AM');
+    saveSleep(0);
+    setShowSleepPicker(false);
+    setSleepPickerTouched(false);
   };
+
+  // Clear all block options
+  const clearAllOptions = () => {
+    const clearedBlocks = { ...blocks };
+    (['weather', 'meals', 'selfcare', 'health', 'exercise'] as BlockId[]).forEach((blockId) => {
+      if (clearedBlocks[blockId]) {
+        clearedBlocks[blockId] = { ...clearedBlocks[blockId], value: [] };
+      }
+    });
+    onBlocksChange(clearedBlocks);
+    setActiveCategory(null);
+  };
+
+  // Format time for display
+  const formatTime = (hour: number, minute: number, period: 'AM' | 'PM'): string => {
+    return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} ${period}`;
+  };
+
+  // Options for picker wheels
+  const hourOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const minuteOptions = [0, 10, 20, 30, 40, 50];
+  const periodOptions: ('AM' | 'PM')[] = ['AM', 'PM'];
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    if (!bedtimePickerOpen && !wakePickerOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        bedtimePickerOpen &&
+        bedtimeRef.current &&
+        !bedtimeRef.current.contains(e.target as Node)
+      ) {
+        setBedtimePickerOpen(false);
+      }
+      if (
+        wakePickerOpen &&
+        wakeRef.current &&
+        !wakeRef.current.contains(e.target as Node)
+      ) {
+        setWakePickerOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [bedtimePickerOpen, wakePickerOpen]);
 
   // Photo handling
   const displayUrl = photoData?.markedForDeletion
@@ -266,7 +420,7 @@ export function QuickAdditions({
           ) : (
             <>
               <Camera className="h-4 w-4" />
-              <span>Add photo</span>
+              <span>Photo</span>
             </>
           )}
         </button>
@@ -282,11 +436,18 @@ export function QuickAdditions({
         <button
           type="button"
           onClick={() => {
+            // Only auto-save when closing if user actually changed values
+            if (showSleepPicker && sleepPickerTouched) {
+              saveSleep(calculatedMinutes);
+            }
+            if (!showSleepPicker) {
+              setSleepPickerTouched(false);
+            }
             setShowSleepPicker(!showSleepPicker);
             setShowPicker(false);
           }}
           className={cn(
-            'flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors',
+            'flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors min-w-[100px]',
             showSleepPicker
               ? 'bg-primary text-primary-foreground'
               : sleepValue > 0
@@ -294,16 +455,21 @@ export function QuickAdditions({
               : 'bg-muted/50 text-muted-foreground hover:bg-muted'
           )}
         >
-          <BLOCK_ICONS.sleep className="h-4 w-4" />
-          <span>{sleepValue > 0 ? `${sleepValue}h` : 'Hours slept'}</span>
+          <BLOCK_ICONS.sleep className="h-4 w-4 shrink-0" />
+          <span className="truncate">{sleepValue > 0 ? formatSleepDuration(sleepValue) : 'Sleep'}</span>
         </button>
 
         {/* Add details button */}
         <button
           type="button"
           onClick={() => {
+            // Only auto-save sleep if user actually changed values
+            if (showSleepPicker && sleepPickerTouched) {
+              saveSleep(calculatedMinutes);
+            }
             setShowPicker(!showPicker);
             setShowSleepPicker(false);
+            setSleepPickerTouched(false);
           }}
           className={cn(
             'flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors',
@@ -323,7 +489,7 @@ export function QuickAdditions({
           <span>
             {selectedItems.length > 0
               ? `${selectedItems.length} added`
-              : 'Add details'}
+              : 'Details'}
           </span>
         </button>
       </div>
@@ -337,94 +503,226 @@ export function QuickAdditions({
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="pt-2 space-y-3">
-              {/* Quick presets + clear button */}
-              <div className="flex items-center gap-2">
-                <div className="flex flex-wrap gap-2">
-                  {[5, 6, 7, 8, 9].map((h) => (
-                    <button
-                      key={h}
-                      type="button"
-                      onClick={() => setSleepValue(h)}
-                      className={cn(
-                        'h-9 w-12 rounded-xl text-sm font-medium transition-colors',
-                        sleepValue === h
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted/50 text-muted-foreground hover:bg-muted'
-                      )}
-                    >
-                      {h}h
-                    </button>
-                  ))}
-                </div>
-                {sleepValue > 0 && (
+            <div className="pt-3 space-y-4">
+              {/* Time pickers row */}
+              <div className="flex items-start gap-4">
+                {/* Bedtime picker */}
+                <div ref={bedtimeRef} className="flex-1 flex flex-col items-center relative">
+                  {/* Wheel-style dropdown - opens upward */}
+                  <AnimatePresence>
+                    {bedtimePickerOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute bottom-full mb-2 left-0 right-0 z-10"
+                      >
+                        <div className="rounded-xl bg-background border border-border shadow-lg overflow-hidden">
+                          <div className="flex">
+                            {/* Hours column */}
+                            <div className="flex-1 h-40 overflow-y-auto scrollbar-themed border-r border-border/50">
+                              {hourOptions.map((h) => (
+                                <button
+                                  key={h}
+                                  type="button"
+                                  onClick={() => { setBedHour(h); setSleepPickerTouched(true); }}
+                                  className={cn(
+                                    'w-full py-2 text-center text-sm transition-colors',
+                                    bedHour === h
+                                      ? 'bg-primary text-primary-foreground'
+                                      : 'hover:bg-muted text-foreground'
+                                  )}
+                                >
+                                  {h}
+                                </button>
+                              ))}
+                            </div>
+                            {/* Minutes column */}
+                            <div className="flex-1 h-40 overflow-y-auto scrollbar-themed border-r border-border/50">
+                              {minuteOptions.map((m) => (
+                                <button
+                                  key={m}
+                                  type="button"
+                                  onClick={() => { setBedMinute(m); setSleepPickerTouched(true); }}
+                                  className={cn(
+                                    'w-full py-2 text-center text-sm transition-colors',
+                                    bedMinute === m
+                                      ? 'bg-primary text-primary-foreground'
+                                      : 'hover:bg-muted text-foreground'
+                                  )}
+                                >
+                                  {m.toString().padStart(2, '0')}
+                                </button>
+                              ))}
+                            </div>
+                            {/* AM/PM column */}
+                            <div className="flex-1 h-40 overflow-y-auto scrollbar-themed">
+                              {periodOptions.map((p) => (
+                                <button
+                                  key={p}
+                                  type="button"
+                                  onClick={() => { setBedPeriod(p); setSleepPickerTouched(true); }}
+                                  className={cn(
+                                    'w-full py-2 text-center text-sm transition-colors',
+                                    bedPeriod === p
+                                      ? 'bg-primary text-primary-foreground'
+                                      : 'hover:bg-muted text-foreground'
+                                  )}
+                                >
+                                  {p}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                   <button
                     type="button"
-                    onClick={() => setSleepValue(0)}
-                    className="h-9 px-3 ml-auto text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => {
+                      setBedtimePickerOpen(!bedtimePickerOpen);
+                      setWakePickerOpen(false);
+                    }}
+                    className={cn(
+                      'w-full py-3 px-4 rounded-xl text-lg font-medium transition-colors',
+                      bedtimePickerOpen
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted/50 text-foreground hover:bg-muted'
+                    )}
                   >
-                    Clear
+                    {formatTime(bedHour, bedMinute, bedPeriod)}
                   </button>
-                )}
+                  <span className="text-xs text-muted-foreground mt-1.5">Went to bed</span>
+                </div>
+
+                {/* Wake time picker */}
+                <div ref={wakeRef} className="flex-1 flex flex-col items-center relative">
+                  {/* Wheel-style dropdown - opens upward */}
+                  <AnimatePresence>
+                    {wakePickerOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute bottom-full mb-2 left-0 right-0 z-10"
+                      >
+                        <div className="rounded-xl bg-background border border-border shadow-lg overflow-hidden">
+                          <div className="flex">
+                            {/* Hours column */}
+                            <div className="flex-1 h-40 overflow-y-auto scrollbar-themed border-r border-border/50">
+                              {hourOptions.map((h) => (
+                                <button
+                                  key={h}
+                                  type="button"
+                                  onClick={() => { setWakeHour(h); setSleepPickerTouched(true); }}
+                                  className={cn(
+                                    'w-full py-2 text-center text-sm transition-colors',
+                                    wakeHour === h
+                                      ? 'bg-primary text-primary-foreground'
+                                      : 'hover:bg-muted text-foreground'
+                                  )}
+                                >
+                                  {h}
+                                </button>
+                              ))}
+                            </div>
+                            {/* Minutes column */}
+                            <div className="flex-1 h-40 overflow-y-auto scrollbar-themed border-r border-border/50">
+                              {minuteOptions.map((m) => (
+                                <button
+                                  key={m}
+                                  type="button"
+                                  onClick={() => { setWakeMinute(m); setSleepPickerTouched(true); }}
+                                  className={cn(
+                                    'w-full py-2 text-center text-sm transition-colors',
+                                    wakeMinute === m
+                                      ? 'bg-primary text-primary-foreground'
+                                      : 'hover:bg-muted text-foreground'
+                                  )}
+                                >
+                                  {m.toString().padStart(2, '0')}
+                                </button>
+                              ))}
+                            </div>
+                            {/* AM/PM column */}
+                            <div className="flex-1 h-40 overflow-y-auto scrollbar-themed">
+                              {periodOptions.map((p) => (
+                                <button
+                                  key={p}
+                                  type="button"
+                                  onClick={() => { setWakePeriod(p); setSleepPickerTouched(true); }}
+                                  className={cn(
+                                    'w-full py-2 text-center text-sm transition-colors',
+                                    wakePeriod === p
+                                      ? 'bg-primary text-primary-foreground'
+                                      : 'hover:bg-muted text-foreground'
+                                  )}
+                                >
+                                  {p}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setWakePickerOpen(!wakePickerOpen);
+                      setBedtimePickerOpen(false);
+                    }}
+                    className={cn(
+                      'w-full py-3 px-4 rounded-xl text-lg font-medium transition-colors',
+                      wakePickerOpen
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted/50 text-foreground hover:bg-muted'
+                    )}
+                  >
+                    {formatTime(wakeHour, wakeMinute, wakePeriod)}
+                  </button>
+                  <span className="text-xs text-muted-foreground mt-1.5">Woke up</span>
+                </div>
               </div>
-              {/* Fine-tune slider */}
-              <div className="flex items-center gap-3">
-                <input
-                  type="range"
-                  min={0}
-                  max={14}
-                  step={0.5}
-                  value={sleepValue}
-                  onChange={(e) => setSleepValue(Number(e.target.value))}
-                  className="flex-1 h-2 rounded-full appearance-none bg-muted cursor-pointer accent-primary"
-                />
-                <span
-                  className={cn(
-                    'w-12 text-center text-sm font-medium tabular-nums',
-                    sleepValue > 0 ? 'text-primary' : 'text-muted-foreground'
+
+              {/* Sleep duration display + actions */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-semibold text-primary">
+                    {formatSleepDuration(calculatedMinutes)}
+                  </span>
+                  <span className="text-sm text-muted-foreground">sleep</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {sleepValue > 0 && (
+                    <button
+                      type="button"
+                      onClick={clearSleep}
+                      className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Clear
+                    </button>
                   )}
-                >
-                  {sleepValue > 0 ? `${sleepValue}h` : '—'}
-                </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      saveSleep(calculatedMinutes);
+                      setShowSleepPicker(false);
+                      setSleepPickerTouched(false);
+                    }}
+                    className="p-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                  >
+                    <Check className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Selected items - shown below when there are any */}
-      <AnimatePresence>
-        {selectedItems.length > 0 && !showPicker && !showSleepPicker && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="flex flex-wrap gap-2">
-              {selectedItems.map((item) => (
-                <motion.button
-                  key={item.id}
-                  type="button"
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  onClick={() =>
-                    toggleOption(item.blockId as BlockId, item.value)
-                  }
-                  className="h-7 px-2 rounded-lg bg-primary/10 text-primary flex items-center gap-1.5 text-xs hover:bg-primary/20 transition-colors"
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <item.icon className="h-3 w-3" />
-                  <span>{item.label}</span>
-                  <X className="h-2.5 w-2.5 opacity-60" />
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Picker */}
       <AnimatePresence>
@@ -464,6 +762,16 @@ export function QuickAdditions({
                     </button>
                   );
                 })}
+                {selectedItems.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={clearAllOptions}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-rose-400/70 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                    <span>Clear</span>
+                  </button>
+                )}
               </div>
 
               {/* Options for active category */}
@@ -498,7 +806,6 @@ export function QuickAdditions({
                         >
                           <Icon className="h-4 w-4" />
                           <span>{opt.label}</span>
-                          {selected && <Check className="h-3.5 w-3.5 ml-0.5" />}
                         </motion.button>
                       );
                     })}

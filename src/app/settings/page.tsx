@@ -104,13 +104,13 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="h-screen min-h-screen bg-background">
-      <div className="max-w-lg mx-auto h-full px-6 pt-8 pb-16 flex flex-col">
+    <div className="h-screen-dynamic bg-background overflow-hidden">
+      <div className="max-w-lg mx-auto h-full px-6 pt-8 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <motion.button
             onClick={() => router.back()}
-            className="p-2 -ml-2 text-muted-foreground/50 hover:text-foreground transition-colors cursor-pointer rounded-md hover:bg-muted/30"
+            className="p-2 text-muted-foreground/50 hover:text-foreground transition-colors cursor-pointer rounded-md hover:bg-muted/30"
             whileTap={{ scale: 0.95 }}
             aria-label="Go back"
           >
@@ -124,7 +124,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Content */}
-        <div className="flex flex-col flex-1 gap-6">
+        <div className="flex flex-col flex-1 gap-6 overflow-y-auto">
           {/* Account Section */}
           <section className="space-y-3">
             <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -240,13 +240,13 @@ export default function SettingsPage() {
               Appearance
             </h2>
 
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-3 py-1 px-1">
               {COLOR_THEMES.map((theme) => (
                 <button
                   key={theme.value}
                   onClick={() => handleThemeChange(theme.value)}
                   className={cn(
-                    'relative rounded-xl p-2 transition-all cursor-pointer border-2',
+                    'relative rounded-xl p-2 transition-all cursor-pointer border-2 overflow-visible',
                     colorTheme === theme.value
                       ? 'border-primary'
                       : !theme.isDark
@@ -287,7 +287,7 @@ export default function SettingsPage() {
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center"
+                      className="absolute top-0 right-0 translate-x-1/3 -translate-y-1/3 w-4 h-4 rounded-full bg-primary flex items-center justify-center"
                     >
                       <Check className="h-2.5 w-2.5 text-primary-foreground" />
                     </motion.div>
@@ -298,7 +298,7 @@ export default function SettingsPage() {
           </section>
 
           {/* Data Section */}
-          <section className="space-y-3 flex-1">
+          <section className="space-y-3">
             <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Data
             </h2>
@@ -334,8 +334,8 @@ export default function SettingsPage() {
                     <p className="text-sm text-destructive/70 text-center">
                       This will permanently delete {cards.length}{' '}
                       {cards.length === 1 ? 'recap' : 'recaps'}
-                      {user ? ' from your device and the cloud' : ''}. This cannot
-                      be undone.
+                      {user ? ' from your device and the cloud' : ''}. This
+                      cannot be undone.
                     </p>
                     <div className="flex justify-center gap-4">
                       <button
@@ -348,20 +348,21 @@ export default function SettingsPage() {
                       <button
                         onClick={handleClearAll}
                         disabled={isClearing}
-                      className="text-sm text-destructive/70 cursor-pointer hover:text-destructive font-medium transition-colors disabled:opacity-50"
-                    >
-                      {isClearing ? 'Deleting...' : 'Delete All'}
-                    </button>
-                  </div>
-                </motion.div>
-              )}
+                        className="text-sm text-destructive/70 cursor-pointer hover:text-destructive font-medium transition-colors disabled:opacity-50"
+                      >
+                        {isClearing ? 'Deleting...' : 'Delete All'}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
               </AnimatePresence>
             )}
           </section>
 
-          {/* Footer */}
-          <AppFooter />
         </div>
+
+        {/* Footer */}
+        <AppFooter />
       </div>
     </div>
   );

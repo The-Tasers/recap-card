@@ -9,13 +9,13 @@ export default function PrivacyPage() {
   const router = useRouter();
 
   return (
-    <div className="h-screen min-h-screen bg-background">
-      <div className="max-w-lg mx-auto h-full px-6 pt-8 pb-16 flex flex-col">
+    <div className="h-screen-dynamic bg-background overflow-hidden">
+      <div className="max-w-lg mx-auto h-full px-6 pt-8 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <motion.button
             onClick={() => router.back()}
-            className="p-2 -ml-2 text-muted-foreground/50 hover:text-foreground transition-colors cursor-pointer rounded-md hover:bg-muted/30"
+            className="p-2 text-muted-foreground/50 hover:text-foreground transition-colors cursor-pointer rounded-md hover:bg-muted/30"
             whileTap={{ scale: 0.95 }}
             aria-label="Go back"
           >
@@ -28,7 +28,7 @@ export default function PrivacyPage() {
         </div>
 
         {/* Content */}
-        <div className="space-y-6 text-sm text-muted-foreground flex-1">
+        <div className="space-y-6 text-sm text-muted-foreground flex-1 overflow-y-auto">
           <section>
             <h2 className="text-foreground font-medium mb-2">Your Data</h2>
             <p>

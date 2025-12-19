@@ -117,7 +117,9 @@ export default function Canvas() {
   // Past entries (excluding today) - include pending deletes to show undo state
   const pastEntries = useMemo(() => {
     const today = new Date().toDateString();
-    const activePast = cards.filter((c) => new Date(c.createdAt).toDateString() !== today);
+    const activePast = cards.filter(
+      (c) => new Date(c.createdAt).toDateString() !== today
+    );
 
     // Also include past entries that are pending delete
     const pendingPast = pendingDeletes
@@ -126,7 +128,10 @@ export default function Canvas() {
 
     // Combine and sort by date (newest first)
     const combined = [...activePast, ...pendingPast];
-    combined.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    combined.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
 
     return combined;
   }, [cards, pendingDeletes]);
@@ -465,7 +470,7 @@ export default function Canvas() {
   const isInFormMode = !!editingCard;
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="h-screen-dynamic flex flex-col bg-background">
       {/* Form header */}
       <FormHeader
         isVisible={isInFormMode}
@@ -507,6 +512,12 @@ export default function Canvas() {
               hasEntries={cards.length > 0}
               isAuthenticated={!!user}
               syncNotification={syncNotification}
+              groupedEntries={groupedEntries}
+              onEdit={startEdit}
+              onDelete={handleDelete}
+              onUndo={handleUndo}
+              onDismissUndo={handleDismissUndo}
+              pendingDeleteIds={pendingDeletes.map((pd) => pd.card.id)}
             />
           </AnimatePresence>
         </div>
@@ -514,7 +525,7 @@ export default function Canvas() {
 
       {/* Today view - wider container on desktop */}
       {!editingCard && todayEntry && (
-        <div className="max-w-lg w-full mx-auto h-full px-6 relative flex flex-col overflow-hidden">
+        <div className="max-w-lg w-full mx-auto h-full relative flex flex-col overflow-y-auto overflow-x-hidden">
           <SettingsButton isVisible={true} isAuthenticated={!!user} />
           <AnimatePresence>
             <TodayView

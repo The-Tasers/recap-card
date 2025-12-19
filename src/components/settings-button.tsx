@@ -22,7 +22,7 @@ export function SettingsButton({
   return (
     <AnimatePresence>
       {isVisible && (
-        <div className="absolute top-6 right-3 z-50">
+        <div className="absolute top-4 right-3 z-50">
           <motion.button
             className="flex items-center gap-1.5 p-2 rounded-full text-muted-foreground/70 hover:text-foreground transition-colors cursor-pointer"
             initial={{ opacity: 0 }}
@@ -30,7 +30,9 @@ export function SettingsButton({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={() => router.push('/settings')}
-            whileHover={isAuthenticated ? { scale: 1.05 } : { scale: 1.1, rotate: 15 }}
+            whileHover={
+              isAuthenticated ? { scale: 1.05 } : { scale: 1.1, rotate: 15 }
+            }
             whileTap={{ scale: 0.95 }}
           >
             {isAuthenticated ? (
@@ -38,7 +40,10 @@ export function SettingsButton({
                 className="h-7 w-7 rounded-full flex items-center justify-center"
                 style={{ backgroundColor: `${currentTheme?.preview.accent}20` }}
               >
-                <User className="h-3.5 w-3.5" style={{ color: currentTheme?.preview.accent }} />
+                <User
+                  className="h-3.5 w-3.5"
+                  style={{ color: currentTheme?.preview.accent }}
+                />
               </div>
             ) : (
               <Settings className="h-5 w-5" />

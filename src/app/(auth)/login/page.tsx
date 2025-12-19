@@ -66,9 +66,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center flex-col bg-background px-6 pt-8 pb-16">
-      <div className="w-full flex-1 max-w-md flex flex-col justify-between">
-        <div>
+    <div className="h-screen-dynamic bg-background overflow-hidden">
+      <div className="max-w-md mx-auto h-full px-6 pt-6 flex flex-col">
+        <div className="shrink-0">
           <motion.button
             onClick={() => router.back()}
             className="p-2 text-muted-foreground/50 hover:text-foreground transition-colors cursor-pointer rounded-md hover:bg-muted/30"
@@ -78,7 +78,7 @@ export default function LoginPage() {
             <ChevronLeft className="h-5 w-5" />
           </motion.button>
         </div>
-        <div>
+        <div className="flex-1 flex flex-col justify-center">
           {/* Header */}
           <div className="text-center mb-4 lg:mb-8">
             <motion.div
@@ -222,7 +222,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <AppFooter className="mt-8" />
+        <AppFooter />
       </div>
     </div>
   );

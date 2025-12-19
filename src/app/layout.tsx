@@ -68,7 +68,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body
-        className={`${geistSans.variable} font-sans antialiased min-h-screen bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100`}
+        className={`${geistSans.variable} font-sans antialiased min-h-screen-dynamic bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100`}
       >
         <AuthProvider>
           <ThemeProvider>

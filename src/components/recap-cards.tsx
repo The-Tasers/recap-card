@@ -85,7 +85,10 @@ function formatRelativeDate(date: Date): string {
 function BlockDetails({ blocks }: { blocks?: CardBlock[] }) {
   if (!blocks || blocks.length === 0) return null;
 
-  const sleepBlock = blocks.find((b) => b.blockId === 'sleep' && b.value !== 0);
+  const sleepBlock = blocks.find(
+    (b) => b.blockId === 'sleep' && typeof b.value === 'number' && b.value > 0
+  );
+  const sleepHours = sleepBlock ? (sleepBlock.value as number) : 0;
   const weatherBlock = blocks.find(
     (b) =>
       b.blockId === 'weather' && Array.isArray(b.value) && b.value.length > 0
@@ -103,22 +106,22 @@ function BlockDetails({ blocks }: { blocks?: CardBlock[] }) {
   );
 
   const hasAny =
-    sleepBlock || weatherBlock || mealsBlock || selfcareBlock || healthBlock;
+    sleepHours > 0 || weatherBlock || mealsBlock || selfcareBlock || healthBlock;
   if (!hasAny) return null;
 
   const SleepIcon = BLOCK_ICONS.sleep;
 
   return (
     <div className="flex flex-wrap gap-2 mt-3">
-      {sleepBlock && (
+      {sleepHours > 0 && (
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white/20 text-white/90 text-xs cursor-default">
               <SleepIcon className="h-3.5 w-3.5" />
-              <span>{sleepBlock.value}h</span>
+              <span>{sleepHours}h</span>
             </span>
           </TooltipTrigger>
-          <TooltipContent>{sleepBlock.value} hours of sleep</TooltipContent>
+          <TooltipContent>{sleepHours} hours of sleep</TooltipContent>
         </Tooltip>
       )}
       {weatherBlock && Array.isArray(weatherBlock.value) && (

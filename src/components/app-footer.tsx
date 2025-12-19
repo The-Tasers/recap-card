@@ -1,14 +1,15 @@
 'use client';
 
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 interface AppFooterProps {
   className?: string;
 }
 
-export function AppFooter({ className = '' }: AppFooterProps) {
+export function AppFooter({ className }: AppFooterProps) {
   return (
-    <div className={`group flex flex-col items-center gap-2 ${className}`}>
+    <div className={cn('shrink-0 py-6 group flex flex-col items-center gap-2', className)}>
       <Link
         href="/"
         className="text-xs text-center font-bold tracking-widest uppercase transition-opacity"

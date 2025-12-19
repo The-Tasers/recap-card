@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
   motion,
@@ -9,7 +9,7 @@ import {
   useTransform,
   PanInfo,
 } from 'framer-motion';
-import { Trash2, Undo2, Moon, X } from 'lucide-react';
+import { Trash2, Undo2, Moon, X, ZoomIn } from 'lucide-react';
 import {
   MOOD_ICONS,
   WEATHER_ICONS,
@@ -60,6 +60,14 @@ function getBlockLabel(blockId: string, value: string): string {
   return option?.label || value;
 }
 
+// Format sleep duration from minutes (e.g., "7h 30m" or "8h")
+function formatSleepDuration(totalMinutes: number): string {
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  if (mins === 0) return `${hours}h`;
+  return `${hours}h ${mins}m`;
+}
+
 // Tooltip component with mobile tap support - renders tooltip in portal to avoid overflow clipping
 function BlockTooltip({
   icon: Icon,
@@ -70,24 +78,23 @@ function BlockTooltip({
   label: string;
   onInteraction: (e: React.MouseEvent | React.TouchEvent) => void;
 }) {
-  const [showTooltip, setShowTooltip] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [tooltipState, setTooltipState] = useState<{
+    show: boolean;
+    top: number;
+    left: number;
+    align: 'center' | 'left' | 'right';
+  }>({ show: false, top: 0, left: 0, align: 'center' });
   const buttonRef = useRef<HTMLButtonElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Ensure we're on client side for portal
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   // Close tooltip on click outside and auto-hide
   useEffect(() => {
-    if (!showTooltip) return;
+    if (!tooltipState.show) return;
 
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       const target = e.target as Node;
       if (buttonRef.current && !buttonRef.current.contains(target)) {
-        setShowTooltip(false);
+        setTooltipState((prev) => ({ ...prev, show: false }));
       }
     };
 
@@ -95,33 +102,62 @@ function BlockTooltip({
     document.addEventListener('touchstart', handleClickOutside);
 
     // Auto-hide after 2 seconds
-    timeoutRef.current = setTimeout(() => setShowTooltip(false), 2000);
+    timeoutRef.current = setTimeout(
+      () => setTooltipState((prev) => ({ ...prev, show: false })),
+      2000
+    );
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [showTooltip]);
+  }, [tooltipState.show]);
+
+  const showTooltipAtPosition = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const screenWidth = window.innerWidth;
+      const tooltipWidth = 120; // Approximate max tooltip width
+      const centerX = rect.left + rect.width / 2;
+      const padding = 8;
+
+      // Determine alignment based on position
+      let align: 'center' | 'left' | 'right' = 'center';
+      let left = centerX;
+
+      if (centerX - tooltipWidth / 2 < padding) {
+        // Too close to left edge - align left
+        align = 'left';
+        left = rect.left;
+      } else if (centerX + tooltipWidth / 2 > screenWidth - padding) {
+        // Too close to right edge - align right
+        align = 'right';
+        left = rect.right;
+      }
+
+      setTooltipState({
+        show: true,
+        top: rect.top - 8,
+        left,
+        align,
+      });
+    }
+  };
 
   const handleClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     e.preventDefault();
     onInteraction(e);
-    setShowTooltip(!showTooltip);
+    if (tooltipState.show) {
+      setTooltipState((prev) => ({ ...prev, show: false }));
+    } else {
+      showTooltipAtPosition();
+    }
   };
 
-  // Calculate position directly from button ref
-  const getTooltipStyle = (): React.CSSProperties => {
-    if (!buttonRef.current) return { display: 'none' };
-    const rect = buttonRef.current.getBoundingClientRect();
-    return {
-      position: 'fixed',
-      top: rect.top - 8,
-      left: rect.left + rect.width / 2,
-      transform: 'translate(-50%, -100%)',
-    };
-  };
+  // Check if we're on client side for portal
+  const isClient = typeof window !== 'undefined';
 
   return (
     <>
@@ -129,22 +165,45 @@ function BlockTooltip({
         ref={buttonRef}
         type="button"
         onClick={handleClick}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-        className="p-1.5 rounded-md bg-muted/50 hover:bg-muted/70 transition-colors"
+        onMouseEnter={showTooltipAtPosition}
+        onMouseLeave={() => setTooltipState((prev) => ({ ...prev, show: false }))}
+        className="p-1.5 rounded-md bg-primary/10 hover:bg-primary/20 transition-colors"
         aria-label={label}
       >
-        <Icon className="h-3.5 w-3.5 text-muted-foreground/70" />
+        <Icon className="h-3.5 w-3.5 text-primary/70" />
       </button>
-      {mounted &&
-        showTooltip &&
+      {isClient &&
+        tooltipState.show &&
         createPortal(
           <div
-            style={getTooltipStyle()}
+            style={{
+              position: 'fixed',
+              top: tooltipState.top,
+              left: tooltipState.left,
+              transform:
+                tooltipState.align === 'center'
+                  ? 'translate(-50%, -100%)'
+                  : tooltipState.align === 'left'
+                  ? 'translate(0, -100%)'
+                  : 'translate(-100%, -100%)',
+            }}
             className="px-2 py-1 text-xs font-medium bg-foreground text-background rounded-md whitespace-nowrap z-[100] shadow-lg pointer-events-none"
           >
             {label}
-            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-foreground" />
+            <div
+              className="absolute top-full border-4 border-transparent border-t-foreground"
+              style={{
+                left:
+                  tooltipState.align === 'center'
+                    ? '50%'
+                    : tooltipState.align === 'left'
+                    ? '12px'
+                    : 'auto',
+                right: tooltipState.align === 'right' ? '12px' : 'auto',
+                transform:
+                  tooltipState.align === 'center' ? 'translateX(-50%)' : 'none',
+              }}
+            />
           </div>,
           document.body
         )}
@@ -241,21 +300,41 @@ export function TimelineEntry({
 }: TimelineEntryProps) {
   const [isExpanded, setIsExpanded] = useState(isToday);
   const [pendingDelete, setPendingDelete] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(externalPendingDelete);
   const [deleteMessage, setDeleteMessage] = useState('');
   const [isSwipedOpen, setIsSwipedOpen] = useState(false);
+  const [showPhotoViewer, setShowPhotoViewer] = useState(false);
 
-  // Sync internal deleting state with external prop
+  // Check if we're on client side for photo viewer portal
+  const isClient = typeof window !== 'undefined';
+
+  // Derive isDeleting from external prop or local delete message
+  const isDeleting = externalPendingDelete || deleteMessage !== '';
+
+  // Get a deterministic delete message based on card ID (no Math.random during render)
+  const getDeleteMessage = () => {
+    const index =
+      card.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) %
+      DELETE_MESSAGES.length;
+    return DELETE_MESSAGES[index];
+  };
+
+  // Use local message if set, otherwise get deterministic message for external delete
+  const displayDeleteMessage = deleteMessage || getDeleteMessage();
+
+  // Close photo viewer on escape key
   useEffect(() => {
-    if (externalPendingDelete && !isDeleting) {
-      setDeleteMessage(
-        DELETE_MESSAGES[Math.floor(Math.random() * DELETE_MESSAGES.length)]
-      );
-      setIsDeleting(true);
-    } else if (!externalPendingDelete && isDeleting) {
-      setIsDeleting(false);
-    }
-  }, [externalPendingDelete, isDeleting]);
+    if (!showPhotoViewer) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowPhotoViewer(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showPhotoViewer]);
+
   const deleteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const MoodIcon = MOOD_ICONS[card.mood];
   const cardDate = new Date(card.createdAt);
@@ -287,10 +366,7 @@ export function TimelineEntry({
 
   // Handle delete with animation - now shows longer state with undo option
   const handleDelete = () => {
-    setDeleteMessage(
-      DELETE_MESSAGES[Math.floor(Math.random() * DELETE_MESSAGES.length)]
-    );
-    setIsDeleting(true);
+    setDeleteMessage(getDeleteMessage());
     // Call onDelete immediately (soft delete), the undo window is shown in the UI
     onDelete();
   };
@@ -299,7 +375,7 @@ export function TimelineEntry({
   const handleUndo = () => {
     if (onUndo) {
       onUndo();
-      setIsDeleting(false);
+      setDeleteMessage('');
       setPendingDelete(false);
     }
   };
@@ -360,6 +436,7 @@ export function TimelineEntry({
   const hasMoreContent = hasPhoto || hasBlocks || shouldTruncate;
 
   return (
+    <>
     <AnimatePresence mode="popLayout">
       {!isDeleting ? (
         <motion.div
@@ -536,10 +613,10 @@ export function TimelineEntry({
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden"
                 >
-                  {/* Photo */}
+                  {/* Photo with zoom button */}
                   {hasPhoto && (
                     <motion.div
-                      className="mt-4 rounded-xl overflow-hidden"
+                      className="mt-4 rounded-xl overflow-hidden relative"
                       initial={{ scale: 0.95, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ delay: 0.1 }}
@@ -551,7 +628,25 @@ export function TimelineEntry({
                           'w-full object-cover',
                           isToday ? 'max-h-64' : 'max-h-48'
                         )}
+                        draggable={false}
                       />
+                      {/* Zoom button */}
+                      <motion.button
+                        type="button"
+                        className="absolute top-2 right-2 p-1.5 rounded-md bg-background/80 backdrop-blur-sm hover:bg-background/90 transition-colors cursor-pointer shadow-sm"
+                        onPointerDownCapture={(e) => e.stopPropagation()}
+                        onTouchStartCapture={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          setShowPhotoViewer(true);
+                        }}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        aria-label="View full size"
+                      >
+                        <ZoomIn className="h-3.5 w-3.5 text-primary" />
+                      </motion.button>
                     </motion.div>
                   )}
 
@@ -579,7 +674,7 @@ export function TimelineEntry({
                             >
                               <BlockTooltip
                                 icon={Moon}
-                                label={`${block.value}h sleep`}
+                                label={`${formatSleepDuration(block.value)} sleep`}
                                 onInteraction={(e) => e.stopPropagation()}
                               />
                             </motion.div>
@@ -634,7 +729,7 @@ export function TimelineEntry({
               animate={{ opacity: 1, x: 0 }}
               className="text-sm text-muted-foreground/70 italic"
             >
-              {deleteMessage}
+              {displayDeleteMessage}
             </motion.span>
             {onUndo && (
               <motion.button
@@ -663,6 +758,42 @@ export function TimelineEntry({
           </div>
         </motion.div>
       )}
+
     </AnimatePresence>
+
+    {/* Photo viewer - fullscreen lightbox (separate from card AnimatePresence) */}
+    {isClient && createPortal(
+      <AnimatePresence>
+        {showPhotoViewer && card.photoUrl && (
+          <motion.div
+            key="photo-viewer"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center cursor-zoom-out"
+            onClick={() => setShowPhotoViewer(false)}
+          >
+            <motion.img
+              src={card.photoUrl}
+              alt=""
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="max-w-[95vw] max-h-[95vh] object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <button
+              className="absolute top-4 right-4 p-2 text-white/70 hover:text-white transition-colors"
+              onClick={() => setShowPhotoViewer(false)}
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>,
+      document.body
+    )}
+    </>
   );
 }
