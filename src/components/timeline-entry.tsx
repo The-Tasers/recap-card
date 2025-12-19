@@ -342,11 +342,6 @@ export function TimelineEntry({
 
   // Swipe gesture state
   const x = useMotionValue(0);
-  const background = useTransform(
-    x,
-    [-80, 0],
-    ['rgba(0, 0, 0, 0.03)', 'rgba(0, 0, 0, 0)']
-  );
   const deleteButtonOpacity = useTransform(x, [-60, -30, 0], [1, 0.5, 0]);
   const deleteButtonScale = useTransform(x, [-60, -30, 0], [1, 0.9, 0.8]);
 
@@ -463,8 +458,8 @@ export function TimelineEntry({
           {/* Swipe delete button (mobile only) */}
           {isMobile && (
             <motion.div
-              className="absolute inset-0 rounded-xl flex items-center justify-end pr-3"
-              style={{ background }}
+              className="absolute top-0 bottom-0 right-0 w-12 rounded-r-xl flex items-center justify-end pr-1"
+              style={{ marginBottom: isToday ? '8px' : 0 }}
             >
               <motion.button
                 className="h-8 w-8 rounded-full bg-destructive/10 flex items-center justify-center hover:bg-destructive/20 transition-colors"
@@ -493,8 +488,9 @@ export function TimelineEntry({
             drag={isMobile ? 'x' : false}
             dragConstraints={{ left: -80, right: 0 }}
             dragElastic={{ left: 0.2, right: 0 }}
+            dragDirectionLock
             onDragEnd={handleDragEnd}
-            style={{ x }}
+            style={{ x, touchAction: isMobile ? 'pan-y' : 'auto' }}
             animate={{ x: isSwipedOpen ? -60 : 0 }}
             className={cn(
               'relative cursor-pointer transition-colors duration-200 rounded-xl -mx-3 px-3 py-3',

@@ -188,11 +188,10 @@ export default function SettingsPage() {
                       initial={{ opacity: 0, y: -5 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -5 }}
-                      className="space-y-3"
+                      className="space-y-2"
                     >
                       <p className="text-sm text-destructive/70 text-center">
-                        This will permanently delete your account, all your
-                        recaps, and photos. This cannot be undone.
+                        Delete your account and all data?
                       </p>
                       <div className="flex justify-center gap-4">
                         <button
@@ -200,14 +199,14 @@ export default function SettingsPage() {
                           disabled={isDeletingAccount}
                           className="text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors disabled:opacity-50"
                         >
-                          Keep Account
+                          Cancel
                         </button>
                         <button
                           onClick={handleDeleteAccount}
                           disabled={isDeletingAccount}
                           className="text-sm text-destructive/70 cursor-pointer hover:text-destructive font-medium transition-colors disabled:opacity-50"
                         >
-                          {isDeletingAccount ? 'Deleting...' : 'Delete Account'}
+                          {isDeletingAccount ? 'Deleting...' : 'Yes, delete'}
                         </button>
                       </div>
                     </motion.div>
@@ -334,8 +333,7 @@ export default function SettingsPage() {
                     <p className="text-sm text-destructive/70 text-center">
                       This will permanently delete {cards.length}{' '}
                       {cards.length === 1 ? 'recap' : 'recaps'}
-                      {user ? ' from your device and the cloud' : ''}. This
-                      cannot be undone.
+                      {user ? ' from your device and the cloud' : ''}.
                     </p>
                     <div className="flex justify-center gap-4">
                       <button
@@ -358,7 +356,6 @@ export default function SettingsPage() {
               </AnimatePresence>
             )}
           </section>
-
         </div>
 
         {/* Footer */}
