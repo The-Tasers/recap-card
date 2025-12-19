@@ -67,6 +67,16 @@ export default function PrivacyPage() {
           </section>
 
           <section>
+            <h2 className="text-foreground font-medium mb-2">Data Export</h2>
+            <p>
+              You can export all your data at any time. Go to Settings and tap
+              the download icon in the Data section to export your recaps as a
+              CSV file. The export includes dates, moods, text entries, and all
+              tracked details like sleep, weather, meals, and activities.
+            </p>
+          </section>
+
+          <section>
             <h2 className="text-foreground font-medium mb-2">Contact</h2>
             <p>
               Questions? Reach out at{' '}
