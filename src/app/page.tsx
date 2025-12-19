@@ -1,15 +1,13 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useCardStore, clearIndexedDB } from '@/lib/store';
+import { AnimatePresence } from 'framer-motion';
+import { useCardStore } from '@/lib/store';
 import { getTodayRecap } from '@/lib/daily-utils';
 import { groupCardsByWeek } from '@/lib/date-utils';
-import { createClient } from '@/lib/supabase/client';
 import { SignupPrompt } from '@/components/signup-prompt';
 import { PhotoData } from '@/components/photo-uploader';
 import { RecapForm } from '@/components/recap-form';
-import { SettingsPanel } from '@/components/settings-panel';
 import { MoodSelectView } from '@/components/mood-select-view';
 import { TodayView } from '@/components/today-view';
 import { FormHeader } from '@/components/form-header';
@@ -51,7 +49,7 @@ export default function Canvas() {
     syncNotification,
     showNotification,
   } = useSyncContext();
-  const { user, signOut, loading: authLoading } = useAuth();
+  const { user } = useAuth();
 
   // Initialize blocks helper
   const initializeBlocks = (): Record<BlockId, CardBlock> => {
@@ -90,7 +88,6 @@ export default function Canvas() {
   const [editBlocks, setEditBlocks] =
     useState<Record<BlockId, CardBlock>>(initializeBlocks);
   const [editPhotoData, setEditPhotoData] = useState<PhotoData | undefined>();
-  const [showSettings, setShowSettings] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -117,11 +114,22 @@ export default function Canvas() {
     return pendingDeletes.some((pd) => pd.card.id === todayEntry.id);
   }, [todayEntry, pendingDeletes]);
 
-  // Past entries (excluding today)
+  // Past entries (excluding today) - include pending deletes to show undo state
   const pastEntries = useMemo(() => {
     const today = new Date().toDateString();
-    return cards.filter((c) => new Date(c.createdAt).toDateString() !== today);
-  }, [cards]);
+    const activePast = cards.filter((c) => new Date(c.createdAt).toDateString() !== today);
+
+    // Also include past entries that are pending delete
+    const pendingPast = pendingDeletes
+      .filter((pd) => new Date(pd.card.createdAt).toDateString() !== today)
+      .map((pd) => pd.card);
+
+    // Combine and sort by date (newest first)
+    const combined = [...activePast, ...pendingPast];
+    combined.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    return combined;
+  }, [cards, pendingDeletes]);
 
   // Grouped past entries
   const groupedEntries = useMemo(
@@ -134,13 +142,6 @@ export default function Canvas() {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Escape - exit current mode
       if (e.key === 'Escape') {
-        // If in settings, close settings
-        if (showSettings) {
-          e.preventDefault();
-          setShowSettings(false);
-          return;
-        }
-
         // If editing, exit edit mode
         if (editingCard) {
           e.preventDefault();
@@ -152,7 +153,7 @@ export default function Canvas() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showSettings, editingCard]);
+  }, [editingCard]);
 
   // Auto-save function for edit mode (handles text, mood, blocks, and photos)
   const performAutoSave = useCallback(async () => {
@@ -377,64 +378,27 @@ export default function Canvas() {
       if (isAuthenticated) {
         await restoreRecapInCloud(cardId);
       }
-      showNotification('success', 'Entry restored');
+      showNotification('success', 'Recap restored');
     } catch (err) {
       console.error('Failed to restore card', err);
     }
   };
 
-  // Settings handlers
-  const handleClearAll = async () => {
-    try {
-      if (user) {
-        const supabase = createClient();
-        const { error } = await supabase
-          .from('recaps')
-          .delete()
-          .eq('user_id', user.id);
+  // Handle dismiss undo - immediately finalize deletion without waiting
+  const handleDismissUndo = async (cardId: string) => {
+    const pending = useCardStore.getState().getPendingDelete(cardId);
+    if (!pending) return;
 
-        if (error) {
-          console.error('Error deleting cloud recaps:', error);
-          showNotification('error', 'Failed to delete cloud data');
-          return;
-        }
-      }
+    // Permanently remove from pending deletes
+    removePendingDelete(cardId);
 
-      await clearIndexedDB();
-      showNotification('success', 'All data cleared');
-      setShowSettings(false);
-      setTimeout(() => window.location.reload(), 100);
-    } catch (error) {
-      console.error('Error clearing data:', error);
-      showNotification('error', 'Failed to clear data');
-    }
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-    showNotification('success', 'Signed out');
-    setShowSettings(false);
-  };
-
-  const handleDeleteAccount = async () => {
-    try {
-      const response = await fetch('/api/account/delete', { method: 'DELETE' });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to delete account');
-      }
-
-      await clearIndexedDB();
-      await signOut();
-
-      showNotification('success', 'Account deleted');
-      setShowSettings(false);
-
-      setTimeout(() => window.location.reload(), 100);
-    } catch (error) {
-      console.error('Error deleting account:', error);
-      showNotification('error', 'Failed to delete account');
+    // Delete photo from cloud if exists and user is authenticated
+    if (
+      pending.card.photoUrl &&
+      isSupabaseStorageUrl(pending.card.photoUrl) &&
+      isAuthenticated
+    ) {
+      await deleteImage(pending.card.photoUrl);
     }
   };
 
@@ -502,13 +466,6 @@ export default function Canvas() {
 
   return (
     <div className="h-screen flex flex-col bg-background">
-      {/* Settings button - hide when in form mode or settings */}
-      <SettingsButton
-        isVisible={!showSettings && !editingCard}
-        isAuthenticated={!!user}
-        onClick={() => setShowSettings(true)}
-      />
-
       {/* Form header */}
       <FormHeader
         isVisible={isInFormMode}
@@ -519,25 +476,8 @@ export default function Canvas() {
         onMoodChange={handleMoodChange}
       />
 
-      {/* Settings - wider container on desktop */}
-      {showSettings && (
-        <div className="max-w-lg w-full mx-auto h-full px-6 relative flex flex-col">
-          <AnimatePresence>
-            <SettingsPanel
-              onBack={() => setShowSettings(false)}
-              user={user}
-              authLoading={authLoading}
-              cardsCount={cards.length}
-              onSignOut={handleSignOut}
-              onClearAll={handleClearAll}
-              onDeleteAccount={handleDeleteAccount}
-            />
-          </AnimatePresence>
-        </div>
-      )}
-
       {/* Edit mode */}
-      {!showSettings && editingCard && (
+      {editingCard && (
         <div className="max-w-lg w-full mx-auto h-full px-6 relative flex flex-col overflow-hidden">
           <AnimatePresence>
             <RecapForm
@@ -557,8 +497,9 @@ export default function Canvas() {
       )}
 
       {/* Mood selection - show when no today entry and not editing */}
-      {!showSettings && !editingCard && !todayEntry && (
+      {!editingCard && !todayEntry && (
         <div className="max-w-lg w-full mx-auto h-full px-6 relative flex flex-col overflow-hidden">
+          <SettingsButton isVisible={true} isAuthenticated={!!user} />
           <AnimatePresence>
             <MoodSelectView
               mood={undefined}
@@ -572,8 +513,9 @@ export default function Canvas() {
       )}
 
       {/* Today view - wider container on desktop */}
-      {!showSettings && !editingCard && todayEntry && (
+      {!editingCard && todayEntry && (
         <div className="max-w-lg w-full mx-auto h-full px-6 relative flex flex-col overflow-hidden">
+          <SettingsButton isVisible={true} isAuthenticated={!!user} />
           <AnimatePresence>
             <TodayView
               todayEntry={todayEntry}
@@ -582,7 +524,9 @@ export default function Canvas() {
               onEdit={startEdit}
               onDelete={handleDelete}
               onUndo={handleUndo}
+              onDismissUndo={handleDismissUndo}
               isTodayPendingDelete={isTodayPendingDelete}
+              pendingDeleteIds={pendingDeletes.map((pd) => pd.card.id)}
               isAuthenticated={!!user}
               syncNotification={syncNotification}
             />

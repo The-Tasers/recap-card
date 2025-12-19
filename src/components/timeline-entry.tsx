@@ -9,7 +9,7 @@ import {
   useTransform,
   PanInfo,
 } from 'framer-motion';
-import { Trash2, Undo2, Moon } from 'lucide-react';
+import { Trash2, Undo2, Moon, X } from 'lucide-react';
 import {
   MOOD_ICONS,
   WEATHER_ICONS,
@@ -136,16 +136,18 @@ function BlockTooltip({
       >
         <Icon className="h-3.5 w-3.5 text-muted-foreground/70" />
       </button>
-      {mounted && showTooltip && createPortal(
-        <div
-          style={getTooltipStyle()}
-          className="px-2 py-1 text-xs font-medium bg-foreground text-background rounded-md whitespace-nowrap z-[100] shadow-lg pointer-events-none"
-        >
-          {label}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-foreground" />
-        </div>,
-        document.body
-      )}
+      {mounted &&
+        showTooltip &&
+        createPortal(
+          <div
+            style={getTooltipStyle()}
+            className="px-2 py-1 text-xs font-medium bg-foreground text-background rounded-md whitespace-nowrap z-[100] shadow-lg pointer-events-none"
+          >
+            {label}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-foreground" />
+          </div>,
+          document.body
+        )}
     </>
   );
 }
@@ -224,6 +226,7 @@ interface TimelineEntryProps {
   onEdit: () => void;
   onDelete: () => void;
   onUndo?: () => void;
+  onDismissUndo?: () => void;
   isPendingDelete?: boolean;
 }
 
@@ -233,17 +236,26 @@ export function TimelineEntry({
   onEdit,
   onDelete,
   onUndo,
+  onDismissUndo,
   isPendingDelete: externalPendingDelete = false,
 }: TimelineEntryProps) {
   const [isExpanded, setIsExpanded] = useState(isToday);
   const [pendingDelete, setPendingDelete] = useState(false);
   const [isDeleting, setIsDeleting] = useState(externalPendingDelete);
-  const [deleteMessage, setDeleteMessage] = useState(
-    externalPendingDelete
-      ? DELETE_MESSAGES[Math.floor(Math.random() * DELETE_MESSAGES.length)]
-      : ''
-  );
+  const [deleteMessage, setDeleteMessage] = useState('');
   const [isSwipedOpen, setIsSwipedOpen] = useState(false);
+
+  // Sync internal deleting state with external prop
+  useEffect(() => {
+    if (externalPendingDelete && !isDeleting) {
+      setDeleteMessage(
+        DELETE_MESSAGES[Math.floor(Math.random() * DELETE_MESSAGES.length)]
+      );
+      setIsDeleting(true);
+    } else if (!externalPendingDelete && isDeleting) {
+      setIsDeleting(false);
+    }
+  }, [externalPendingDelete, isDeleting]);
   const deleteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const MoodIcon = MOOD_ICONS[card.mood];
   const cardDate = new Date(card.createdAt);
@@ -506,7 +518,7 @@ export function TimelineEntry({
             {card.text && (
               <p
                 className={cn(
-                  'text-foreground leading-relaxed mt-2',
+                  'text-foreground leading-relaxed wrap-break-word line-clamp-3 mt-2',
                   isToday ? 'text-lg' : 'text-base'
                 )}
               >
@@ -553,7 +565,11 @@ export function TimelineEntry({
                     >
                       {card.blocks?.flatMap((block, blockIndex) => {
                         // Handle sleep block specially
-                        if (block.blockId === 'sleep' && typeof block.value === 'number' && block.value > 0) {
+                        if (
+                          block.blockId === 'sleep' &&
+                          typeof block.value === 'number' &&
+                          block.value > 0
+                        ) {
                           return (
                             <motion.div
                               key={`sleep-${blockIndex}`}
@@ -580,7 +596,9 @@ export function TimelineEntry({
                                 key={`${block.blockId}-${value}-${valueIndex}`}
                                 initial={{ scale: 0.8, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
-                                transition={{ delay: 0.1 + (blockIndex + valueIndex) * 0.03 }}
+                                transition={{
+                                  delay: 0.1 + (blockIndex + valueIndex) * 0.03,
+                                }}
                               >
                                 <BlockTooltip
                                   icon={Icon}
@@ -630,10 +648,21 @@ export function TimelineEntry({
                 Undo
               </motion.button>
             )}
+            {onDismissUndo && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.15 }}
+                onClick={onDismissUndo}
+                className="p-1 text-muted-foreground/40 hover:text-muted-foreground/70 transition-colors"
+                aria-label="Dismiss"
+              >
+                <X className="h-3.5 w-3.5" />
+              </motion.button>
+            )}
           </div>
         </motion.div>
       )}
     </AnimatePresence>
   );
 }
-

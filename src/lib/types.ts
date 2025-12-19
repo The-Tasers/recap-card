@@ -144,37 +144,37 @@ export const BLOCK_DEFINITIONS: Record<
 > = {
   sleep: {
     type: 'number',
-    label: 'Sleep',
+    label: 'Hours slept',
     placeholder: '0',
     icon: '🌙',
   },
   weather: {
     type: 'multiselect',
-    label: 'Weather',
+    label: 'Weather outside',
     placeholder: 'Select condition...',
     icon: '☀️',
   },
   meals: {
     type: 'multiselect',
-    label: 'Meals',
+    label: 'Meals eaten',
     placeholder: 'Select meals...',
     icon: '🍳',
   },
   selfcare: {
     type: 'multiselect',
-    label: 'Self-Care',
+    label: 'Daily hygiene',
     placeholder: 'Select activities...',
     icon: '🚿',
   },
   health: {
     type: 'multiselect',
-    label: 'Health',
+    label: 'Health events',
     placeholder: 'Select items...',
     icon: '🩺',
   },
   exercise: {
     type: 'multiselect',
-    label: 'Exercise',
+    label: 'Workout done',
     placeholder: 'Select activities...',
     icon: '🏃',
   },

@@ -35,10 +35,12 @@ import {
   Dumbbell,
   Footprints,
   Bike,
-  Volleyball,
   Mountain,
   Music,
   Goal,
+  PersonStanding,
+  Activity,
+  Move,
   type LucideIcon,
 } from 'lucide-react';
 import { Mood, BlockId } from './types';
@@ -101,12 +103,12 @@ export const HEALTH_ICONS: Record<string, LucideIcon> = {
 // Exercise option icons
 export const EXERCISE_ICONS: Record<string, LucideIcon> = {
   running: Footprints,
-  walking: Footprints,
+  walking: PersonStanding,
   cycling: Bike,
   swimming: Waves,
   gym: Dumbbell,
-  yoga: Sparkles,
-  stretching: Sparkles,
+  yoga: Activity,
+  stretching: Move,
   hiking: Mountain,
   dancing: Music,
   sports: Goal,

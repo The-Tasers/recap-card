@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { MoodSelector } from '@/components/mood-selector';
+import { AppFooter } from '@/components/app-footer';
 import { SyncStatusIndicator } from '@/components/sync-status-indicator';
 import { Mood, MOODS } from '@/lib/types';
 import { formatDate } from '@/lib/date-utils';
@@ -50,7 +51,11 @@ export function MoodSelectView({
         } else {
           setHighlightedIndex((prev) => Math.min(MOODS.length - 1, prev + 1));
         }
-      } else if (e.key === 'Enter' && hasUsedKeyboard && highlightedIndex >= 0) {
+      } else if (
+        e.key === 'Enter' &&
+        hasUsedKeyboard &&
+        highlightedIndex >= 0
+      ) {
         e.preventDefault();
         const moodValue = MOODS[highlightedIndex]?.value;
         if (moodValue) {
@@ -72,17 +77,12 @@ export function MoodSelectView({
       transition={{ duration: 0.15 }}
       className="flex-1 flex flex-col items-center justify-center"
     >
-      <p className="text-xs font-bold tracking-widest uppercase mb-3">
-        <span className="text-emerald-500">R</span>
-        <span className="text-green-500">e</span>
-        <span className="text-amber-500">c</span>
-        <span className="text-orange-500">a</span>
-        <span className="text-red-500">p</span>
-        <span className="text-primary">z</span>
-      </p>
       <div className="flex items-center justify-center gap-3 mb-8">
         <p className="text-lg text-foreground">{formatDate(new Date())}</p>
-        <SyncStatusIndicator isAuthenticated={isAuthenticated} syncNotification={syncNotification} />
+        <SyncStatusIndicator
+          isAuthenticated={isAuthenticated}
+          syncNotification={syncNotification}
+        />
       </div>
 
       <h1 className="text-center text-2xl md:text-3xl font-medium text-neutral-700 dark:text-neutral-300 mb-8">
@@ -100,9 +100,12 @@ export function MoodSelectView({
 
       {!hasEntries && (
         <p className="text-center text-sm text-muted-foreground mt-8">
-          Your journey starts with one moment.
+          Pick a mood to start your first recap.
         </p>
       )}
+
+      {/* Footer */}
+      <AppFooter className="absolute bottom-16 left-0 right-0" />
     </motion.div>
   );
 }

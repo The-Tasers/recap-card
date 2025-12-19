@@ -223,13 +223,13 @@ export function QuickAdditions({
     }
   };
 
-  // Categories for the picker
+  // Categories for the picker - use labels from BLOCK_DEFINITIONS
   const categories: { id: BlockId; label: string; icon: LucideIcon }[] = [
-    { id: 'weather', label: 'Weather', icon: BLOCK_ICONS.weather },
-    { id: 'meals', label: 'Meals', icon: BLOCK_ICONS.meals },
-    { id: 'selfcare', label: 'Self-care', icon: BLOCK_ICONS.selfcare },
-    { id: 'health', label: 'Health', icon: BLOCK_ICONS.health },
-    { id: 'exercise', label: 'Exercise', icon: BLOCK_ICONS.exercise },
+    { id: 'weather', label: BLOCK_DEFINITIONS.weather.label, icon: BLOCK_ICONS.weather },
+    { id: 'meals', label: BLOCK_DEFINITIONS.meals.label, icon: BLOCK_ICONS.meals },
+    { id: 'selfcare', label: BLOCK_DEFINITIONS.selfcare.label, icon: BLOCK_ICONS.selfcare },
+    { id: 'health', label: BLOCK_DEFINITIONS.health.label, icon: BLOCK_ICONS.health },
+    { id: 'exercise', label: BLOCK_DEFINITIONS.exercise.label, icon: BLOCK_ICONS.exercise },
   ];
 
   const getCategoryOptions = (blockId: BlockId) => {
@@ -267,7 +267,7 @@ export function QuickAdditions({
           ) : (
             <>
               <Camera className="h-4 w-4" />
-              <span>Photo</span>
+              <span>Add photo</span>
             </>
           )}
         </button>
@@ -296,7 +296,7 @@ export function QuickAdditions({
           )}
         >
           <BLOCK_ICONS.sleep className="h-4 w-4" />
-          <span>{sleepValue > 0 ? `${sleepValue}h` : 'Sleep'}</span>
+          <span>{sleepValue > 0 ? `${sleepValue}h` : 'Hours slept'}</span>
         </button>
 
         {/* Add details button */}
@@ -324,7 +324,7 @@ export function QuickAdditions({
           <span>
             {selectedItems.length > 0
               ? `${selectedItems.length} added`
-              : 'Details'}
+              : 'Add details'}
           </span>
         </button>
       </div>

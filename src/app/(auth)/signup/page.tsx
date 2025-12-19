@@ -4,12 +4,23 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, Loader2, Cloud, Smartphone, Shield, ArrowLeft, Sparkles } from 'lucide-react';
+import {
+  Mail,
+  Lock,
+  User,
+  Loader2,
+  Cloud,
+  Smartphone,
+  Shield,
+  Sparkles,
+  ChevronLeft,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/components/auth-provider';
 import { toast } from 'sonner';
+import { AppFooter } from '@/components/app-footer';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -59,26 +70,19 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      {/* Navigation */}
-      <div className="absolute top-4 left-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-full"
-          onClick={() => router.push('/')}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-      </div>
-
-      <div className="flex-1 flex items-center justify-center p-4 lg:p-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md"
-        >
+    <div className="min-h-screen flex items-center flex-col bg-background px-6 pt-8 pb-16">
+      <div className="w-full flex-1 max-w-md flex flex-col justify-between">
+        <div>
+          <motion.button
+            onClick={() => router.back()}
+            className="p-2 text-muted-foreground/50 hover:text-foreground transition-colors cursor-pointer rounded-md hover:bg-muted/30"
+            whileTap={{ scale: 0.95 }}
+            aria-label="Go back"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </motion.button>
+        </div>
+        <div>
           {/* Header */}
           <div className="text-center mb-4 lg:mb-8">
             <motion.div
@@ -101,15 +105,15 @@ export default function SignUpPage() {
           <div className="hidden sm:flex flex-wrap justify-center gap-2 lg:gap-3 mb-4 lg:mb-6">
             <div className="flex items-center gap-1.5 text-xs lg:text-sm text-muted-foreground bg-muted px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-full">
               <Cloud className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-primary" />
-              <span>Sync across devices</span>
+              <span>Cloud backup</span>
             </div>
             <div className="flex items-center gap-1.5 text-xs lg:text-sm text-muted-foreground bg-muted px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-full">
               <Shield className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-primary" />
-              <span>Never lose your memories</span>
+              <span>Private & secure</span>
             </div>
             <div className="flex items-center gap-1.5 text-xs lg:text-sm text-muted-foreground bg-muted px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-full">
               <Smartphone className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-primary" />
-              <span>Access anywhere</span>
+              <span>Multi-device sync</span>
             </div>
           </div>
 
@@ -160,7 +164,10 @@ export default function SignUpPage() {
             </div>
 
             {/* Email Form */}
-            <form onSubmit={handleEmailSignUp} className="space-y-3 lg:space-y-4">
+            <form
+              onSubmit={handleEmailSignUp}
+              className="space-y-3 lg:space-y-4"
+            >
               <div className="space-y-1.5 lg:space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
                   Email
@@ -241,7 +248,10 @@ export default function SignUpPage() {
               Sign in
             </Link>
           </p>
-        </motion.div>
+        </div>
+
+        {/* Footer */}
+        <AppFooter className="mt-8" />
       </div>
     </div>
   );

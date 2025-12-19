@@ -38,6 +38,8 @@ function useTypingState(text: string, delay = 1500) {
   return isTyping;
 }
 
+const MAX_TEXT_LENGTH = 500;
+
 export function RecapForm({
   mode,
   text,
@@ -54,6 +56,19 @@ export function RecapForm({
 }: RecapFormProps) {
   // Track typing state to hide UI while actively writing
   const isTyping = useTypingState(text);
+
+  // Character limit tracking
+  const charCount = text.length;
+  const isNearLimit = charCount >= MAX_TEXT_LENGTH - 50;
+  const isAtLimit = charCount >= MAX_TEXT_LENGTH;
+
+  // Handle text change with character limit
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newText = e.target.value;
+    if (newText.length <= MAX_TEXT_LENGTH) {
+      setText(newText);
+    }
+  };
 
   // Show quick additions always - text is optional
   const showSecondaryUI = !isTyping;
@@ -87,15 +102,33 @@ export function RecapForm({
       className="flex-1 flex flex-col pt-4 pb-4 min-h-0"
     >
       {/* Writing area - scrollable */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto relative">
         <textarea
           ref={textareaRef}
           value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder=""
+          onChange={handleTextChange}
+          placeholder="What happened today..."
           autoFocus
+          maxLength={MAX_TEXT_LENGTH}
           className="w-full h-full flex resize-none text-xl leading-relaxed bg-transparent border-0 outline-none placeholder:text-muted-foreground/30 focus:outline-none caret-primary"
         />
+        {/* Character count indicator - shows when near limit */}
+        <AnimatePresence>
+          {isNearLimit && (
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 5 }}
+              className={`absolute bottom-0 right-0 text-xs transition-colors ${
+                isAtLimit
+                  ? 'text-destructive/70 font-medium'
+                  : 'text-muted-foreground/50'
+              }`}
+            >
+              {charCount}/{MAX_TEXT_LENGTH}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Bottom section - fixed at bottom, doesn't scroll */}

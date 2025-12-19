@@ -4,12 +4,13 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Loader2, LogIn, ArrowLeft, Hand } from 'lucide-react';
+import { Mail, Lock, Loader2, LogIn, Hand, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/components/auth-provider';
 import { toast } from 'sonner';
+import { AppFooter } from '@/components/app-footer';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -32,7 +33,8 @@ export default function LoginPage() {
 
     if (message === 'check-email') {
       toast.success('Check your email', {
-        description: 'We sent you a confirmation link to complete your sign up.',
+        description:
+          'We sent you a confirmation link to complete your sign up.',
       });
     }
 
@@ -64,26 +66,19 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      {/* Navigation */}
-      <div className="absolute top-4 left-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-full"
-          onClick={() => router.push('/')}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-      </div>
-
-      <div className="flex-1 flex items-center justify-center p-4 lg:p-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md"
-        >
+    <div className="min-h-screen flex items-center flex-col bg-background px-6 pt-8 pb-16">
+      <div className="w-full flex-1 max-w-md flex flex-col justify-between">
+        <div>
+          <motion.button
+            onClick={() => router.back()}
+            className="p-2 text-muted-foreground/50 hover:text-foreground transition-colors cursor-pointer rounded-md hover:bg-muted/30"
+            whileTap={{ scale: 0.95 }}
+            aria-label="Go back"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </motion.button>
+        </div>
+        <div>
           {/* Header */}
           <div className="text-center mb-4 lg:mb-8">
             <motion.div
@@ -92,7 +87,17 @@ export default function LoginPage() {
               transition={{ delay: 0.1, duration: 0.4 }}
               className="mb-2 lg:mb-4 flex justify-center"
             >
-              <Hand className="h-10 w-10 lg:h-12 lg:w-12 text-primary" />
+              <motion.div
+                animate={{ rotate: [0, 12, -8, 10, -6, 8, 0] }}
+                transition={{
+                  delay: 0.6,
+                  duration: 0.6,
+                  ease: 'easeInOut',
+                }}
+                style={{ originX: 0.7, originY: 0.9 }}
+              >
+                <Hand className="h-10 w-10 lg:h-12 lg:w-12 text-primary" />
+              </motion.div>
             </motion.div>
             <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-1 lg:mb-2">
               Welcome back
@@ -149,7 +154,10 @@ export default function LoginPage() {
             </div>
 
             {/* Email Form */}
-            <form onSubmit={handleEmailLogin} className="space-y-3 lg:space-y-4">
+            <form
+              onSubmit={handleEmailLogin}
+              className="space-y-3 lg:space-y-4"
+            >
               <div className="space-y-1.5 lg:space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
                   Email
@@ -211,7 +219,10 @@ export default function LoginPage() {
               Sign up
             </Link>
           </p>
-        </motion.div>
+        </div>
+
+        {/* Footer */}
+        <AppFooter className="mt-8" />
       </div>
     </div>
   );
