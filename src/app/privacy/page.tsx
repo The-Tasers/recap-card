@@ -60,19 +60,9 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-foreground font-medium mb-2">Your Rights</h2>
             <p>
-              You can delete all your data at any time from the app settings.
-              Deleting your account removes all data from our servers
+              You can export or delete all your data at any time from the app
+              settings. Deleting your account removes all data from our servers
               permanently.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-foreground font-medium mb-2">Data Export</h2>
-            <p>
-              You can export all your data at any time. Go to Settings and tap
-              the download icon in the Data section to export your recaps as a
-              CSV file. The export includes dates, moods, text entries, and all
-              tracked details like sleep, weather, meals, and activities.
             </p>
           </section>
 
