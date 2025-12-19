@@ -103,7 +103,7 @@ export function MoodSelectView({
         className="flex-1 flex flex-col pt-8"
       >
         {/* Header with back button - fixed */}
-        <div className="flex items-center gap-3 mb-6 shrink-0">
+        <div className="flex items-center gap-3 px-6 mb-6 shrink-0">
           <button
             onClick={() => setShowPastEntries(false)}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -118,7 +118,7 @@ export function MoodSelectView({
         </div>
 
         {/* Scrollable content area */}
-        <div className="flex-1 min-h-0 overflow-y-auto py-2">
+        <div className="flex-1 min-h-0 px-6 overflow-y-auto overflow-x-hidden py-2">
           <div className="space-y-1">
             {allPastEntries.map((card) => (
               <TimelineEntry
@@ -135,7 +135,7 @@ export function MoodSelectView({
         </div>
 
         {/* Footer - fixed at bottom */}
-        <AppFooter />
+        <AppFooter className="px-6" />
       </motion.div>
     );
   }
@@ -185,7 +185,8 @@ export function MoodSelectView({
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mt-8"
           >
             <ChevronDown className="h-4 w-4" />
-            View {allPastEntries.length} past {allPastEntries.length === 1 ? 'recap' : 'recaps'}
+            View {allPastEntries.length} past{' '}
+            {allPastEntries.length === 1 ? 'recap' : 'recaps'}
           </button>
         )}
       </div>

@@ -503,7 +503,7 @@ export default function Canvas() {
 
       {/* Mood selection - show when no today entry and not editing */}
       {!editingCard && !todayEntry && (
-        <div className="max-w-lg w-full mx-auto h-full px-6 relative flex flex-col overflow-hidden">
+        <div className="max-w-lg w-full mx-auto h-full relative flex flex-col overflow-hidden">
           <SettingsButton isVisible={true} isAuthenticated={!!user} />
           <AnimatePresence>
             <MoodSelectView
