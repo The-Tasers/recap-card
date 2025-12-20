@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
+import { useCardStore, clearLocalCards } from '@/lib/store';
 
 interface AuthContextType {
   user: User | null;
@@ -90,6 +91,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    // 1. Clear local IndexedDB cards
+    await clearLocalCards();
+    // 2. Clear memory store
+    useCardStore.getState().clearAllCards();
+    // 3. Sign out from Supabase
     await supabase.auth.signOut();
   };
 

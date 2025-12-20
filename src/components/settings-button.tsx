@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Settings, User } from 'lucide-react';
 import { COLOR_THEMES } from '@/lib/types';
-import { useCardStore } from '@/lib/store';
+import { useSettingsStore } from '@/lib/store';
 
 interface SettingsButtonProps {
   isVisible: boolean;
@@ -16,7 +16,7 @@ export function SettingsButton({
   isAuthenticated,
 }: SettingsButtonProps) {
   const router = useRouter();
-  const { colorTheme } = useCardStore();
+  const { colorTheme } = useSettingsStore();
   const currentTheme = COLOR_THEMES.find((t) => t.value === colorTheme);
 
   return (

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useCardStore } from '@/lib/store';
+import { useCardStore, useSettingsStore } from '@/lib/store';
 import { ColorTheme, COLOR_THEMES } from '@/lib/types';
 
 interface ThemeProviderProps {
@@ -24,7 +24,8 @@ export function applyColorTheme(theme: ColorTheme): void {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const { hydrated, colorTheme } = useCardStore();
+  const { hydrated } = useCardStore();
+  const { colorTheme } = useSettingsStore();
 
   useEffect(() => {
     if (!hydrated) return;

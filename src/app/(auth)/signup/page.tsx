@@ -30,9 +30,21 @@ export default function SignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  };
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setEmailError('');
+
+    if (!validateEmail(email)) {
+      setEmailError('Please enter a valid email address');
+      return;
+    }
 
     if (password !== confirmPassword) {
       toast.error('Passwords do not match', {
@@ -180,11 +192,17 @@ export default function SignUpPage() {
                     type="email"
                     placeholder="you@example.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-9 lg:pl-10 h-10 lg:h-12 rounded-xl text-sm lg:text-base focus-visible:ring-primary/50"
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (emailError) setEmailError('');
+                    }}
+                    className={`pl-9 lg:pl-10 h-10 lg:h-12 rounded-xl text-sm lg:text-base focus-visible:ring-primary/50 ${emailError ? 'border-destructive focus-visible:ring-destructive/50' : ''}`}
                     required
                   />
                 </div>
+                {emailError && (
+                  <p className="text-xs text-destructive">{emailError}</p>
+                )}
               </div>
 
               <div className="space-y-1.5 lg:space-y-2">

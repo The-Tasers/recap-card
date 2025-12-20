@@ -7,15 +7,13 @@ export type SyncResolution = 'cloud' | 'local';
 
 interface SyncConflictDialogProps {
   open: boolean;
-  localCount: number;
-  cloudCount: number;
+  conflictCount: number;
   onResolve: (resolution: SyncResolution) => void;
 }
 
 export function SyncConflictDialog({
   open,
-  localCount,
-  cloudCount,
+  conflictCount,
   onResolve,
 }: SyncConflictDialogProps) {
   return (
@@ -42,10 +40,10 @@ export function SyncConflictDialog({
               {/* Header */}
               <div className="px-5 pt-5 pb-3 text-center">
                 <p className="text-base font-semibold text-foreground">
-                  Recaps differ
+                  {conflictCount} {conflictCount === 1 ? 'recap differs' : 'recaps differ'}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {localCount} on device · {cloudCount} in account
+                  Choose which version to keep
                 </p>
               </div>
 

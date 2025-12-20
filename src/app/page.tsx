@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { useCardStore } from '@/lib/store';
+import { useCardStore, useSettingsStore, saveLocalCards } from '@/lib/store';
 import { getTodayRecap } from '@/lib/daily-utils';
 import { groupCardsByWeek } from '@/lib/date-utils';
 import { SignupPrompt } from '@/components/signup-prompt';
@@ -39,8 +39,8 @@ export default function Canvas() {
     restoreCard,
     removePendingDelete,
     pendingDeletes,
-    clearDraft,
   } = useCardStore();
+  const { clearDraft } = useSettingsStore();
   const {
     saveRecapToCloud,
     deleteRecapFromCloud,
@@ -239,15 +239,19 @@ export default function Canvas() {
         blocks: nonEmptyBlocks.length > 0 ? nonEmptyBlocks : undefined,
       };
 
-      const success = updateCard(editingCard.id, updates);
+      updateCard(editingCard.id, updates);
 
-      if (success && isAuthenticated) {
+      if (isAuthenticated) {
         const updatedCard: DailyCard = { ...editingCard, ...updates };
         await saveRecapToCloud(updatedCard);
+      } else {
+        // Save to IndexedDB for anonymous users
+        const updatedCards = useCardStore.getState().cards;
+        saveLocalCards(updatedCards);
       }
 
       // Update editingCard reference with new photoUrl
-      if (success && photoUrl !== editingCard.photoUrl) {
+      if (photoUrl !== editingCard.photoUrl) {
         setEditingCard({ ...editingCard, ...updates });
       }
 
@@ -426,16 +430,18 @@ export default function Canvas() {
       createdAt: new Date().toISOString(),
     };
 
-    const success = addCard(newCard);
-    if (success) {
-      clearDraft();
-      // Immediately start editing the new card
-      startEdit(newCard);
+    addCard(newCard);
+    clearDraft();
+    // Immediately start editing the new card
+    startEdit(newCard);
 
-      // Sync to cloud in background
-      if (isAuthenticated) {
-        saveRecapToCloud(newCard).catch(console.error);
-      }
+    // Sync to cloud or save locally
+    if (isAuthenticated) {
+      saveRecapToCloud(newCard).catch(console.error);
+    } else {
+      // Save to IndexedDB for anonymous users
+      const updatedCards = useCardStore.getState().cards;
+      saveLocalCards(updatedCards);
     }
   };
 

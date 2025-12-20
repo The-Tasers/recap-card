@@ -1,7 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
-import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { toast } from 'sonner';
 import { DailyCard, Mood, CardBlock, BlockId, ColorTheme } from './types';
 
@@ -18,147 +18,24 @@ export interface DraftEntry {
 const DB_NAME = 'recapp-db';
 const STORE_NAME = 'recapp-store';
 const DB_VERSION = 1;
+const LOCAL_CARDS_KEY = 'local-cards';
 
-// Error codes and messages
-export const STORAGE_ERROR_CODES = {
-  DB_NOT_AVAILABLE: 'DB_NOT_AVAILABLE',
-  DB_OPEN_FAILED: 'DB_OPEN_FAILED',
-  DB_READ_FAILED: 'DB_READ_FAILED',
-  DB_WRITE_FAILED: 'DB_WRITE_FAILED',
-  DB_DELETE_FAILED: 'DB_DELETE_FAILED',
-  DB_CLEAR_FAILED: 'DB_CLEAR_FAILED',
-  QUOTA_EXCEEDED: 'QUOTA_EXCEEDED',
-  MIGRATION_FAILED: 'MIGRATION_FAILED',
-  UNKNOWN_ERROR: 'UNKNOWN_ERROR',
-} as const;
+// ============================================================================
+// IndexedDB Helpers - Standalone storage for local (anonymous) cards
+// ============================================================================
 
-export type StorageErrorCode = typeof STORAGE_ERROR_CODES[keyof typeof STORAGE_ERROR_CODES];
-
-const ERROR_MESSAGES: Record<StorageErrorCode, { title: string; description: string }> = {
-  [STORAGE_ERROR_CODES.DB_NOT_AVAILABLE]: {
-    title: 'Storage unavailable',
-    description: 'Your browser doesn\'t support local storage. Data won\'t be saved.',
-  },
-  [STORAGE_ERROR_CODES.DB_OPEN_FAILED]: {
-    title: 'Storage error',
-    description: 'Failed to open storage. Try refreshing the page.',
-  },
-  [STORAGE_ERROR_CODES.DB_READ_FAILED]: {
-    title: 'Read error',
-    description: 'Failed to load your data. Try refreshing the page.',
-  },
-  [STORAGE_ERROR_CODES.DB_WRITE_FAILED]: {
-    title: 'Save error',
-    description: 'Failed to save your data. Please try again.',
-  },
-  [STORAGE_ERROR_CODES.DB_DELETE_FAILED]: {
-    title: 'Delete error',
-    description: 'Failed to delete data. Please try again.',
-  },
-  [STORAGE_ERROR_CODES.DB_CLEAR_FAILED]: {
-    title: 'Clear error',
-    description: 'Failed to clear data. Please try again.',
-  },
-  [STORAGE_ERROR_CODES.QUOTA_EXCEEDED]: {
-    title: 'Storage full',
-    description: 'Storage limit reached. Try removing some old recaps or photos.',
-  },
-  [STORAGE_ERROR_CODES.MIGRATION_FAILED]: {
-    title: 'Migration error',
-    description: 'Failed to migrate your data. Some recaps may be missing.',
-  },
-  [STORAGE_ERROR_CODES.UNKNOWN_ERROR]: {
-    title: 'Unexpected error',
-    description: 'Something went wrong. Please try again.',
-  },
-};
-
-// Storage error class
-export class StorageError extends Error {
-  code: StorageErrorCode;
-  originalError?: unknown;
-
-  constructor(code: StorageErrorCode, originalError?: unknown) {
-    const message = ERROR_MESSAGES[code];
-    super(message.description);
-    this.name = 'StorageError';
-    this.code = code;
-    this.originalError = originalError;
-  }
-
-  get title(): string {
-    return ERROR_MESSAGES[this.code].title;
-  }
-
-  get description(): string {
-    return ERROR_MESSAGES[this.code].description;
-  }
-}
-
-// Show error toast
-function showStorageError(error: StorageError): void {
-  toast.error(error.title, {
-    description: error.description,
-  });
-}
-
-// Determine error code from IndexedDB error
-function getErrorCode(error: unknown): StorageErrorCode {
-  if (error instanceof DOMException) {
-    if (error.name === 'QuotaExceededError') {
-      return STORAGE_ERROR_CODES.QUOTA_EXCEEDED;
-    }
-    if (error.name === 'NotFoundError') {
-      return STORAGE_ERROR_CODES.DB_NOT_AVAILABLE;
-    }
-  }
-  return STORAGE_ERROR_CODES.UNKNOWN_ERROR;
-}
-
-// Pending delete state for undo functionality
-interface PendingDelete {
-  card: DailyCard;
-  deletedAt: number;
-}
-
-interface CardStore {
-  cards: DailyCard[];
-  pendingDeletes: PendingDelete[];
-  hydrated: boolean;
-  error: string | null;
-  draftEntry: DraftEntry | null;
-  colorTheme: ColorTheme;
-  setHydrated: (state: boolean) => void;
-  setError: (error: string | null) => void;
-  addCard: (card: DailyCard) => boolean;
-  updateCard: (id: string, updates: Partial<DailyCard>) => boolean;
-  deleteCard: (id: string) => void;
-  softDeleteCard: (id: string) => DailyCard | undefined;
-  restoreCard: (id: string) => boolean;
-  removePendingDelete: (id: string) => void;
-  getById: (id: string) => DailyCard | undefined;
-  getCardByDate: (date: string) => DailyCard | undefined;
-  getPendingDelete: (id: string) => PendingDelete | undefined;
-  setCards: (cards: DailyCard[]) => void;
-  saveDraft: (draft: Omit<DraftEntry, 'lastUpdated'>) => void;
-  clearDraft: () => void;
-  setColorTheme: (theme: ColorTheme) => void;
-}
-
-// IndexedDB helpers
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     if (typeof window === 'undefined') {
-      reject(new StorageError(STORAGE_ERROR_CODES.DB_NOT_AVAILABLE));
+      reject(new Error('IndexedDB not available'));
       return;
     }
 
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
     request.onerror = () => {
-      const error = new StorageError(STORAGE_ERROR_CODES.DB_OPEN_FAILED, request.error);
       console.error('IndexedDB open error:', request.error);
-      reject(error);
+      reject(request.error);
     };
 
     request.onsuccess = () => resolve(request.result);
@@ -172,260 +49,263 @@ function openDB(): Promise<IDBDatabase> {
   });
 }
 
-async function getFromDB(key: string): Promise<string | null> {
+// Load local cards from IndexedDB
+export async function loadLocalCards(): Promise<DailyCard[]> {
+  if (typeof window === 'undefined') return [];
+
   try {
     const db = await openDB();
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const transaction = db.transaction(STORE_NAME, 'readonly');
       const store = transaction.objectStore(STORE_NAME);
-      const request = store.get(key);
+      const request = store.get(LOCAL_CARDS_KEY);
 
       request.onerror = () => {
-        const error = new StorageError(STORAGE_ERROR_CODES.DB_READ_FAILED, request.error);
-        console.error('IndexedDB read error:', request.error);
-        reject(error);
+        console.error('Failed to load local cards:', request.error);
+        resolve([]);
       };
 
-      request.onsuccess = () => resolve(request.result ?? null);
+      request.onsuccess = () => {
+        const data = request.result;
+        if (data && Array.isArray(data)) {
+          resolve(data);
+        } else {
+          resolve([]);
+        }
+      };
     });
   } catch (error) {
-    if (error instanceof StorageError) {
-      throw error;
-    }
-    throw new StorageError(STORAGE_ERROR_CODES.DB_READ_FAILED, error);
+    console.error('Failed to load local cards:', error);
+    return [];
   }
 }
 
-async function setToDB(key: string, value: string): Promise<void> {
+// Save local cards to IndexedDB
+export async function saveLocalCards(cards: DailyCard[]): Promise<void> {
+  if (typeof window === 'undefined') return;
+
   try {
     const db = await openDB();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(STORE_NAME, 'readwrite');
       const store = transaction.objectStore(STORE_NAME);
-      const request = store.put(value, key);
+      const request = store.put(cards, LOCAL_CARDS_KEY);
 
       request.onerror = () => {
-        const code = getErrorCode(request.error);
-        const error = new StorageError(code, request.error);
-        console.error('IndexedDB write error:', request.error);
-        reject(error);
+        console.error('Failed to save local cards:', request.error);
+        reject(request.error);
       };
 
       request.onsuccess = () => resolve();
     });
   } catch (error) {
-    if (error instanceof StorageError) {
-      throw error;
-    }
-    const code = getErrorCode(error);
-    throw new StorageError(code, error);
+    console.error('Failed to save local cards:', error);
   }
 }
 
-async function removeFromDB(key: string): Promise<void> {
+// Clear all local cards from IndexedDB
+export async function clearLocalCards(): Promise<void> {
+  if (typeof window === 'undefined') return;
+
   try {
     const db = await openDB();
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const transaction = db.transaction(STORE_NAME, 'readwrite');
       const store = transaction.objectStore(STORE_NAME);
-      const request = store.delete(key);
+      const request = store.delete(LOCAL_CARDS_KEY);
 
       request.onerror = () => {
-        const error = new StorageError(STORAGE_ERROR_CODES.DB_DELETE_FAILED, request.error);
-        console.error('IndexedDB delete error:', request.error);
-        reject(error);
+        console.error('Failed to clear local cards:', request.error);
+        resolve();
       };
 
       request.onsuccess = () => resolve();
     });
   } catch (error) {
-    // Log but don't throw on delete errors
-    console.error('IndexedDB remove error:', error);
+    console.error('Failed to clear local cards:', error);
   }
 }
 
-// Clear IndexedDB - exported for use in settings
+// Clear entire IndexedDB (for settings/logout)
 export async function clearIndexedDB(): Promise<void> {
+  if (typeof window === 'undefined') return;
+
   try {
     const db = await openDB();
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const transaction = db.transaction(STORE_NAME, 'readwrite');
       const store = transaction.objectStore(STORE_NAME);
       const request = store.clear();
 
       request.onerror = () => {
-        const error = new StorageError(STORAGE_ERROR_CODES.DB_CLEAR_FAILED, request.error);
-        console.error('IndexedDB clear error:', request.error);
-        showStorageError(error);
-        reject(error);
+        console.error('Failed to clear IndexedDB:', request.error);
+        resolve();
       };
 
       request.onsuccess = () => resolve();
     });
   } catch (error) {
+    console.error('Failed to clear IndexedDB:', error);
     // Fallback: try to delete the whole database
     if (typeof window !== 'undefined') {
       indexedDB.deleteDatabase(DB_NAME);
     }
-    if (error instanceof StorageError) {
-      showStorageError(error);
-    }
   }
 }
 
-// Custom IndexedDB storage adapter for Zustand
-const indexedDBStorage: StateStorage = {
-  getItem: async (name) => {
-    if (typeof window === 'undefined') return null;
+// ============================================================================
+// Pending Delete State (for undo functionality)
+// ============================================================================
 
-    try {
-      // Try IndexedDB first
-      const idbValue = await getFromDB(name);
-      if (idbValue) return idbValue;
+interface PendingDelete {
+  card: DailyCard;
+  deletedAt: number;
+}
 
-      // Fallback: migrate from localStorage if exists
-      try {
-        const lsValue = localStorage.getItem(name);
-        if (lsValue) {
-          // Migrate to IndexedDB
-          await setToDB(name, lsValue);
-          localStorage.removeItem(name);
-          return lsValue;
-        }
-      } catch (migrationError) {
-        const error = new StorageError(STORAGE_ERROR_CODES.MIGRATION_FAILED, migrationError);
-        console.error('Migration error:', migrationError);
-        showStorageError(error);
-      }
+// ============================================================================
+// Main Card Store - Runtime memory store (source of truth)
+// ============================================================================
 
-      return null;
-    } catch (error) {
-      if (error instanceof StorageError) {
-        showStorageError(error);
-      }
-      return null;
-    }
-  },
+interface CardStore {
+  // State
+  cards: DailyCard[];
+  pendingDeletes: PendingDelete[];
+  hydrated: boolean;
+  error: string | null;
 
-  setItem: async (name, value) => {
-    if (typeof window === 'undefined') return;
+  // Actions
+  setHydrated: (state: boolean) => void;
+  setError: (error: string | null) => void;
+  setCards: (cards: DailyCard[]) => void;
+  addCard: (card: DailyCard) => void;
+  updateCard: (id: string, updates: Partial<DailyCard>) => void;
+  deleteCard: (id: string) => void;
+  softDeleteCard: (id: string) => DailyCard | undefined;
+  restoreCard: (id: string) => boolean;
+  removePendingDelete: (id: string) => void;
+  clearAllCards: () => void;
 
-    try {
-      await setToDB(name, value);
-    } catch (error) {
-      if (error instanceof StorageError) {
-        showStorageError(error);
-      }
-      throw error;
-    }
-  },
+  // Selectors
+  getById: (id: string) => DailyCard | undefined;
+  getCardByDate: (date: string) => DailyCard | undefined;
+  getPendingDelete: (id: string) => PendingDelete | undefined;
+}
 
-  removeItem: async (name) => {
-    if (typeof window === 'undefined') return;
-    await removeFromDB(name);
-  },
-};
+export const useCardStore = create<CardStore>()((set, get) => ({
+  // Initial state
+  cards: [],
+  pendingDeletes: [],
+  hydrated: false,
+  error: null,
 
-export const useCardStore = create<CardStore>()(
-  persist(
-    (set, get) => ({
-      cards: [],
-      pendingDeletes: [],
-      hydrated: false,
+  // Actions
+  setHydrated: (state) => set({ hydrated: state }),
+  setError: (error) => set({ error }),
+  setCards: (cards) => set({ cards }),
+
+  addCard: (card) => {
+    set((state) => ({
+      cards: [card, ...state.cards],
       error: null,
-      draftEntry: null,
+    }));
+  },
+
+  updateCard: (id, updates) => {
+    set((state) => ({
+      cards: state.cards.map((card) =>
+        card.id === id ? { ...card, ...updates } : card
+      ),
+      error: null,
+    }));
+  },
+
+  deleteCard: (id) =>
+    set((state) => ({
+      cards: state.cards.filter((card) => card.id !== id),
+      pendingDeletes: state.pendingDeletes.filter((pd) => pd.card.id !== id),
+      error: null,
+    })),
+
+  softDeleteCard: (id) => {
+    const card = get().cards.find((c) => c.id === id);
+    if (!card) return undefined;
+
+    set((state) => ({
+      cards: state.cards.filter((c) => c.id !== id),
+      pendingDeletes: [
+        ...state.pendingDeletes,
+        { card, deletedAt: Date.now() },
+      ],
+      error: null,
+    }));
+    return card;
+  },
+
+  restoreCard: (id) => {
+    const pendingDelete = get().pendingDeletes.find((pd) => pd.card.id === id);
+    if (!pendingDelete) return false;
+
+    set((state) => {
+      const restoredCard = pendingDelete.card;
+      const newCards = [...state.cards];
+      const insertIndex = newCards.findIndex(
+        (c) => new Date(c.createdAt) < new Date(restoredCard.createdAt)
+      );
+      if (insertIndex === -1) {
+        newCards.push(restoredCard);
+      } else {
+        newCards.splice(insertIndex, 0, restoredCard);
+      }
+
+      return {
+        cards: newCards,
+        pendingDeletes: state.pendingDeletes.filter((pd) => pd.card.id !== id),
+        error: null,
+      };
+    });
+    return true;
+  },
+
+  removePendingDelete: (id) =>
+    set((state) => ({
+      pendingDeletes: state.pendingDeletes.filter((pd) => pd.card.id !== id),
+    })),
+
+  clearAllCards: () => set({ cards: [], pendingDeletes: [] }),
+
+  // Selectors
+  getById: (id) => get().cards.find((card) => card.id === id),
+
+  getCardByDate: (date) => {
+    const targetDate = new Date(date).toDateString();
+    return get().cards.find(
+      (card) => new Date(card.createdAt).toDateString() === targetDate
+    );
+  },
+
+  getPendingDelete: (id) => get().pendingDeletes.find((pd) => pd.card.id === id),
+}));
+
+// ============================================================================
+// Settings Store - Persisted to localStorage (colorTheme, draftEntry)
+// ============================================================================
+
+interface SettingsStore {
+  colorTheme: ColorTheme;
+  draftEntry: DraftEntry | null;
+  setColorTheme: (theme: ColorTheme) => void;
+  saveDraft: (draft: Omit<DraftEntry, 'lastUpdated'>) => void;
+  clearDraft: () => void;
+}
+
+export const useSettingsStore = create<SettingsStore>()(
+  persist(
+    (set) => ({
       colorTheme: 'midnight' as ColorTheme,
-      setHydrated: (state) => set({ hydrated: state }),
-      setError: (error) => set({ error }),
-      setCards: (cards) => set({ cards }),
+      draftEntry: null,
+
       setColorTheme: (theme) => set({ colorTheme: theme }),
-      addCard: (card) => {
-        try {
-          set((state) => ({
-            cards: [card, ...state.cards],
-            error: null,
-          }));
-          return true;
-        } catch (error) {
-          const storageError = new StorageError(STORAGE_ERROR_CODES.QUOTA_EXCEEDED, error);
-          showStorageError(storageError);
-          set({ error: storageError.description });
-          return false;
-        }
-      },
-      updateCard: (id, updates) => {
-        try {
-          set((state) => ({
-            cards: state.cards.map((card) =>
-              card.id === id ? { ...card, ...updates } : card
-            ),
-            error: null,
-          }));
-          return true;
-        } catch (error) {
-          const storageError = new StorageError(STORAGE_ERROR_CODES.QUOTA_EXCEEDED, error);
-          showStorageError(storageError);
-          set({ error: storageError.description });
-          return false;
-        }
-      },
-      deleteCard: (id) =>
-        set((state) => ({
-          cards: state.cards.filter((card) => card.id !== id),
-          pendingDeletes: state.pendingDeletes.filter((pd) => pd.card.id !== id),
-          error: null,
-        })),
-      softDeleteCard: (id) => {
-        const card = get().cards.find((c) => c.id === id);
-        if (!card) return undefined;
 
-        set((state) => ({
-          cards: state.cards.filter((c) => c.id !== id),
-          pendingDeletes: [
-            ...state.pendingDeletes,
-            { card, deletedAt: Date.now() },
-          ],
-          error: null,
-        }));
-        return card;
-      },
-      restoreCard: (id) => {
-        const pendingDelete = get().pendingDeletes.find((pd) => pd.card.id === id);
-        if (!pendingDelete) return false;
-
-        set((state) => {
-          // Find the right position to insert based on createdAt
-          const restoredCard = pendingDelete.card;
-          const newCards = [...state.cards];
-          const insertIndex = newCards.findIndex(
-            (c) => new Date(c.createdAt) < new Date(restoredCard.createdAt)
-          );
-          if (insertIndex === -1) {
-            newCards.push(restoredCard);
-          } else {
-            newCards.splice(insertIndex, 0, restoredCard);
-          }
-
-          return {
-            cards: newCards,
-            pendingDeletes: state.pendingDeletes.filter((pd) => pd.card.id !== id),
-            error: null,
-          };
-        });
-        return true;
-      },
-      removePendingDelete: (id) =>
-        set((state) => ({
-          pendingDeletes: state.pendingDeletes.filter((pd) => pd.card.id !== id),
-        })),
-      getById: (id) => get().cards.find((card) => card.id === id),
-      getCardByDate: (date) => {
-        const targetDate = new Date(date).toDateString();
-        return get().cards.find(
-          (card) => new Date(card.createdAt).toDateString() === targetDate
-        );
-      },
-      getPendingDelete: (id) => get().pendingDeletes.find((pd) => pd.card.id === id),
       saveDraft: (draft) => {
         set({
           draftEntry: {
@@ -434,14 +314,22 @@ export const useCardStore = create<CardStore>()(
           },
         });
       },
+
       clearDraft: () => set({ draftEntry: null }),
     }),
     {
-      name: 'recap-cards',
-      storage: createJSONStorage(() => indexedDBStorage),
-      onRehydrateStorage: () => (state) => {
-        state?.setHydrated(true);
-      },
+      name: 'recap-settings',
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );
+
+// ============================================================================
+// Helper to show storage errors
+// ============================================================================
+
+export function showStorageError(message: string): void {
+  toast.error('Storage error', {
+    description: message,
+  });
+}

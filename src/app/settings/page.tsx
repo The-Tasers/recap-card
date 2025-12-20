@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { AnimatePresence } from 'framer-motion';
 import { ColorTheme, COLOR_THEMES } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { useCardStore, clearIndexedDB } from '@/lib/store';
+import { useCardStore, useSettingsStore, clearIndexedDB } from '@/lib/store';
 import { applyColorTheme } from '@/components/theme-provider';
 import { useAuth } from '@/components/auth-provider';
 import { createClient } from '@/lib/supabase/client';
@@ -28,13 +28,15 @@ import { AppFooter } from '@/components/app-footer';
 export default function SettingsPage() {
   const router = useRouter();
   const { user, signOut, loading: authLoading } = useAuth();
-  const { cards, colorTheme, setColorTheme } = useCardStore();
+  const { cards } = useCardStore();
+  const { colorTheme, setColorTheme } = useSettingsStore();
 
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
+  const [signOutStatus, setSignOutStatus] = useState<'idle' | 'signing-out' | 'signed-out'>('idle');
 
   const handleThemeChange = (theme: ColorTheme) => {
     setColorTheme(theme);
@@ -42,9 +44,10 @@ export default function SettingsPage() {
   };
 
   const handleSignOut = async () => {
+    setSignOutStatus('signing-out');
     await signOut();
-    toast.success('Signed out');
-    router.push('/');
+    setSignOutStatus('signed-out');
+    setTimeout(() => router.push('/'), 500);
   };
 
   const handleClearAll = async () => {
@@ -220,26 +223,39 @@ export default function SettingsPage() {
                       }20`,
                     }}
                   >
-                    <User
-                      className="h-4 w-4"
-                      style={{
-                        color: COLOR_THEMES.find((t) => t.value === colorTheme)
-                          ?.preview.accent,
-                      }}
-                    />
+                    {signOutStatus === 'signed-out' ? (
+                      <Check className="h-4 w-4 text-emerald-500" />
+                    ) : (
+                      <User
+                        className="h-4 w-4"
+                        style={{
+                          color: COLOR_THEMES.find((t) => t.value === colorTheme)
+                            ?.preview.accent,
+                        }}
+                      />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{user.email}</p>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Cloud className="h-3 w-3" />
-                      <span>Syncing</span>
-                    </div>
+                    <p className="text-sm font-medium truncate">
+                      {signOutStatus === 'signed-out' ? 'Signed out' : user.email}
+                    </p>
+                    {signOutStatus === 'idle' && (
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Cloud className="h-3 w-3" />
+                        <span>Syncing</span>
+                      </div>
+                    )}
                   </div>
                   <button
                     onClick={handleSignOut}
-                    className="p-2 text-muted-foreground/50 cursor-pointer hover:text-foreground transition-colors"
+                    disabled={signOutStatus !== 'idle'}
+                    className="p-2 text-muted-foreground/50 cursor-pointer hover:text-foreground transition-colors disabled:opacity-50"
                   >
-                    <LogOut className="h-4 w-4" />
+                    {signOutStatus === 'signing-out' ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <LogOut className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
 
