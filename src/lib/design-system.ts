@@ -1,4 +1,4 @@
-// Recapp - Visual Design System
+// Recapz - Visual Design System
 // Premium, share-ready card styles for Instagram/TikTok Stories
 
 // ============================================

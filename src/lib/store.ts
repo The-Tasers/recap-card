@@ -15,8 +15,8 @@ export interface DraftEntry {
   lastUpdated: string;
 }
 
-const DB_NAME = 'recapp-db';
-const STORE_NAME = 'recapp-store';
+const DB_NAME = 'recapz-db';
+const STORE_NAME = 'recapz-store';
 const DB_VERSION = 1;
 const LOCAL_CARDS_KEY = 'local-cards';
 
@@ -283,7 +283,8 @@ export const useCardStore = create<CardStore>()((set, get) => ({
     );
   },
 
-  getPendingDelete: (id) => get().pendingDeletes.find((pd) => pd.card.id === id),
+  getPendingDelete: (id) =>
+    get().pendingDeletes.find((pd) => pd.card.id === id),
 }));
 
 // ============================================================================

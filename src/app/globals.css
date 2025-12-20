@@ -47,7 +47,8 @@
 }
 
 @keyframes pulseDot {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.3;
     transform: scale(0.8);
   }
@@ -82,7 +83,8 @@
 
 /* Text limit shake animation */
 @keyframes textLimitShake {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
   }
   20% {
@@ -152,38 +154,38 @@
    Deep, luxurious dark with subtle purple undertones
    ============================================ */
 :root,
-[data-color-theme="midnight"] {
+[data-color-theme='midnight'] {
   --background: oklch(0.13 0.012 285);
   --foreground: oklch(0.95 0.008 280);
   --card: oklch(0.17 0.015 285);
   --card-foreground: oklch(0.95 0.008 280);
   --popover: oklch(0.17 0.015 285);
   --popover-foreground: oklch(0.95 0.008 280);
-  --primary: oklch(0.70 0.15 285);
+  --primary: oklch(0.7 0.15 285);
   --primary-foreground: oklch(0.13 0.012 285);
   --secondary: oklch(0.22 0.018 285);
   --secondary-foreground: oklch(0.92 0.008 280);
-  --muted: oklch(0.20 0.015 285);
+  --muted: oklch(0.2 0.015 285);
   --muted-foreground: oklch(0.65 0.02 280);
-  --accent: oklch(0.70 0.15 285 / 15%);
+  --accent: oklch(0.7 0.15 285 / 15%);
   --accent-foreground: oklch(0.95 0.008 280);
   --destructive: oklch(0.55 0.22 25);
   --border: oklch(0.28 0.018 285);
   --input: oklch(0.22 0.015 285);
-  --ring: oklch(0.70 0.15 285);
-  --chart-1: oklch(0.65 0.20 145);
+  --ring: oklch(0.7 0.15 285);
+  --chart-1: oklch(0.65 0.2 145);
   --chart-2: oklch(0.65 0.18 180);
   --chart-3: oklch(0.65 0.15 220);
-  --chart-4: oklch(0.70 0.18 85);
-  --chart-5: oklch(0.60 0.20 25);
+  --chart-4: oklch(0.7 0.18 85);
+  --chart-5: oklch(0.6 0.2 25);
   --sidebar: oklch(0.15 0.014 285);
   --sidebar-foreground: oklch(0.95 0.008 280);
-  --sidebar-primary: oklch(0.70 0.15 285);
+  --sidebar-primary: oklch(0.7 0.15 285);
   --sidebar-primary-foreground: oklch(0.13 0.012 285);
   --sidebar-accent: oklch(0.22 0.018 285);
   --sidebar-accent-foreground: oklch(0.95 0.008 280);
   --sidebar-border: oklch(0.28 0.018 285);
-  --sidebar-ring: oklch(0.70 0.15 285);
+  --sidebar-ring: oklch(0.7 0.15 285);
 }
 
 /* ============================================
@@ -191,7 +193,7 @@
    Warm, creamy light theme with soft beige tones
    Like fine paper or natural fabric
    ============================================ */
-[data-color-theme="linen"] {
+[data-color-theme='linen'] {
   --background: oklch(0.97 0.008 85);
   --foreground: oklch(0.25 0.02 60);
   --card: oklch(0.99 0.005 85);
@@ -201,18 +203,18 @@
   --primary: oklch(0.55 0.12 60);
   --primary-foreground: oklch(0.99 0.005 85);
   --secondary: oklch(0.94 0.012 85);
-  --secondary-foreground: oklch(0.30 0.02 60);
+  --secondary-foreground: oklch(0.3 0.02 60);
   --muted: oklch(0.93 0.01 85);
-  --muted-foreground: oklch(0.50 0.02 60);
+  --muted-foreground: oklch(0.5 0.02 60);
   --accent: oklch(0.55 0.12 60 / 15%);
   --accent-foreground: oklch(0.25 0.02 60);
-  --destructive: oklch(0.55 0.20 25);
+  --destructive: oklch(0.55 0.2 25);
   --border: oklch(0.88 0.015 85);
   --input: oklch(0.94 0.01 85);
   --ring: oklch(0.55 0.12 60);
-  --chart-1: oklch(0.60 0.18 145);
-  --chart-2: oklch(0.60 0.16 180);
-  --chart-3: oklch(0.60 0.14 220);
+  --chart-1: oklch(0.6 0.18 145);
+  --chart-2: oklch(0.6 0.16 180);
+  --chart-3: oklch(0.6 0.14 220);
   --chart-4: oklch(0.65 0.16 85);
   --chart-5: oklch(0.55 0.18 25);
   --sidebar: oklch(0.96 0.01 85);
@@ -230,38 +232,38 @@
    Deep teal/navy with calming blue-green accents
    Serene and sophisticated
    ============================================ */
-[data-color-theme="ocean"] {
+[data-color-theme='ocean'] {
   --background: oklch(0.14 0.025 220);
   --foreground: oklch(0.94 0.015 200);
   --card: oklch(0.18 0.03 220);
   --card-foreground: oklch(0.94 0.015 200);
   --popover: oklch(0.18 0.03 220);
   --popover-foreground: oklch(0.94 0.015 200);
-  --primary: oklch(0.70 0.12 200);
+  --primary: oklch(0.7 0.12 200);
   --primary-foreground: oklch(0.14 0.025 220);
   --secondary: oklch(0.23 0.035 220);
-  --secondary-foreground: oklch(0.90 0.015 200);
+  --secondary-foreground: oklch(0.9 0.015 200);
   --muted: oklch(0.21 0.03 220);
   --muted-foreground: oklch(0.62 0.03 200);
-  --accent: oklch(0.70 0.12 200 / 15%);
+  --accent: oklch(0.7 0.12 200 / 15%);
   --accent-foreground: oklch(0.94 0.015 200);
-  --destructive: oklch(0.55 0.20 25);
+  --destructive: oklch(0.55 0.2 25);
   --border: oklch(0.28 0.035 220);
   --input: oklch(0.23 0.03 220);
-  --ring: oklch(0.70 0.12 200);
+  --ring: oklch(0.7 0.12 200);
   --chart-1: oklch(0.65 0.18 145);
   --chart-2: oklch(0.65 0.16 180);
   --chart-3: oklch(0.65 0.14 200);
-  --chart-4: oklch(0.70 0.16 85);
-  --chart-5: oklch(0.60 0.18 25);
+  --chart-4: oklch(0.7 0.16 85);
+  --chart-5: oklch(0.6 0.18 25);
   --sidebar: oklch(0.16 0.028 220);
   --sidebar-foreground: oklch(0.94 0.015 200);
-  --sidebar-primary: oklch(0.70 0.12 200);
+  --sidebar-primary: oklch(0.7 0.12 200);
   --sidebar-primary-foreground: oklch(0.14 0.025 220);
   --sidebar-accent: oklch(0.23 0.035 220);
   --sidebar-accent-foreground: oklch(0.94 0.015 200);
   --sidebar-border: oklch(0.28 0.035 220);
-  --sidebar-ring: oklch(0.70 0.12 200);
+  --sidebar-ring: oklch(0.7 0.12 200);
 }
 
 /* ============================================
@@ -269,7 +271,7 @@
    Warm charcoal with amber/copper accents
    Cozy and inviting
    ============================================ */
-[data-color-theme="ember"] {
+[data-color-theme='ember'] {
   --background: oklch(0.14 0.015 50);
   --foreground: oklch(0.94 0.012 60);
   --card: oklch(0.18 0.02 50);
@@ -279,20 +281,20 @@
   --primary: oklch(0.72 0.14 55);
   --primary-foreground: oklch(0.14 0.015 50);
   --secondary: oklch(0.23 0.025 50);
-  --secondary-foreground: oklch(0.90 0.012 60);
+  --secondary-foreground: oklch(0.9 0.012 60);
   --muted: oklch(0.21 0.02 50);
   --muted-foreground: oklch(0.62 0.02 60);
   --accent: oklch(0.72 0.14 55 / 15%);
   --accent-foreground: oklch(0.94 0.012 60);
-  --destructive: oklch(0.55 0.20 25);
+  --destructive: oklch(0.55 0.2 25);
   --border: oklch(0.28 0.025 50);
   --input: oklch(0.23 0.02 50);
   --ring: oklch(0.72 0.14 55);
   --chart-1: oklch(0.65 0.18 145);
-  --chart-2: oklch(0.70 0.16 50);
+  --chart-2: oklch(0.7 0.16 50);
   --chart-3: oklch(0.65 0.14 30);
-  --chart-4: oklch(0.70 0.16 85);
-  --chart-5: oklch(0.60 0.18 25);
+  --chart-4: oklch(0.7 0.16 85);
+  --chart-5: oklch(0.6 0.18 25);
   --sidebar: oklch(0.16 0.018 50);
   --sidebar-foreground: oklch(0.94 0.012 60);
   --sidebar-primary: oklch(0.72 0.14 55);
@@ -308,7 +310,7 @@
    Fresh mint light with green accents
    Refreshing and natural
    ============================================ */
-[data-color-theme="sage"] {
+[data-color-theme='sage'] {
   --background: oklch(0.97 0.015 160);
   --foreground: oklch(0.25 0.03 160);
   --card: oklch(0.99 0.008 160);
@@ -318,18 +320,18 @@
   --primary: oklch(0.55 0.12 160);
   --primary-foreground: oklch(0.99 0.008 160);
   --secondary: oklch(0.94 0.018 160);
-  --secondary-foreground: oklch(0.30 0.03 160);
+  --secondary-foreground: oklch(0.3 0.03 160);
   --muted: oklch(0.93 0.015 160);
-  --muted-foreground: oklch(0.50 0.025 160);
+  --muted-foreground: oklch(0.5 0.025 160);
   --accent: oklch(0.55 0.12 160 / 15%);
   --accent-foreground: oklch(0.25 0.03 160);
-  --destructive: oklch(0.55 0.20 25);
+  --destructive: oklch(0.55 0.2 25);
   --border: oklch(0.88 0.02 160);
   --input: oklch(0.94 0.015 160);
   --ring: oklch(0.55 0.12 160);
   --chart-1: oklch(0.55 0.14 160);
-  --chart-2: oklch(0.60 0.16 140);
-  --chart-3: oklch(0.60 0.14 180);
+  --chart-2: oklch(0.6 0.16 140);
+  --chart-3: oklch(0.6 0.14 180);
   --chart-4: oklch(0.65 0.16 85);
   --chart-5: oklch(0.55 0.18 25);
   --sidebar: oklch(0.96 0.015 160);
@@ -347,38 +349,38 @@
    Soft blush pink with warm rose accents
    Gentle and romantic
    ============================================ */
-[data-color-theme="rose"] {
+[data-color-theme='rose'] {
   --background: oklch(0.97 0.012 350);
   --foreground: oklch(0.25 0.025 350);
   --card: oklch(0.99 0.006 350);
   --card-foreground: oklch(0.25 0.025 350);
   --popover: oklch(0.99 0.006 350);
   --popover-foreground: oklch(0.25 0.025 350);
-  --primary: oklch(0.60 0.12 350);
+  --primary: oklch(0.6 0.12 350);
   --primary-foreground: oklch(0.99 0.006 350);
   --secondary: oklch(0.94 0.015 350);
-  --secondary-foreground: oklch(0.30 0.025 350);
+  --secondary-foreground: oklch(0.3 0.025 350);
   --muted: oklch(0.93 0.012 350);
-  --muted-foreground: oklch(0.50 0.02 350);
-  --accent: oklch(0.60 0.12 350 / 15%);
+  --muted-foreground: oklch(0.5 0.02 350);
+  --accent: oklch(0.6 0.12 350 / 15%);
   --accent-foreground: oklch(0.25 0.025 350);
-  --destructive: oklch(0.55 0.20 25);
+  --destructive: oklch(0.55 0.2 25);
   --border: oklch(0.88 0.018 350);
   --input: oklch(0.94 0.012 350);
-  --ring: oklch(0.60 0.12 350);
-  --chart-1: oklch(0.60 0.14 350);
-  --chart-2: oklch(0.60 0.16 330);
-  --chart-3: oklch(0.60 0.14 10);
+  --ring: oklch(0.6 0.12 350);
+  --chart-1: oklch(0.6 0.14 350);
+  --chart-2: oklch(0.6 0.16 330);
+  --chart-3: oklch(0.6 0.14 10);
   --chart-4: oklch(0.65 0.16 85);
   --chart-5: oklch(0.55 0.18 25);
   --sidebar: oklch(0.96 0.012 350);
   --sidebar-foreground: oklch(0.25 0.025 350);
-  --sidebar-primary: oklch(0.60 0.12 350);
+  --sidebar-primary: oklch(0.6 0.12 350);
   --sidebar-primary-foreground: oklch(0.99 0.006 350);
   --sidebar-accent: oklch(0.94 0.015 350);
   --sidebar-accent-foreground: oklch(0.25 0.025 350);
   --sidebar-border: oklch(0.88 0.018 350);
-  --sidebar-ring: oklch(0.60 0.12 350);
+  --sidebar-ring: oklch(0.6 0.12 350);
 }
 
 @layer base {
@@ -446,7 +448,7 @@ html {
 }
 
 /* ============================================
-   RECAPP - VISUAL DESIGN SYSTEM
+   RECAPZ - VISUAL DESIGN SYSTEM
    ============================================ */
 
 /* Story Card Container (9:16 aspect ratio) */

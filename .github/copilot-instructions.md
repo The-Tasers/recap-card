@@ -1,4 +1,4 @@
-# Recapp - Copilot Instructions
+# Recapz - Copilot Instructions
 
 ## Project Overview
 
