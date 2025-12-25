@@ -176,6 +176,12 @@ export function QuickAdditions({
   const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
 
+  // Refs for time picker columns to scroll to selected
+  const hourColumnRef = useRef<HTMLDivElement>(null);
+  const minuteColumnRef = useRef<HTMLDivElement>(null);
+  const hourColumnDesktopRef = useRef<HTMLDivElement>(null);
+  const minuteColumnDesktopRef = useRef<HTMLDivElement>(null);
+
   // Detect desktop (md breakpoint = 768px)
   useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 768px)');
@@ -443,6 +449,59 @@ export function QuickAdditions({
     };
   }, [bottomSheetMode]);
 
+  // Scroll to selected time elements when picker opens
+  useEffect(() => {
+    if (!sleepPickerFocus) return;
+
+    const scrollToSelected = (
+      columnRef: React.RefObject<HTMLDivElement | null>,
+      selectedIndex: number
+    ) => {
+      const column = columnRef.current;
+      if (!column) return;
+
+      // Each button is about 44px (py-2 = 8px * 2 + text ~28px)
+      const buttonHeight = 44;
+      const columnHeight = column.clientHeight;
+      const scrollTop =
+        selectedIndex * buttonHeight - columnHeight / 2 + buttonHeight / 2;
+
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        column.scrollTo({ top: Math.max(0, scrollTop), behavior: 'smooth' });
+      });
+    };
+
+    const currentHour = sleepPickerFocus === 'bedtime' ? bedHour : wakeHour;
+    const currentMinute =
+      sleepPickerFocus === 'bedtime' ? bedMinute : wakeMinute;
+
+    const hourIndex = hourOptions.indexOf(currentHour);
+    const minuteIndex = minuteOptions.indexOf(currentMinute);
+
+    // Small delay to let the animation complete
+    const timer = setTimeout(() => {
+      if (isDesktop) {
+        scrollToSelected(hourColumnDesktopRef, hourIndex);
+        scrollToSelected(minuteColumnDesktopRef, minuteIndex);
+      } else {
+        scrollToSelected(hourColumnRef, hourIndex);
+        scrollToSelected(minuteColumnRef, minuteIndex);
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [
+    sleepPickerFocus,
+    bedHour,
+    bedMinute,
+    wakeHour,
+    wakeMinute,
+    isDesktop,
+    hourOptions,
+    minuteOptions,
+  ]);
+
   return (
     <div className="flex flex-col gap-3">
       {/* Hidden file input */}
@@ -574,7 +633,10 @@ export function QuickAdditions({
                           {/* Wheel picker columns - scrollable */}
                           <div className="flex justify-center gap-2">
                             {/* Hour column */}
-                            <div className="flex flex-col items-center h-[200px] overflow-y-auto snap-y snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                            <div
+                              ref={hourColumnDesktopRef}
+                              className="flex flex-col items-center h-[200px] overflow-y-auto snap-y snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                            >
                               {hourOptions.map((h) => {
                                 const currentHour =
                                   sleepPickerFocus === 'bedtime'
@@ -605,7 +667,10 @@ export function QuickAdditions({
                             </div>
 
                             {/* Minute column */}
-                            <div className="flex flex-col items-center h-[200px] overflow-y-auto snap-y snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                            <div
+                              ref={minuteColumnDesktopRef}
+                              className="flex flex-col items-center h-[200px] overflow-y-auto snap-y snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                            >
                               {minuteOptions.map((m) => {
                                 const currentMinute =
                                   sleepPickerFocus === 'bedtime'
@@ -1017,7 +1082,10 @@ export function QuickAdditions({
                             {/* Wheel picker columns - scrollable */}
                             <div className="flex justify-center gap-2">
                               {/* Hour column */}
-                              <div className="flex flex-col items-center h-[200px] overflow-y-auto snap-y snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                              <div
+                                ref={hourColumnRef}
+                                className="flex flex-col items-center h-[200px] overflow-y-auto snap-y snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                              >
                                 {hourOptions.map((h) => {
                                   const currentHour =
                                     sleepPickerFocus === 'bedtime'
@@ -1048,7 +1116,10 @@ export function QuickAdditions({
                               </div>
 
                               {/* Minute column */}
-                              <div className="flex flex-col items-center h-[200px] overflow-y-auto snap-y snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                              <div
+                                ref={minuteColumnRef}
+                                className="flex flex-col items-center h-[200px] overflow-y-auto snap-y snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                              >
                                 {minuteOptions.map((m) => {
                                   const currentMinute =
                                     sleepPickerFocus === 'bedtime'

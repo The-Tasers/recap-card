@@ -109,7 +109,7 @@ export function MoodSelector({
         initial="hidden"
         animate="show"
       >
-        {MOODS.map((mood, index) => {
+        {[...MOODS].reverse().map((mood, index) => {
           const isSelected = value === mood.value;
           const isHighlighted = highlightedIndex === index;
           const styles = MOOD_STYLES[mood.value];

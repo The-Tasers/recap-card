@@ -8,11 +8,11 @@ import { cn } from '@/lib/utils';
 import { useI18n, LANGUAGES } from '@/lib/i18n';
 
 const LETTER_COLORS = {
-  R: '#22c55e',
-  E: '#84cc16',
+  R: '#ef4444',
+  E: '#f97316',
   C: '#eab308',
-  A: '#f97316',
-  P: '#ef4444',
+  A: '#84cc16',
+  P: '#22c55e',
 };
 
 interface AppLogoProps {

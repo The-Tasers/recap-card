@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Globe, Palette } from 'lucide-react';
 import { AppLogo } from '@/components/app-footer';
@@ -44,6 +44,46 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
   const currentLanguage = LANGUAGES.find((l) => l.value === language);
   const currentTheme = COLOR_THEMES.find((th) => th.value === colorTheme);
+
+  // Refs for click-outside handling
+  const languageButtonRef = useRef<HTMLButtonElement>(null);
+  const languageMenuRef = useRef<HTMLDivElement>(null);
+  const themeButtonRef = useRef<HTMLButtonElement>(null);
+  const themeMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      // Close language menu if clicking outside
+      if (
+        showLanguageMenu &&
+        languageButtonRef.current &&
+        !languageButtonRef.current.contains(target) &&
+        languageMenuRef.current &&
+        !languageMenuRef.current.contains(target)
+      ) {
+        setShowLanguageMenu(false);
+      }
+
+      // Close theme menu if clicking outside
+      if (
+        showThemeMenu &&
+        themeButtonRef.current &&
+        !themeButtonRef.current.contains(target) &&
+        themeMenuRef.current &&
+        !themeMenuRef.current.contains(target)
+      ) {
+        setShowThemeMenu(false);
+      }
+    };
+
+    if (showLanguageMenu || showThemeMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showLanguageMenu, showThemeMenu]);
 
   const handleLanguageChange = (lang: Language) => {
     setLanguage(lang);
@@ -116,6 +156,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           {/* Language selector */}
           <div className="relative">
             <button
+              ref={languageButtonRef}
               type="button"
               onClick={() => {
                 setShowLanguageMenu(!showLanguageMenu);
@@ -130,6 +171,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             <AnimatePresence>
               {showLanguageMenu && (
                 <motion.div
+                  ref={languageMenuRef}
                   initial={{ opacity: 0, scale: 0.95, y: -4 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: -4 }}
@@ -160,6 +202,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           {/* Theme selector */}
           <div className="relative">
             <button
+              ref={themeButtonRef}
               type="button"
               onClick={() => {
                 setShowThemeMenu(!showThemeMenu);
@@ -177,6 +220,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             <AnimatePresence>
               {showThemeMenu && (
                 <motion.div
+                  ref={themeMenuRef}
                   initial={{ opacity: 0, scale: 0.95, y: -4 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: -4 }}

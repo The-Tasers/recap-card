@@ -556,11 +556,11 @@ export default function Canvas() {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
         <span className="text-2xl font-bold tracking-wide uppercase flex items-center">
-          <span className="text-[#22c55e]">R</span>
-          <span className="text-[#84cc16]">E</span>
+          <span className="text-[#ef4444]">R</span>
+          <span className="text-[#f97316]">E</span>
           <span className="text-[#eab308]">C</span>
-          <span className="text-[#f97316]">A</span>
-          <span className="text-[#ef4444]">P</span>
+          <span className="text-[#84cc16]">A</span>
+          <span className="text-[#22c55e]">P</span>
           <Activity className="h-6 w-6 text-primary" strokeWidth={3} />
         </span>
       </div>
