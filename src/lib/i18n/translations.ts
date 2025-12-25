@@ -141,6 +141,42 @@ export const translations = {
     'settings.selectTheme': 'Select theme',
     'settings.selectLanguage': 'Select language',
 
+    // Settings - support
+    'settings.about': 'Support',
+    'settings.contact': 'Contact',
+    'settings.leaveFeedback': 'Feedback',
+
+    // Signup prompt
+    'signupPrompt.title': 'Keep your days safe',
+    'signupPrompt.description':
+      '{count} {count, plural, one {day} other {days}} captured. Sign in to keep them across devices.',
+    'signupPrompt.later': 'Maybe later',
+    'signupPrompt.signUp': 'Sign up',
+
+    // Feedback modal
+    'feedback.title': 'Leave feedback',
+    'feedback.description': 'Will you keep using Recapz?',
+    'feedback.rating.1': 'Nope',
+    'feedback.rating.2': 'Unlikely',
+    'feedback.rating.3': 'Maybe',
+    'feedback.rating.4': 'Probably',
+    'feedback.rating.5': 'For sure!',
+    'feedback.messagePlaceholder': 'Any suggestions? (optional)',
+    'feedback.submit': 'Send',
+    'feedback.thanks': 'Thank you for your feedback!',
+    'feedback.error': 'Failed to send feedback',
+
+    // Password reset
+    'auth.resetPasswordTitle': 'Set new password',
+    'auth.resetPasswordDescription': 'Enter your new password below.',
+    'auth.newPassword': 'New password',
+    'auth.confirmNewPassword': 'Confirm new password',
+    'auth.resetPassword': 'Reset password',
+    'auth.passwordResetSuccess': 'Password updated',
+    'auth.passwordResetSuccessDescription':
+      'Your password has been successfully changed.',
+    'auth.continue': 'Continue',
+
     // Footer
     'footer.privacy': 'Privacy',
     'footer.terms': 'Terms',
@@ -368,7 +404,7 @@ export const translations = {
     'mood.firstRecapHint': 'Начни с настроения.',
     'mood.backToToday': 'К сегодня',
     'mood.daysRemembered':
-      '{count} {count, plural, one {запись} few {записи} other {записей}}',
+      '{count} {count, plural, one {день} few {дня} other {дней}}',
 
     // Moods
     'mood.great': 'Супер',
@@ -424,10 +460,10 @@ export const translations = {
     'settings.passwordTooShort': 'Минимум 6 символов',
     'settings.passwordUpdated': 'Пароль изменён',
     'settings.daysCaptured':
-      '{count} {count, plural, one {запись} few {записи} other {записей}}',
+      '{count} {count, plural, one {день} few {дня} other {дней}}',
     'settings.clearData': 'Удалить все данные',
     'settings.clearDataConfirm':
-      '{count, plural, one {Будет удалена {count} запись} few {Будут удалены {count} записи} other {Будет удалено {count} записей}}. Навсегда.',
+      '{count} {count, plural, one {день} few {дня} other {дней}} {count, plural, one {будет удалён} few {будут удалены} other {будет удалено}}. Навсегда.',
     'settings.keepData': 'Оставить',
     'settings.deleteAll': 'Удалить всё',
 
@@ -479,6 +515,42 @@ export const translations = {
     'settings.theme': 'Тема',
     'settings.selectTheme': 'Выбери тему',
     'settings.selectLanguage': 'Выбери язык',
+
+    // Settings - support
+    'settings.about': 'Поддержка',
+    'settings.contact': 'Написать',
+    'settings.leaveFeedback': 'Отзыв',
+
+    // Signup prompt
+    'signupPrompt.title': 'Сохрани свои дни',
+    'signupPrompt.description':
+      '{count} {count, plural, one {день} few {дня} other {дней}} записано. Войди, чтобы синхронизировать.',
+    'signupPrompt.later': 'Позже',
+    'signupPrompt.signUp': 'Создать аккаунт',
+
+    // Feedback modal
+    'feedback.title': 'Оставить отзыв',
+    'feedback.description': 'Будешь пользоваться Recapz?',
+    'feedback.rating.1': 'Нет',
+    'feedback.rating.2': 'Вряд ли',
+    'feedback.rating.3': 'Может',
+    'feedback.rating.4': 'Скорее да',
+    'feedback.rating.5': 'Точно!',
+    'feedback.messagePlaceholder': 'Есть пожелания? (необязательно)',
+    'feedback.submit': 'Отправить',
+    'feedback.thanks': 'Спасибо за отзыв!',
+    'feedback.error': 'Не удалось отправить',
+
+    // Password reset
+    'auth.resetPasswordTitle': 'Новый пароль',
+    'auth.resetPasswordDescription': 'Введи новый пароль.',
+    'auth.newPassword': 'Новый пароль',
+    'auth.confirmNewPassword': 'Повтори пароль',
+    'auth.resetPassword': 'Сохранить',
+    'auth.passwordResetSuccess': 'Пароль изменён',
+    'auth.passwordResetSuccessDescription':
+      'Теперь можешь использовать новый пароль.',
+    'auth.continue': 'Продолжить',
 
     // Footer
     'footer.privacy': 'Приватность',

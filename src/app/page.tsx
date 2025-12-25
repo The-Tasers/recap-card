@@ -6,6 +6,7 @@ import { useCardStore, useSettingsStore, saveLocalCards } from '@/lib/store';
 import { getTodayRecap } from '@/lib/daily-utils';
 import { groupCardsByWeek } from '@/lib/date-utils';
 import { SignupPrompt } from '@/components/signup-prompt';
+import { FeedbackModal } from '@/components/feedback-modal';
 import { Onboarding, useOnboarding } from '@/components/onboarding';
 import { PhotoData } from '@/components/photo-uploader';
 import { RecapForm } from '@/components/recap-form';
@@ -98,6 +99,7 @@ export default function Canvas() {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [isDirty, setIsDirty] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isSavingRef = useRef(false);
@@ -233,6 +235,10 @@ export default function Canvas() {
       }
 
       if (isCreating) {
+        // Check if this is the first recap (before adding)
+        const isFirstRecap = cards.length === 0;
+        const feedbackShown = localStorage.getItem('feedback-shown-after-first');
+
         // Creating a new card
         const newCard: DailyCard = {
           id: generateId(),
@@ -254,6 +260,12 @@ export default function Canvas() {
         } else {
           const updatedCards = useCardStore.getState().cards;
           saveLocalCards(updatedCards);
+        }
+
+        // Show feedback modal after first recap creation
+        if (isFirstRecap && !feedbackShown) {
+          localStorage.setItem('feedback-shown-after-first', 'true');
+          setTimeout(() => setShowFeedbackModal(true), 500);
         }
 
         // Update original values after successful save
@@ -325,6 +337,7 @@ export default function Canvas() {
     showNotification,
     user?.id,
     t,
+    cards.length,
   ]);
 
   // Track dirty state when edit fields change
@@ -642,6 +655,12 @@ export default function Canvas() {
 
       {/* Sign-up prompt */}
       <SignupPrompt />
+
+      {/* Feedback modal */}
+      <FeedbackModal
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+      />
     </div>
   );
 }

@@ -17,6 +17,9 @@ import {
   EyeOff,
   Palette,
   Globe,
+  MessageSquare,
+  Star,
+  ThumbsUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AnimatePresence } from 'framer-motion';
@@ -26,13 +29,16 @@ import { applyColorTheme } from '@/components/theme-provider';
 import { useAuth } from '@/components/auth-provider';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
-import { AppFooter, AppLogo } from '@/components/app-footer';
+import { AppFooter } from '@/components/app-footer';
 import { useI18n, type TranslationKey } from '@/lib/i18n';
 import { LANGUAGES } from '@/lib/i18n/translations';
+import { FeedbackModal } from '@/components/feedback-modal';
+
+const CONTACT_EMAIL = 'support@recapz.app';
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user, signOut, updatePassword, loading: authLoading } = useAuth();
+  const { user, signOut, updatePassword } = useAuth();
   const { cards } = useCardStore();
   const { colorTheme, setColorTheme } = useSettingsStore();
   const { t, language, setLanguage } = useI18n();
@@ -41,7 +47,7 @@ export default function SettingsPage() {
   const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
-  const [exportSuccess, setExportSuccess] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [signOutStatus, setSignOutStatus] = useState<
     'idle' | 'signing-out' | 'signed-out'
   >('idle');
@@ -123,95 +129,6 @@ export default function SettingsPage() {
     } finally {
       setIsClearing(false);
     }
-  };
-
-  const handleExportCSV = () => {
-    if (cards.length === 0) {
-      toast.error(t('toast.noDataToExport'));
-      return;
-    }
-
-    // CSV header
-    const headers = [
-      'Date',
-      'Mood',
-      'Text',
-      'Sleep',
-      'Weather',
-      'Meals',
-      'Self-care',
-      'Health',
-      'Exercise',
-    ];
-
-    // Convert cards to CSV rows
-    const rows = cards.map((card) => {
-      const date = new Date(card.createdAt).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      });
-
-      // Get block values
-      const getBlockValue = (blockId: string) => {
-        const block = card.blocks?.find((b) => b.blockId === blockId);
-        if (!block) return '';
-        if (Array.isArray(block.value)) return block.value.join('; ');
-        // Format sleep as hours and minutes
-        if (
-          blockId === 'sleep' &&
-          typeof block.value === 'number' &&
-          block.value > 0
-        ) {
-          const hours = Math.floor(block.value / 60);
-          const mins = block.value % 60;
-          if (mins === 0) return `${hours}h`;
-          return `${hours}h ${mins}m`;
-        }
-        return String(block.value);
-      };
-
-      // Escape CSV field (handle commas, quotes, newlines)
-      const escapeCSV = (field: string) => {
-        if (
-          field.includes(',') ||
-          field.includes('"') ||
-          field.includes('\n')
-        ) {
-          return `"${field.replace(/"/g, '""')}"`;
-        }
-        return field;
-      };
-
-      return [
-        date,
-        card.mood,
-        escapeCSV(card.text || ''),
-        getBlockValue('sleep'),
-        getBlockValue('weather'),
-        getBlockValue('meals'),
-        getBlockValue('selfcare'),
-        getBlockValue('health'),
-        getBlockValue('exercise'),
-      ].join(',');
-    });
-
-    // Combine header and rows
-    const csvContent = [headers.join(','), ...rows].join('\n');
-
-    // Create and download file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Recapz-${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    setExportSuccess(true);
-    setTimeout(() => setExportSuccess(false), 2000);
   };
 
   const handleDeleteAccount = async () => {
@@ -550,7 +467,7 @@ export default function SettingsPage() {
               {t('settings.data')}
             </h2>
 
-            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
               <p className="text-sm text-muted-foreground">
                 {t('settings.daysCaptured', { count: cards.length })}
               </p>
@@ -622,11 +539,48 @@ export default function SettingsPage() {
               </AnimatePresence>
             )}
           </section>
+
+          {/* About Section */}
+          <section className="space-y-3">
+            <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              {t('settings.about')}
+            </h2>
+
+            <div className="flex gap-2">
+              {/* Contact email */}
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
+              >
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  {t('settings.contact')}
+                </span>
+              </a>
+
+              {/* Feedback button */}
+              <button
+                onClick={() => setShowFeedbackModal(true)}
+                className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-primary/10 hover:bg-primary/20 transition-colors cursor-pointer"
+              >
+                <ThumbsUp className="h-4 w-4 text-primary fill-primary" />
+                <span className="text-sm font-medium text-primary">
+                  {t('settings.leaveFeedback')}
+                </span>
+              </button>
+            </div>
+          </section>
         </div>
 
         {/* Footer */}
         <AppFooter />
       </div>
+
+      {/* Feedback Modal */}
+      <FeedbackModal
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+      />
     </div>
   );
 }
