@@ -26,6 +26,7 @@ import { Activity } from 'lucide-react';
 import { generateId } from '@/lib/export';
 import { useSyncContext } from '@/components/sync-provider';
 import { deleteImage, isSupabaseStorageUrl } from '@/lib/supabase/storage';
+import { useI18n } from '@/lib/i18n';
 
 type SaveStatus = 'idle' | 'saving' | 'saved';
 
@@ -41,6 +42,7 @@ export default function Canvas() {
     pendingDeletes,
   } = useCardStore();
   const { clearDraft } = useSettingsStore();
+  const { language } = useI18n();
   const { showOnboarding, completeOnboarding, checked: onboardingChecked } = useOnboarding();
   const {
     saveRecapToCloud,
@@ -154,8 +156,8 @@ export default function Canvas() {
 
   // Grouped past entries
   const groupedEntries = useMemo(
-    () => groupCardsByWeek(pastEntries),
-    [pastEntries]
+    () => groupCardsByWeek(pastEntries, language),
+    [pastEntries, language]
   );
 
   // Save function for edit/create mode (handles text, mood, blocks, and photos)

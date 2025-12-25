@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   motion,
   useMotionValue,
@@ -8,6 +8,9 @@ import {
   PanInfo,
   useAnimationControls,
 } from 'framer-motion';
+import { Trash2 } from 'lucide-react';
+import { formatRelativeDate } from '@/lib/date-utils';
+import { useI18n } from '@/lib/i18n';
 
 // Hook to detect if we're on mobile (for swipe behavior)
 function useIsMobile() {
@@ -22,7 +25,6 @@ function useIsMobile() {
 
   return isMobile;
 }
-import { Trash2 } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -56,30 +58,6 @@ const MOOD_COLORS: Record<Mood, string> = {
   low: 'rgba(249, 115, 22, 0.85)', // #f97316
   rough: 'rgba(239, 68, 68, 0.85)', // #ef4444
 };
-
-// Format relative date for stream
-function formatRelativeDate(date: Date): string {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const cardDate = new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate()
-  );
-  const diffDays = Math.floor(
-    (today.getTime() - cardDate.getTime()) / (1000 * 60 * 60 * 24)
-  );
-
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) {
-    return date.toLocaleDateString('en-US', { weekday: 'long' });
-  }
-  if (diffDays < 14) {
-    return `Last ${date.toLocaleDateString('en-US', { weekday: 'long' })}`;
-  }
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
 
 // Helper to render block details with tooltips
 function BlockDetails({ blocks }: { blocks?: CardBlock[] }) {
@@ -233,6 +211,7 @@ export function StreamCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const { language } = useI18n();
   const moodData = MOODS.find((m) => m.value === card.mood);
   const cardDate = new Date(card.createdAt);
   const MoodIcon = MOOD_ICONS[card.mood];
@@ -352,7 +331,7 @@ export function StreamCard({
                 </span>
               </div>
               <span className="text-xs text-white/70">
-                {formatRelativeDate(cardDate)}
+                {formatRelativeDate(cardDate, language)}
               </span>
             </div>
             {card.text && (

@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { toast } from 'sonner';
 import { DailyCard, Mood, CardBlock, BlockId, ColorTheme } from './types';
+import type { Language } from './i18n/translations';
 
 // Draft entry type for preserving state across sessions
 export interface DraftEntry {
@@ -293,8 +294,10 @@ export const useCardStore = create<CardStore>()((set, get) => ({
 
 interface SettingsStore {
   colorTheme: ColorTheme;
+  language: Language;
   draftEntry: DraftEntry | null;
   setColorTheme: (theme: ColorTheme) => void;
+  setLanguage: (lang: Language) => void;
   saveDraft: (draft: Omit<DraftEntry, 'lastUpdated'>) => void;
   clearDraft: () => void;
 }
@@ -303,9 +306,11 @@ export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set) => ({
       colorTheme: 'midnight' as ColorTheme,
+      language: 'en' as Language,
       draftEntry: null,
 
       setColorTheme: (theme) => set({ colorTheme: theme }),
+      setLanguage: (lang) => set({ language: lang }),
 
       saveDraft: (draft) => {
         set({

@@ -9,10 +9,12 @@ import isEmail from 'validator/es/lib/isEmail';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/auth-provider';
 import { AppFooter, AppLogo } from '@/components/app-footer';
+import { useI18n } from '@/lib/i18n';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
   const { user, resetPassword, loading: authLoading } = useAuth();
+  const { t } = useI18n();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -35,7 +37,7 @@ export default function ForgotPasswordPage() {
     setError(null);
 
     if (!validateEmail(email)) {
-      setError('Please enter a valid email address');
+      setError(t('auth.invalidEmail'));
       return;
     }
 
@@ -76,19 +78,19 @@ export default function ForgotPasswordPage() {
               <Check className="h-8 w-8 text-emerald-500" />
             </div>
             <h1 className="text-2xl font-medium text-center mb-3">
-              Check your email
+              {t('auth.checkEmail')}
             </h1>
             <p className="text-sm text-muted-foreground text-center max-w-xs">
-              We sent a password reset link to{' '}
+              {t('auth.resetLinkSent')}{' '}
               <span className="font-medium text-foreground">{email}</span>.
-              Click the link to reset your password.
+              {' '}{t('auth.clickLinkToReset')}
             </p>
             <Button
               className="mt-8"
               variant="outline"
               onClick={() => router.push('/login')}
             >
-              Back to login
+              {t('auth.backToLogin')}
             </Button>
           </div>
 
@@ -106,7 +108,7 @@ export default function ForgotPasswordPage() {
         <div className="flex items-center justify-between">
           <motion.button
             type="button"
-            onClick={() => router.push('/login')}
+            onClick={() => router.back()}
             className="p-2 text-muted-foreground/50 hover:text-foreground transition-colors cursor-pointer rounded-md hover:bg-muted/30"
             whileTap={{ scale: 0.95 }}
             aria-label="Go back"
@@ -123,10 +125,10 @@ export default function ForgotPasswordPage() {
         {/* Content */}
         <div className="flex-1 flex flex-col justify-center">
           <h1 className="text-2xl font-medium text-center mb-3">
-            Forgot password?
+            {t('auth.forgotPasswordTitle')}
           </h1>
           <p className="text-sm text-muted-foreground text-center mb-8">
-            Enter your email and we&apos;ll send you a reset link.
+            {t('auth.forgotPasswordDescription')}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -136,7 +138,7 @@ export default function ForgotPasswordPage() {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
                 <input
                   type="email"
-                  placeholder="Email"
+                  placeholder={t('auth.email')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -160,19 +162,19 @@ export default function ForgotPasswordPage() {
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                'Send reset link'
+                t('auth.sendResetLink')
               )}
             </Button>
           </form>
 
           {/* Back to login link */}
           <p className="text-sm text-center text-muted-foreground mt-6">
-            Remember your password?{' '}
+            {t('auth.rememberPassword')}{' '}
             <Link
               href="/login"
               className="text-foreground hover:underline font-medium"
             >
-              Sign in
+              {t('auth.signInLink')}
             </Link>
           </p>
         </div>

@@ -1,8 +1,37 @@
 import { DailyCard } from '@/lib/types';
+import { Language } from '@/lib/i18n/translations';
+
+const LOCALES: Record<Language, string> = {
+  en: 'en-US',
+  ru: 'ru-RU',
+};
+
+const DATE_LABELS: Record<Language, {
+  today: string;
+  yesterday: string;
+  lastPrefix: string;
+  thisWeek: string;
+  lastWeek: string;
+}> = {
+  en: {
+    today: 'Today',
+    yesterday: 'Yesterday',
+    lastPrefix: 'Last',
+    thisWeek: 'This week',
+    lastWeek: 'Last week',
+  },
+  ru: {
+    today: 'Сегодня',
+    yesterday: 'Вчера',
+    lastPrefix: 'Прошлый',
+    thisWeek: 'Эта неделя',
+    lastWeek: 'Прошлая неделя',
+  },
+};
 
 // Format date nicely
-export function formatDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
+export function formatDate(date: Date, language: Language = 'en'): string {
+  return date.toLocaleDateString(LOCALES[language], {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -10,7 +39,7 @@ export function formatDate(date: Date): string {
 }
 
 // Format relative date for stream
-export function formatRelativeDate(date: Date): string {
+export function formatRelativeDate(date: Date, language: Language = 'en'): string {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const cardDate = new Date(
@@ -22,26 +51,34 @@ export function formatRelativeDate(date: Date): string {
     (today.getTime() - cardDate.getTime()) / (1000 * 60 * 60 * 24)
   );
 
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
+  const labels = DATE_LABELS[language];
+  const locale = LOCALES[language];
+
+  if (diffDays === 0) return labels.today;
+  if (diffDays === 1) return labels.yesterday;
   if (diffDays < 7) {
-    return date.toLocaleDateString('en-US', { weekday: 'long' });
+    return date.toLocaleDateString(locale, { weekday: 'long' });
   }
   if (diffDays < 14) {
-    return `Last ${date.toLocaleDateString('en-US', { weekday: 'long' })}`;
+    const weekday = date.toLocaleDateString(locale, { weekday: 'long' });
+    return language === 'ru' ? `Прошл. ${weekday.toLowerCase()}` : `Last ${weekday}`;
   }
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
 }
 
 // Group cards by week
 export function groupCardsByWeek(
-  cards: DailyCard[]
+  cards: DailyCard[],
+  language: Language = 'en'
 ): { label: string; cards: DailyCard[] }[] {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   const groups: { label: string; cards: DailyCard[] }[] = [];
   let currentGroup: { label: string; cards: DailyCard[] } | null = null;
+
+  const labels = DATE_LABELS[language];
+  const locale = LOCALES[language];
 
   // Sort cards by date descending
   const sortedCards = [...cards].sort(
@@ -62,12 +99,12 @@ export function groupCardsByWeek(
 
     let label: string;
     if (diffDays < 7) {
-      label = 'This week';
+      label = labels.thisWeek;
     } else if (diffDays < 14) {
-      label = 'Last week';
+      label = labels.lastWeek;
     } else {
       // Group by month
-      label = cardDate.toLocaleDateString('en-US', {
+      label = cardDate.toLocaleDateString(locale, {
         month: 'long',
         year: 'numeric',
       });

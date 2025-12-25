@@ -8,6 +8,7 @@ import { MoodSelector } from '@/components/mood-selector';
 import { PhotoData } from '@/components/photo-uploader';
 import { CardBlock, BlockId, Mood } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n';
 
 type SaveStatus = 'idle' | 'saving' | 'saved';
 
@@ -46,6 +47,7 @@ export function RecapForm({
   saveStatus = 'idle',
   isDirty = false,
 }: RecapFormProps) {
+  const { t } = useI18n();
   const [isFlashing, setIsFlashing] = useState(false);
 
   // Trigger flash + shake effect
@@ -131,7 +133,7 @@ export function RecapForm({
           ref={textareaRef}
           value={text}
           onChange={handleTextChange}
-          placeholder="What stood out today..."
+          placeholder={t('form.placeholder')}
           autoFocus
           className={cn(
             'w-full h-full flex resize-none text-xl leading-relaxed bg-transparent border-0 outline-none placeholder:text-muted-foreground/30 focus:outline-none caret-primary scrollbar-themed',

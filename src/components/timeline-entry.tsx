@@ -21,25 +21,11 @@ import {
   HEALTH_ICONS,
   EXERCISE_ICONS,
 } from '@/lib/icons';
-import {
-  DailyCard,
-  WEATHER_OPTIONS,
-  MEAL_OPTIONS,
-  SELFCARE_OPTIONS,
-  HEALTH_OPTIONS,
-  EXERCISE_OPTIONS,
-} from '@/lib/types';
+import { DailyCard } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
-
-// Map of blockId to options for label lookup
-const BLOCK_OPTIONS: Record<string, { value: string; label: string }[]> = {
-  weather: WEATHER_OPTIONS,
-  meals: MEAL_OPTIONS,
-  selfcare: SELFCARE_OPTIONS,
-  health: HEALTH_OPTIONS,
-  exercise: EXERCISE_OPTIONS,
-};
+import { useI18n, useTranslatedOptions } from '@/lib/i18n';
+import { formatRelativeDate } from '@/lib/date-utils';
 
 // Map of blockId to icon lookup
 const BLOCK_ICON_MAPS: Record<string, Record<string, LucideIcon>> = {
@@ -56,19 +42,16 @@ function getBlockIcon(blockId: string, value: string): LucideIcon | null {
   return iconMap?.[value] || null;
 }
 
-// Get label for a block value
-function getBlockLabel(blockId: string, value: string): string {
-  const options = BLOCK_OPTIONS[blockId];
-  const option = options?.find((opt) => opt.value === value);
-  return option?.label || value;
-}
-
 // Format sleep duration from minutes (e.g., "7h 30m" or "8h")
-function formatSleepDuration(totalMinutes: number): string {
+function formatSleepDuration(
+  totalMinutes: number,
+  hourSuffix: string = 'h',
+  minSuffix: string = 'm'
+): string {
   const hours = Math.floor(totalMinutes / 60);
   const mins = totalMinutes % 60;
-  if (mins === 0) return `${hours}h`;
-  return `${hours}h ${mins}m`;
+  if (mins === 0) return `${hours}${hourSuffix}`;
+  return `${hours}${hourSuffix} ${mins}${minSuffix}`;
 }
 
 // Mood icon colors - matching the app's mood color palette
@@ -89,46 +72,6 @@ const DELETE_MESSAGES = [
   'Fading away...',
 ];
 
-// Format date naturally - like how you'd describe it to a friend
-function formatNaturalDate(date: Date): string {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const cardDate = new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate()
-  );
-  const diffDays = Math.floor(
-    (today.getTime() - cardDate.getTime()) / (1000 * 60 * 60 * 24)
-  );
-
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-    });
-  }
-
-  // For older entries, use a gentle format
-  const sameYear = date.getFullYear() === now.getFullYear();
-  if (sameYear) {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-    });
-  }
-
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
 interface TimelineEntryProps {
   card: DailyCard;
   isToday?: boolean;
@@ -148,6 +91,8 @@ export function TimelineEntry({
   onDismissUndo,
   isPendingDelete: externalPendingDelete = false,
 }: TimelineEntryProps) {
+  const { t, language } = useI18n();
+  const { getOptionLabel } = useTranslatedOptions();
   const [isExpanded, setIsExpanded] = useState(isToday);
   const [deleteMessage, setDeleteMessage] = useState('');
   const [showCardMenu, setShowCardMenu] = useState(false);
@@ -333,7 +278,7 @@ export function TimelineEntry({
                     className={cn('h-5 w-5', MOOD_ACCENTS[card.mood])}
                   />
                   <span className="text-sm text-muted-foreground">
-                    {formatNaturalDate(cardDate)}
+                    {formatRelativeDate(cardDate, language)}
                   </span>
                   {/* 3-dot menu button - always visible on mobile, hover on desktop */}
                   <div className="ml-auto relative">
@@ -378,7 +323,7 @@ export function TimelineEntry({
                               className="w-full cursor-pointer flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted/50 transition-colors"
                             >
                               <Pencil className="h-4 w-4 text-muted-foreground" />
-                              Edit
+                              {t('card.edit')}
                             </button>
 
                             {/* Delete option */}
@@ -392,7 +337,7 @@ export function TimelineEntry({
                               className="w-full cursor-pointer flex items-center gap-3 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
                             >
                               <Trash2 className="h-4 w-4" />
-                              Delete
+                              {t('card.delete')}
                             </button>
                           </div>
                         </motion.div>
@@ -480,7 +425,11 @@ export function TimelineEntry({
                                 typeof block.value === 'number' &&
                                 block.value > 0
                               ) {
-                                sleepLabel = formatSleepDuration(block.value);
+                                sleepLabel = formatSleepDuration(
+                                  block.value,
+                                  t('form.sleepHoursSuffix'),
+                                  t('form.sleepMinutesSuffix')
+                                );
                               }
                               // Handle multiselect blocks
                               if (Array.isArray(block.value)) {
@@ -489,7 +438,7 @@ export function TimelineEntry({
                                     block.blockId,
                                     value
                                   );
-                                  const label = getBlockLabel(
+                                  const label = getOptionLabel(
                                     block.blockId,
                                     value
                                   );
@@ -538,7 +487,7 @@ export function TimelineEntry({
                                         }}
                                         className="inline-flex items-center px-2 py-1 rounded-sm bg-primary/10 text-xs text-primary font-medium hover:bg-primary/20 transition-colors"
                                       >
-                                        +{hiddenCount} more
+                                        {t('card.more', { count: hiddenCount })}
                                       </button>
                                     )}
                                     {/* Show "less" button when expanded */}
@@ -552,7 +501,7 @@ export function TimelineEntry({
                                         className="inline-flex items-center gap-0.5 px-2 py-1 rounded-sm bg-primary/10 text-xs text-primary font-medium hover:bg-primary/20 transition-colors"
                                       >
                                         <ChevronUp className="h-3 w-3" />
-                                        Less
+                                        {t('card.less')}
                                       </button>
                                     )}
                                   </div>
@@ -603,7 +552,7 @@ export function TimelineEntry({
                     className="flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
                   >
                     <Undo2 className="h-3.5 w-3.5" />
-                    Undo
+                    {t('card.undo')}
                   </motion.button>
                 )}
                 {onDismissUndo && (

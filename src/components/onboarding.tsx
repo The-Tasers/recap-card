@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppLogo } from '@/components/app-footer';
+import { useI18n } from '@/lib/i18n';
 
 const ONBOARDING_KEY = 'onboarding-shown';
 
@@ -11,6 +12,8 @@ interface OnboardingProps {
 }
 
 export function Onboarding({ onComplete }: OnboardingProps) {
+  const { t } = useI18n();
+
   const handleContinue = () => {
     localStorage.setItem(ONBOARDING_KEY, 'true');
     onComplete();
@@ -39,7 +42,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           transition={{ delay: 0.4 }}
           className="text-2xl font-medium text-foreground mb-4"
         >
-          A quiet place for your days
+          {t('onboarding.title')}
         </motion.h1>
 
         <motion.p
@@ -48,8 +51,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           transition={{ delay: 0.6 }}
           className="text-muted-foreground leading-relaxed mb-12"
         >
-          Each day leaves a trace. Capture what stood out,
-          and watch your story unfold over time.
+          {t('onboarding.description')}
         </motion.p>
 
         <motion.button
@@ -59,7 +61,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           onClick={handleContinue}
           className="w-full py-4 px-8 rounded-2xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
         >
-          Begin today
+          {t('onboarding.button')}
         </motion.button>
       </div>
     </motion.div>

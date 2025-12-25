@@ -38,6 +38,7 @@ import { cn } from '@/lib/utils';
 import { validateImage } from '@/lib/supabase/storage';
 import { PhotoData } from '@/components/photo-uploader';
 import type { LucideIcon } from 'lucide-react';
+import { useI18n, useTranslatedOptions } from '@/lib/i18n';
 
 // All available quick additions in one flat list
 interface QuickOption {
@@ -161,6 +162,8 @@ export function QuickAdditions({
   onPhotoChange,
   saveButton,
 }: QuickAdditionsProps) {
+  const { t } = useI18n();
+  const { getOptionLabel } = useTranslatedOptions();
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [bottomSheetMode, setBottomSheetMode] = useState<BottomSheetMode>(null);
   const [inlinePanelMode, setInlinePanelMode] = useState<InlinePanelMode>(null);
@@ -222,8 +225,10 @@ export function QuickAdditions({
   const formatSleepDuration = (totalMinutes: number): string => {
     const hours = Math.floor(totalMinutes / 60);
     const mins = totalMinutes % 60;
-    if (mins === 0) return `${hours}h`;
-    return `${hours}h ${mins}m`;
+    const hourSuffix = t('form.sleepHoursSuffix');
+    const minSuffix = t('form.sleepMinutesSuffix');
+    if (mins === 0) return `${hours}${hourSuffix}`;
+    return `${hours}${hourSuffix} ${mins}${minSuffix}`;
   };
 
   // Get current calculated minutes
@@ -360,18 +365,14 @@ export function QuickAdditions({
 
   // Categories for the accordion
   const categories: { id: BlockId; label: string; icon: LucideIcon }[] = [
-    { id: 'weather', label: 'Weather', icon: BLOCK_ICONS.weather },
-    { id: 'meals', label: 'Meals', icon: BLOCK_ICONS.meals },
-    { id: 'selfcare', label: 'Self Care', icon: BLOCK_ICONS.selfcare },
-    { id: 'health', label: 'Health', icon: BLOCK_ICONS.health },
-    { id: 'exercise', label: 'Exercise', icon: BLOCK_ICONS.exercise },
-    { id: 'social', label: 'Social', icon: BLOCK_ICONS.social },
-    {
-      id: 'productivity',
-      label: 'Productivity',
-      icon: BLOCK_ICONS.productivity,
-    },
-    { id: 'hobbies', label: 'Hobbies', icon: BLOCK_ICONS.hobbies },
+    { id: 'weather', label: t('category.weather'), icon: BLOCK_ICONS.weather },
+    { id: 'meals', label: t('category.meals'), icon: BLOCK_ICONS.meals },
+    { id: 'selfcare', label: t('category.selfcare'), icon: BLOCK_ICONS.selfcare },
+    { id: 'health', label: t('category.health'), icon: BLOCK_ICONS.health },
+    { id: 'exercise', label: t('category.exercise'), icon: BLOCK_ICONS.exercise },
+    { id: 'social', label: t('category.social'), icon: BLOCK_ICONS.social },
+    { id: 'productivity', label: t('category.productivity'), icon: BLOCK_ICONS.productivity },
+    { id: 'hobbies', label: t('category.hobbies'), icon: BLOCK_ICONS.hobbies },
   ];
 
   const getCategoryOptions = (blockId: BlockId) => {
@@ -468,7 +469,7 @@ export function QuickAdditions({
                 alt=""
                 className="h-5 w-5 rounded-full object-cover"
               />
-              <span>Photo</span>
+              <span>{t('form.photo')}</span>
               <X className="h-3 w-3 opacity-60" />
             </motion.button>
           )}
@@ -508,11 +509,17 @@ export function QuickAdditions({
               type="button"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              onClick={() => setBottomSheetMode('details')}
+              onClick={() => {
+                if (isDesktop) {
+                  setInlinePanelMode('details');
+                } else {
+                  setBottomSheetMode('details');
+                }
+              }}
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-sm hover:bg-primary/20 transition-colors"
             >
               <Plus className="h-3.5 w-3.5" />
-              <span>{selectedItems.length} details</span>
+              <span>{selectedItems.length} {t('form.details').toLowerCase()}</span>
             </motion.button>
           )}
         </div>
@@ -532,7 +539,7 @@ export function QuickAdditions({
               {/* Panel header with close button */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
                 <span className="text-sm font-medium text-foreground">
-                  {inlinePanelMode === 'sleep' ? 'Sleep hours' : 'Add details'}
+                  {inlinePanelMode === 'sleep' ? t('form.sleepHours') : t('form.addDetails')}
                 </span>
                 <button
                   type="button"
@@ -679,7 +686,7 @@ export function QuickAdditions({
                           : 'bg-muted/30 text-muted-foreground'
                       )}
                     >
-                      <span className="text-xs block mb-0.5">Bedtime</span>
+                      <span className="text-xs block mb-0.5">{t('form.bedtime')}</span>
                       <span className="text-lg font-semibold">
                         {bedHour.toString().padStart(2, '0')}:
                         {bedMinute.toString().padStart(2, '0')} {bedPeriod}
@@ -699,7 +706,7 @@ export function QuickAdditions({
                           : 'bg-muted/30 text-muted-foreground'
                       )}
                     >
-                      <span className="text-xs block mb-0.5">Wake up</span>
+                      <span className="text-xs block mb-0.5">{t('form.wakeUp')}</span>
                       <span className="text-lg font-semibold">
                         {wakeHour.toString().padStart(2, '0')}:
                         {wakeMinute.toString().padStart(2, '0')} {wakePeriod}
@@ -714,7 +721,7 @@ export function QuickAdditions({
                         {formatSleepDuration(calculatedMinutes)}
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        sleep
+                        {t('form.sleep')}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -724,7 +731,7 @@ export function QuickAdditions({
                           onClick={clearSleep}
                           className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5"
                         >
-                          Clear
+                          {t('form.clear')}
                         </button>
                       )}
                       <button
@@ -822,7 +829,7 @@ export function QuickAdditions({
                                           )}
                                         >
                                           <OptIcon className="h-4 w-4" />
-                                          <span>{opt.label}</span>
+                                          <span>{getOptionLabel(cat.id, opt.value)}</span>
                                         </button>
                                       );
                                     })}
@@ -843,7 +850,7 @@ export function QuickAdditions({
                       onClick={() => setInlinePanelMode(null)}
                       className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
                     >
-                      Done
+                      {t('form.done')}
                     </button>
                   </div>
                 </div>
@@ -872,7 +879,7 @@ export function QuickAdditions({
             ) : (
               <>
                 <Plus className="h-5 w-5" />
-                <span className="text-sm font-medium">Add details</span>
+                <span className="text-sm font-medium">{t('form.addDetails')}</span>
               </>
             )}
           </motion.button>
@@ -900,7 +907,7 @@ export function QuickAdditions({
                   >
                     <div className="flex items-center gap-3">
                       <Camera className="h-4 w-4 text-muted-foreground" />
-                      Photo
+                      {t('form.photo')}
                     </div>
                     {displayUrl && <Check className="h-4 w-4 text-primary" />}
                   </button>
@@ -923,7 +930,7 @@ export function QuickAdditions({
                   >
                     <div className="flex items-center gap-3">
                       <BLOCK_ICONS.sleep className="h-4 w-4 text-muted-foreground" />
-                      Sleep hours
+                      {t('form.sleepHours')}
                     </div>
                     {sleepValue > 0 && (
                       <span className="text-xs text-primary font-medium">
@@ -949,7 +956,7 @@ export function QuickAdditions({
                   >
                     <div className="flex items-center gap-3">
                       <Plus className="h-4 w-4 text-muted-foreground" />
-                      Details
+                      {t('form.details')}
                     </div>
                     {selectedItems.length > 0 && (
                       <span className="text-xs text-primary font-medium">
@@ -1122,7 +1129,7 @@ export function QuickAdditions({
                             : 'bg-muted/30 text-muted-foreground'
                         )}
                       >
-                        <span className="text-xs block mb-0.5">Bedtime</span>
+                        <span className="text-xs block mb-0.5">{t('form.bedtime')}</span>
                         <span className="text-lg font-semibold">
                           {bedHour.toString().padStart(2, '0')}:
                           {bedMinute.toString().padStart(2, '0')} {bedPeriod}
@@ -1142,7 +1149,7 @@ export function QuickAdditions({
                             : 'bg-muted/30 text-muted-foreground'
                         )}
                       >
-                        <span className="text-xs block mb-0.5">Wake up</span>
+                        <span className="text-xs block mb-0.5">{t('form.wakeUp')}</span>
                         <span className="text-lg font-semibold">
                           {wakeHour.toString().padStart(2, '0')}:
                           {wakeMinute.toString().padStart(2, '0')} {wakePeriod}
@@ -1157,7 +1164,7 @@ export function QuickAdditions({
                           {formatSleepDuration(calculatedMinutes)}
                         </span>
                         <span className="text-sm text-muted-foreground">
-                          sleep
+                          {t('form.sleep')}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1167,7 +1174,7 @@ export function QuickAdditions({
                             onClick={clearSleep}
                             className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5"
                           >
-                            Clear
+                            {t('form.clear')}
                           </button>
                         )}
                         <button
@@ -1266,7 +1273,7 @@ export function QuickAdditions({
                                           )}
                                         >
                                           <OptIcon className="h-4 w-4" />
-                                          <span>{opt.label}</span>
+                                          <span>{getOptionLabel(cat.id, opt.value)}</span>
                                         </button>
                                       );
                                     })}
@@ -1287,7 +1294,7 @@ export function QuickAdditions({
                       onClick={() => setBottomSheetMode(null)}
                       className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
                     >
-                      Done
+                      {t('form.done')}
                     </button>
                   </div>
                 </div>

@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { Activity } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Activity, Globe } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { useI18n, LANGUAGES } from '@/lib/i18n';
 
 const LETTER_COLORS = {
   R: '#22c55e',
@@ -97,7 +99,85 @@ interface AppFooterProps {
   showLogo?: boolean;
 }
 
+function LanguageSelector() {
+  const { language, setLanguage, t } = useI18n();
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  const currentLang = LANGUAGES.find((l) => l.value === language);
+
+  return (
+    <div className="relative">
+      <button
+        ref={buttonRef}
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-1 text-xs text-muted-foreground/40 hover:text-muted-foreground transition-colors cursor-pointer"
+        aria-label={t('settings.language')}
+      >
+        <Globe className="h-3 w-3" />
+        <span>{currentLang?.flag}</span>
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            ref={menuRef}
+            initial={{ opacity: 0, scale: 0.95, y: 4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 4 }}
+            transition={{ duration: 0.15 }}
+            className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-popover border border-border rounded-lg shadow-lg overflow-hidden min-w-24 z-50"
+          >
+            <div className="py-1">
+              {LANGUAGES.map((lang) => (
+                <button
+                  key={lang.value}
+                  onClick={() => {
+                    setLanguage(lang.value);
+                    setIsOpen(false);
+                  }}
+                  className={cn(
+                    'w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors cursor-pointer',
+                    language === lang.value
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-foreground hover:bg-muted/50'
+                  )}
+                >
+                  <span>{lang.flag}</span>
+                  <span>{lang.label}</span>
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export function AppFooter({ className, showLogo = true }: AppFooterProps) {
+  const { t } = useI18n();
+
   return (
     <div
       className={cn(
@@ -106,20 +186,22 @@ export function AppFooter({ className, showLogo = true }: AppFooterProps) {
       )}
     >
       {showLogo && <AppLogo size="sm" href="/" muted />}
-      <div className="relative flex items-center justify-center text-xs text-muted-foreground/40 group-hover:text-muted-foreground/70 transition-colors">
-        <span>·</span>
+      <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground/40 group-hover:text-muted-foreground/70 transition-colors">
         <Link
           href="/privacy"
-          className="absolute right-[calc(50%+8px)] hover:text-muted-foreground transition-colors"
+          className="hover:text-muted-foreground transition-colors"
         >
-          Privacy
+          {t('footer.privacy')}
         </Link>
+        <span>·</span>
         <Link
           href="/terms"
-          className="absolute left-[calc(50%+8px)] hover:text-muted-foreground transition-colors"
+          className="hover:text-muted-foreground transition-colors"
         >
-          Terms
+          {t('footer.terms')}
         </Link>
+        <span>·</span>
+        <LanguageSelector />
       </div>
     </div>
   );

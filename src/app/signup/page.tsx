@@ -17,10 +17,12 @@ import isEmail from 'validator/es/lib/isEmail';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/auth-provider';
 import { AppFooter, AppLogo } from '@/components/app-footer';
+import { useI18n } from '@/lib/i18n';
 
 export default function SignupPage() {
   const router = useRouter();
   const { user, signUpWithEmail, loading: authLoading } = useAuth();
+  const { t } = useI18n();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -46,17 +48,17 @@ export default function SignupPage() {
     setError(null);
 
     if (!validateEmail(email)) {
-      setError('Please enter a valid email address');
+      setError(t('auth.invalidEmail'));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('auth.passwordMismatch'));
       return;
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError(t('auth.passwordTooShort'));
       return;
     }
 
@@ -97,19 +99,19 @@ export default function SignupPage() {
               <Check className="h-8 w-8 text-emerald-500" />
             </div>
             <h1 className="text-2xl font-medium text-center mb-3">
-              Check your email
+              {t('auth.checkEmail')}
             </h1>
             <p className="text-sm text-muted-foreground text-center max-w-xs">
-              We sent a confirmation link to{' '}
+              {t('auth.confirmationSent')}{' '}
               <span className="font-medium text-foreground">{email}</span>.
-              Click the link to activate your account.
+              {' '}{t('auth.clickLinkToActivate')}
             </p>
             <Button
               className="mt-8"
               variant="outline"
               onClick={() => router.push('/login')}
             >
-              Back to login
+              {t('auth.backToLogin')}
             </Button>
           </div>
 
@@ -127,7 +129,7 @@ export default function SignupPage() {
         <div className="flex items-center justify-between">
           <motion.button
             type="button"
-            onClick={() => router.push('/')}
+            onClick={() => router.back()}
             className="p-2 text-muted-foreground/50 hover:text-foreground transition-colors cursor-pointer rounded-md hover:bg-muted/30"
             whileTap={{ scale: 0.95 }}
             aria-label="Go back"
@@ -144,7 +146,7 @@ export default function SignupPage() {
         {/* Content */}
         <div className="flex-1 flex flex-col justify-center">
           <h1 className="text-2xl font-medium text-center mb-8">
-            Create an account
+            {t('auth.createAccount')}
           </h1>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -154,7 +156,7 @@ export default function SignupPage() {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
                 <input
                   type="email"
-                  placeholder="Email"
+                  placeholder={t('auth.email')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -169,7 +171,7 @@ export default function SignupPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Password"
+                  placeholder={t('auth.password')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -195,7 +197,7 @@ export default function SignupPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Confirm password"
+                  placeholder={t('auth.confirmPassword')}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
@@ -218,19 +220,19 @@ export default function SignupPage() {
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                'Create account'
+                t('auth.signUp')
               )}
             </Button>
           </form>
 
           {/* Sign in link */}
           <p className="text-sm text-center text-muted-foreground mt-6">
-            Already have an account?{' '}
+            {t('auth.haveAccount')}{' '}
             <Link
               href="/login"
               className="text-foreground hover:underline font-medium"
             >
-              Sign in
+              {t('auth.signInLink')}
             </Link>
           </p>
         </div>

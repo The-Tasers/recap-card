@@ -7,6 +7,7 @@ import { Geist } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { SyncProvider } from '@/components/sync-provider';
+import { I18nProvider } from '@/lib/i18n';
 
 // Inline script to prevent theme flash - runs before React hydration
 const themeScript = `
@@ -72,20 +73,22 @@ export default function RootLayout({
       >
         <AuthProvider>
           <ThemeProvider>
-            <SyncProvider>
-              <AppLoader>
-                <Suspense
-                  fallback={
-                    <div className="flex items-center justify-center min-h-screen text-muted-foreground">
-                      Loading...
-                    </div>
-                  }
-                >
-                  {children}
-                </Suspense>
-              </AppLoader>
-              <Toaster />
-            </SyncProvider>
+            <I18nProvider>
+              <SyncProvider>
+                <AppLoader>
+                  <Suspense
+                    fallback={
+                      <div className="flex items-center justify-center min-h-screen text-muted-foreground">
+                        Loading...
+                      </div>
+                    }
+                  >
+                    {children}
+                  </Suspense>
+                </AppLoader>
+                <Toaster />
+              </SyncProvider>
+            </I18nProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>

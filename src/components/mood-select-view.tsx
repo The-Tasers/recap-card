@@ -12,6 +12,7 @@ import { DailyCard, Mood, MOODS } from '@/lib/types';
 import { formatDate } from '@/lib/date-utils';
 import { type SyncNotification } from '@/components/sync-provider';
 import { ChevronUp, History } from 'lucide-react';
+import { useI18n } from '@/lib/i18n';
 
 interface CardGroup {
   label: string;
@@ -49,6 +50,7 @@ export function MoodSelectView({
   isAtLimit = false,
   currentCount = 0,
 }: MoodSelectViewProps) {
+  const { t, language } = useI18n();
   // Track highlighted mood for keyboard navigation (-1 means no highlight until user presses arrow)
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [hasUsedKeyboard, setHasUsedKeyboard] = useState(false);
@@ -115,7 +117,7 @@ export function MoodSelectView({
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronUp className="h-4 w-4" />
-            Back to today
+            {t('mood.backToToday')}
           </button>
           <SyncStatusIndicator
             isAuthenticated={isAuthenticated}
@@ -165,7 +167,7 @@ export function MoodSelectView({
       {/* Centered content area */}
       <div className="flex-1 flex flex-col items-center justify-center">
         <div className="flex items-center justify-center gap-3 mb-8">
-          <p className="text-lg text-foreground">{formatDate(new Date())}</p>
+          <p className="text-lg text-foreground">{formatDate(new Date(), language)}</p>
           <SyncStatusIndicator
             isAuthenticated={isAuthenticated}
             syncNotification={syncNotification}
@@ -177,7 +179,7 @@ export function MoodSelectView({
         ) : (
           <>
             <h1 className="text-center text-2xl md:text-3xl font-medium text-neutral-700 dark:text-neutral-300 mb-8">
-              How was today?
+              {t('mood.title')}
             </h1>
 
             <div className="py-4">
@@ -191,7 +193,7 @@ export function MoodSelectView({
 
             {!hasEntries && (
               <p className="text-center text-sm text-muted-foreground mt-8">
-                Start with how the day felt.
+                {t('mood.firstRecapHint')}
               </p>
             )}
           </>
@@ -204,7 +206,7 @@ export function MoodSelectView({
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mt-8"
           >
             <History className="h-4 w-4" />
-            {allPastEntries.length} {allPastEntries.length === 1 ? 'day' : 'days'} remembered
+            {t('mood.daysRemembered', { count: allPastEntries.length })}
           </button>
         )}
       </div>

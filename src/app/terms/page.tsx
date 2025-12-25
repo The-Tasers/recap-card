@@ -4,9 +4,11 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
 import { AppFooter } from '@/components/app-footer';
+import { useI18n } from '@/lib/i18n';
 
 export default function TermsPage() {
   const router = useRouter();
+  const { t } = useI18n();
 
   return (
     <div className="h-screen-dynamic bg-background overflow-hidden">
@@ -22,7 +24,7 @@ export default function TermsPage() {
             <ChevronLeft className="h-5 w-5" />
           </motion.button>
 
-          <h1 className="text-lg font-medium">Terms of Service</h1>
+          <h1 className="text-lg font-medium">{t('terms.title')}</h1>
 
           <div className="w-9" />
         </div>
@@ -30,44 +32,39 @@ export default function TermsPage() {
         {/* Content */}
         <div className="space-y-6 text-sm text-muted-foreground flex-1 overflow-y-auto">
           <section>
-            <h2 className="text-foreground font-medium mb-2">Using Recapz</h2>
-            <p>
-              Recapz is a personal journaling app. By using it, you agree to use
-              it responsibly and not for any illegal purposes.
-            </p>
+            <h2 className="text-foreground font-medium mb-2">
+              {t('terms.using')}
+            </h2>
+            <p>{t('terms.usingText')}</p>
           </section>
 
           <section>
-            <h2 className="text-foreground font-medium mb-2">Your Content</h2>
-            <p>
-              You own everything you create in Recapz. We don&apos;t claim any
-              rights to your journal entries, photos, or other content.
-              You&apos;re responsible for what you write.
-            </p>
+            <h2 className="text-foreground font-medium mb-2">
+              {t('terms.yourContent')}
+            </h2>
+            <p>{t('terms.yourContentText')}</p>
           </section>
 
           <section>
-            <h2 className="text-foreground font-medium mb-2">Account</h2>
-            <p>
-              Keep your login credentials secure. You&apos;re responsible for
-              activity on your account. We may suspend accounts that violate
-              these terms.
-            </p>
+            <h2 className="text-foreground font-medium mb-2">
+              {t('terms.account')}
+            </h2>
+            <p>{t('terms.accountText')}</p>
           </section>
 
           <section>
-            <h2 className="text-foreground font-medium mb-2">Service</h2>
-            <p>
-              We provide Recapz as-is. While we strive for reliability, we
-              can&apos;t guarantee uninterrupted service. We may update or
-              modify the app at any time.
-            </p>
+            <h2 className="text-foreground font-medium mb-2">
+              {t('terms.service')}
+            </h2>
+            <p>{t('terms.serviceText')}</p>
           </section>
 
           <section>
-            <h2 className="text-foreground font-medium mb-2">Contact</h2>
+            <h2 className="text-foreground font-medium mb-2">
+              {t('terms.contact')}
+            </h2>
             <p>
-              Questions? Reach out at{' '}
+              {t('terms.contactText')}{' '}
               <a
                 href="mailto:support@recapz.app"
                 className="text-primary hover:underline"

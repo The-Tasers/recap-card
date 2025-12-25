@@ -12,27 +12,30 @@ import {
   LogOut,
   Loader2,
   Check,
-  Download,
   Lock,
   Eye,
   EyeOff,
+  Palette,
+  Globe,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AnimatePresence } from 'framer-motion';
 import { ColorTheme, COLOR_THEMES, ALL_COLOR_THEMES } from '@/lib/types';
-import { cn } from '@/lib/utils';
 import { useCardStore, useSettingsStore, clearIndexedDB } from '@/lib/store';
 import { applyColorTheme } from '@/components/theme-provider';
 import { useAuth } from '@/components/auth-provider';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { AppFooter, AppLogo } from '@/components/app-footer';
+import { useI18n } from '@/lib/i18n';
+import { LANGUAGES } from '@/lib/i18n/translations';
 
 export default function SettingsPage() {
   const router = useRouter();
   const { user, signOut, updatePassword, loading: authLoading } = useAuth();
   const { cards } = useCardStore();
   const { colorTheme, setColorTheme } = useSettingsStore();
+  const { t, language, setLanguage } = useI18n();
 
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
@@ -254,7 +257,7 @@ export default function SettingsPage() {
             <ChevronLeft className="h-5 w-5" />
           </motion.button>
 
-          <h1 className="text-lg font-medium">Settings</h1>
+          <h1 className="text-lg font-medium">{t('settings.title')}</h1>
 
           {/* Spacer for centering */}
           <div className="w-9" />
@@ -265,7 +268,7 @@ export default function SettingsPage() {
           {/* Account Section */}
           <section className="space-y-3">
             <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Account
+              {t('settings.account')}
             </h2>
 
             {user ? (
@@ -296,13 +299,13 @@ export default function SettingsPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">
                       {signOutStatus === 'signed-out'
-                        ? 'Signed out'
+                        ? t('settings.signedOut')
                         : user.email}
                     </p>
                     {signOutStatus === 'idle' && (
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Cloud className="h-3 w-3" />
-                        <span>Syncing</span>
+                        <span>{t('settings.syncing')}</span>
                       </div>
                     )}
                   </div>
@@ -330,7 +333,7 @@ export default function SettingsPage() {
                       onClick={() => setShowChangePassword(true)}
                       className="w-full py-2 text-sm text-muted-foreground/50 cursor-pointer hover:text-foreground transition-colors"
                     >
-                      Change password
+                      {t('settings.changePassword')}
                     </motion.button>
                   ) : (
                     <motion.form
@@ -345,7 +348,7 @@ export default function SettingsPage() {
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
                         <input
                           type={showPassword ? 'text' : 'password'}
-                          placeholder="New password"
+                          placeholder={t('settings.newPassword')}
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
                           required
@@ -367,7 +370,7 @@ export default function SettingsPage() {
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
                         <input
                           type={showPassword ? 'text' : 'password'}
-                          placeholder="Confirm new password"
+                          placeholder={t('settings.confirmPassword')}
                           value={confirmNewPassword}
                           onChange={(e) =>
                             setConfirmNewPassword(e.target.value)
@@ -393,7 +396,7 @@ export default function SettingsPage() {
                           disabled={isChangingPassword}
                           className="text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors disabled:opacity-50"
                         >
-                          Cancel
+                          {t('settings.cancel')}
                         </button>
                         <button
                           type="submit"
@@ -404,7 +407,7 @@ export default function SettingsPage() {
                           }
                           className="text-sm text-primary cursor-pointer hover:text-primary/80 font-medium transition-colors disabled:opacity-50"
                         >
-                          {isChangingPassword ? 'Saving...' : 'Save'}
+                          {isChangingPassword ? t('settings.saving') : t('settings.save')}
                         </button>
                       </div>
                     </motion.form>
@@ -421,7 +424,7 @@ export default function SettingsPage() {
                       onClick={() => setShowDeleteAccountDialog(true)}
                       className="w-full py-2 text-sm text-muted-foreground/50 cursor-pointer hover:text-destructive transition-colors"
                     >
-                      Delete account
+                      {t('settings.deleteAccount')}
                     </motion.button>
                   ) : (
                     <motion.div
@@ -432,7 +435,7 @@ export default function SettingsPage() {
                       className="space-y-2"
                     >
                       <p className="text-sm text-destructive/70 text-center">
-                        Delete your account and all data?
+                        {t('settings.deleteAccountConfirm')}
                       </p>
                       <div className="flex justify-center gap-4">
                         <button
@@ -440,14 +443,14 @@ export default function SettingsPage() {
                           disabled={isDeletingAccount}
                           className="text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors disabled:opacity-50"
                         >
-                          Cancel
+                          {t('settings.cancel')}
                         </button>
                         <button
                           onClick={handleDeleteAccount}
                           disabled={isDeletingAccount}
                           className="text-sm text-destructive/70 cursor-pointer hover:text-destructive font-medium transition-colors disabled:opacity-50"
                         >
-                          {isDeletingAccount ? 'Deleting...' : 'Yes, delete'}
+                          {isDeletingAccount ? t('settings.deleting') : t('settings.yesDelete')}
                         </button>
                       </div>
                     </motion.div>
@@ -459,15 +462,15 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-3">
                   <CloudOff className="h-4 w-4 text-muted-foreground/50" />
                   <p className="text-sm text-muted-foreground">
-                    Sign in to sync across devices
+                    {t('settings.signInPrompt')}
                   </p>
                 </div>
                 <div className="flex gap-3">
                   <Button className="flex-1 h-10" variant="outline" asChild>
-                    <Link href="/login">Sign in</Link>
+                    <Link href="/login">{t('settings.signIn')}</Link>
                   </Button>
                   <Button className="flex-1 h-10" asChild>
-                    <Link href="/signup">Sign up</Link>
+                    <Link href="/signup">{t('settings.signUp')}</Link>
                   </Button>
                 </div>
               </div>
@@ -477,75 +480,69 @@ export default function SettingsPage() {
           {/* Appearance Section */}
           <section className="space-y-3">
             <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Appearance
+              {t('settings.appearance')}
             </h2>
 
-            <div className="grid grid-cols-2 gap-3 py-1 px-1">
-              {COLOR_THEMES.map((theme) => (
-                <button
-                  key={theme.value}
-                  onClick={() => handleThemeChange(theme.value)}
-                  className={cn(
-                    'relative rounded-xl p-2 transition-all cursor-pointer border-2 overflow-visible',
-                    colorTheme === theme.value
-                      ? 'border-primary'
-                      : !theme.isDark
-                      ? 'border-border/40 hover:border-border/70'
-                      : 'border-transparent hover:border-border/50'
-                  )}
-                  style={{ backgroundColor: theme.preview.bg }}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Theme Dropdown */}
+              <div className="rounded-xl bg-muted/30 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Palette className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-foreground">{t('settings.theme')}</span>
+                </div>
+                <select
+                  value={colorTheme}
+                  onChange={(e) => handleThemeChange(e.target.value as ColorTheme)}
+                  className="w-full h-9 px-3 rounded-lg bg-background border border-border/50 focus:border-primary focus:outline-none transition-colors text-sm cursor-pointer appearance-none"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 10px center',
+                  }}
                 >
-                  {/* Theme preview */}
-                  <div className="space-y-1.5">
-                    <div
-                      className="rounded-lg p-1.5 h-8"
-                      style={{ backgroundColor: theme.preview.card }}
-                    >
-                      <div
-                        className="w-full h-1 rounded-full opacity-60"
-                        style={{ backgroundColor: theme.preview.accent }}
-                      />
-                      <div
-                        className="w-2/3 h-0.5 rounded-full mt-1 opacity-30"
-                        style={{
-                          backgroundColor: theme.isDark ? '#ffffff' : '#3d3528',
-                        }}
-                      />
-                    </div>
-                    <p
-                      className="text-[9px] font-medium text-center truncate"
-                      style={{
-                        color: theme.isDark ? '#ffffff' : '#3d3528',
-                      }}
-                    >
+                  {COLOR_THEMES.map((theme) => (
+                    <option key={theme.value} value={theme.value}>
                       {theme.label}
-                    </p>
-                  </div>
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                  {/* Selected indicator */}
-                  {colorTheme === theme.value && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="absolute top-0 right-0 translate-x-1/3 -translate-y-1/3 w-4 h-4 rounded-full bg-primary flex items-center justify-center"
-                    >
-                      <Check className="h-2.5 w-2.5 text-primary-foreground" />
-                    </motion.div>
-                  )}
-                </button>
-              ))}
+              {/* Language Dropdown */}
+              <div className="rounded-xl bg-muted/30 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-foreground">{t('settings.language')}</span>
+                </div>
+                <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value as 'en' | 'ru')}
+                  className="w-full h-9 px-3 rounded-lg bg-background border border-border/50 focus:border-primary focus:outline-none transition-colors text-sm cursor-pointer appearance-none"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 10px center',
+                  }}
+                >
+                  {LANGUAGES.map((lang) => (
+                    <option key={lang.value} value={lang.value}>
+                      {lang.flag} {lang.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </section>
 
           {/* Data Section */}
           <section className="space-y-3">
             <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Data
+              {t('settings.data')}
             </h2>
 
             <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50">
               <p className="text-sm text-muted-foreground">
-                {cards.length} {cards.length === 1 ? 'day' : 'days'} captured
+                {t('settings.daysCaptured', { count: cards.length })}
               </p>
               {/* {cards.length > 0 && (
                 <button
@@ -579,7 +576,7 @@ export default function SettingsPage() {
                     onClick={() => setShowClearConfirm(true)}
                     className="w-full py-2 text-sm cursor-pointer text-muted-foreground/50 hover:text-destructive transition-colors"
                   >
-                    Clear all data
+                    {t('settings.clearData')}
                   </motion.button>
                 ) : (
                   <motion.div
@@ -590,8 +587,7 @@ export default function SettingsPage() {
                     className="space-y-3"
                   >
                     <p className="text-sm text-destructive/70 text-center">
-                      This will permanently delete {cards.length}{' '}
-                      {cards.length === 1 ? 'day' : 'days'}.
+                      {t('settings.clearDataConfirm', { count: cards.length })}
                     </p>
                     <div className="flex justify-center gap-4">
                       <button
@@ -599,14 +595,14 @@ export default function SettingsPage() {
                         disabled={isClearing}
                         className="text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors disabled:opacity-50"
                       >
-                        Keep My Data
+                        {t('settings.keepData')}
                       </button>
                       <button
                         onClick={handleClearAll}
                         disabled={isClearing}
                         className="text-sm text-destructive/70 cursor-pointer hover:text-destructive font-medium transition-colors disabled:opacity-50"
                       >
-                        {isClearing ? 'Deleting...' : 'Delete All'}
+                        {isClearing ? t('settings.deleting') : t('settings.deleteAll')}
                       </button>
                     </div>
                   </motion.div>

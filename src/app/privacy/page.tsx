@@ -4,9 +4,11 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
 import { AppFooter } from '@/components/app-footer';
+import { useI18n } from '@/lib/i18n';
 
 export default function PrivacyPage() {
   const router = useRouter();
+  const { t } = useI18n();
 
   return (
     <div className="h-screen-dynamic bg-background overflow-hidden">
@@ -22,7 +24,7 @@ export default function PrivacyPage() {
             <ChevronLeft className="h-5 w-5" />
           </motion.button>
 
-          <h1 className="text-lg font-medium">Privacy Policy</h1>
+          <h1 className="text-lg font-medium">{t('privacy.title')}</h1>
 
           <div className="w-9" />
         </div>
@@ -30,46 +32,39 @@ export default function PrivacyPage() {
         {/* Content */}
         <div className="space-y-6 text-sm text-muted-foreground flex-1 overflow-y-auto">
           <section>
-            <h2 className="text-foreground font-medium mb-2">Your Data</h2>
-            <p>
-              Recapz stores your journal entries locally on your device. If you
-              create an account, your data syncs to our secure cloud servers to
-              enable access across devices.
-            </p>
+            <h2 className="text-foreground font-medium mb-2">
+              {t('privacy.yourData')}
+            </h2>
+            <p>{t('privacy.yourDataText')}</p>
           </section>
 
           <section>
             <h2 className="text-foreground font-medium mb-2">
-              What We Collect
+              {t('privacy.whatWeCollect')}
+            </h2>
+            <p>{t('privacy.whatWeCollectText')}</p>
+          </section>
+
+          <section>
+            <h2 className="text-foreground font-medium mb-2">
+              {t('privacy.dataSecurity')}
+            </h2>
+            <p>{t('privacy.dataSecurityText')}</p>
+          </section>
+
+          <section>
+            <h2 className="text-foreground font-medium mb-2">
+              {t('privacy.yourRights')}
+            </h2>
+            <p>{t('privacy.yourRightsText')}</p>
+          </section>
+
+          <section>
+            <h2 className="text-foreground font-medium mb-2">
+              {t('privacy.contact')}
             </h2>
             <p>
-              We collect only what you provide: your email (for accounts),
-              journal entries, mood selections, and any photos you add. We
-              don&apos;t track your behavior or sell your data.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-foreground font-medium mb-2">Data Security</h2>
-            <p>
-              Your data is encrypted in transit and at rest. We use Supabase for
-              secure cloud storage with industry-standard security practices.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-foreground font-medium mb-2">Your Rights</h2>
-            <p>
-              You can delete all your data at any time from the app settings.
-              Deleting your account removes all data from our servers
-              permanently.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-foreground font-medium mb-2">Contact</h2>
-            <p>
-              Questions? Reach out at{' '}
+              {t('privacy.contactText')}{' '}
               <a
                 href="mailto:support@recapz.app"
                 className="text-primary hover:underline"

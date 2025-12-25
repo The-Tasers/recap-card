@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
 import { DailyCard } from '@/lib/types';
 import { formatRelativeDate } from '@/lib/date-utils';
+import { useI18n } from '@/lib/i18n';
 
 interface FormHeaderProps {
   isVisible: boolean;
@@ -22,10 +23,12 @@ export function FormHeader({
   showDiscardConfirm,
   onCancelDiscard,
 }: FormHeaderProps) {
+  const { t, language } = useI18n();
+
   // Get the date to display
   const displayDate = editingCard
-    ? formatRelativeDate(new Date(editingCard.createdAt))
-    : 'Today';
+    ? formatRelativeDate(new Date(editingCard.createdAt), language)
+    : t('entry.today');
   const handleBack = () => {
     window.scrollTo(0, 0);
     onBack();
@@ -50,20 +53,20 @@ export function FormHeader({
                     className="absolute inset-0 flex items-center justify-between gap-3"
                   >
                     <span className="text-sm text-muted-foreground">
-                      Discard changes?
+                      {t('form.discardChanges')}
                     </span>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={onCancelDiscard}
                         className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50"
                       >
-                        Cancel
+                        {t('settings.cancel')}
                       </button>
                       <button
                         onClick={onDiscard}
                         className="px-3 py-1.5 text-sm font-medium text-rose-400 hover:text-rose-300 transition-colors rounded-lg hover:bg-rose-500/10"
                       >
-                        Discard
+                        {t('form.discard')}
                       </button>
                     </div>
                   </motion.div>

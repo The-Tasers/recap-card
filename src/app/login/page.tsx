@@ -9,10 +9,12 @@ import isEmail from 'validator/es/lib/isEmail';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/auth-provider';
 import { AppFooter, AppLogo } from '@/components/app-footer';
+import { useI18n } from '@/lib/i18n';
 
 export default function LoginPage() {
   const router = useRouter();
   const { user, signInWithEmail, loading: authLoading } = useAuth();
+  const { t } = useI18n();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -36,7 +38,7 @@ export default function LoginPage() {
     setError(null);
 
     if (!validateEmail(email)) {
-      setError('Please enter a valid email address');
+      setError(t('auth.invalidEmail'));
       return;
     }
 
@@ -68,7 +70,7 @@ export default function LoginPage() {
         <div className="flex items-center justify-between">
           <motion.button
             type="button"
-            onClick={() => router.push('/')}
+            onClick={() => router.back()}
             className="p-2 text-muted-foreground/50 hover:text-foreground transition-colors cursor-pointer rounded-md hover:bg-muted/30"
             whileTap={{ scale: 0.95 }}
             aria-label="Go back"
@@ -85,7 +87,7 @@ export default function LoginPage() {
         {/* Content */}
         <div className="flex-1 flex flex-col justify-center">
           <h1 className="text-2xl font-medium text-center mb-8">
-            Welcome back
+            {t('auth.welcomeBack')}
           </h1>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -95,7 +97,7 @@ export default function LoginPage() {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
                 <input
                   type="email"
-                  placeholder="Email"
+                  placeholder={t('auth.email')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -111,7 +113,7 @@ export default function LoginPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Password"
+                  placeholder={t('auth.password')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -143,7 +145,7 @@ export default function LoginPage() {
                 href="/forgot-password"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                Forgot password?
+                {t('auth.forgotPassword')}
               </Link>
             </div>
 
@@ -156,19 +158,19 @@ export default function LoginPage() {
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                'Sign in'
+                t('auth.signIn')
               )}
             </Button>
           </form>
 
           {/* Sign up link */}
           <p className="text-sm text-center text-muted-foreground mt-6">
-            Don&apos;t have an account?{' '}
+            {t('auth.noAccount')}{' '}
             <Link
               href="/signup"
               className="text-foreground hover:underline font-medium"
             >
-              Sign up
+              {t('auth.signUpLink')}
             </Link>
           </p>
         </div>

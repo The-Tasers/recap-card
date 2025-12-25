@@ -3,12 +3,15 @@
 import { motion } from 'framer-motion';
 import { Archive } from 'lucide-react';
 import { MAX_RECAPS } from '@/lib/types';
+import { useI18n } from '@/lib/i18n';
 
 interface LimitReachedProps {
   currentCount: number;
 }
 
 export function LimitReached({ currentCount }: LimitReachedProps) {
+  const { t } = useI18n();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -19,11 +22,10 @@ export function LimitReached({ currentCount }: LimitReachedProps) {
         <Archive className="h-5 w-5 text-muted-foreground" />
       </div>
       <h2 className="text-lg font-medium text-foreground mb-2">
-        Your week is full
+        {t('limit.title')}
       </h2>
       <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-        You have {currentCount} of {MAX_RECAPS} recaps saved.
-        Remove an older day to make room for today.
+        {t('limit.description', { current: currentCount, max: MAX_RECAPS })}
       </p>
     </motion.div>
   );

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Cloud, Smartphone, Check, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type SyncNotification } from '@/components/sync-provider';
+import { useI18n } from '@/lib/i18n';
 
 interface SyncStatusIndicatorProps {
   isAuthenticated: boolean;
@@ -16,6 +17,8 @@ export function SyncStatusIndicator({
   syncNotification,
   className,
 }: SyncStatusIndicatorProps) {
+  const { t } = useI18n();
+
   return (
     <div
       className={cn(
@@ -56,12 +59,12 @@ export function SyncStatusIndicator({
             {isAuthenticated ? (
               <>
                 <Cloud className="h-3.5 w-3.5" />
-                <span className="text-xs">Synced</span>
+                <span className="text-xs">{t('sync.syncedStatus')}</span>
               </>
             ) : (
               <>
                 <Smartphone className="h-3.5 w-3.5" />
-                <span className="text-xs">Local</span>
+                <span className="text-xs">{t('sync.localStatus')}</span>
               </>
             )}
           </motion.div>
