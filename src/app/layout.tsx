@@ -40,9 +40,9 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: {
     template: '%s | RECAPZ',
-    default: 'RECAPZ - Daily Mood Journal',
+    default: 'RECAPZ - Daily Reflection',
   },
-  description: 'Notice your day, one moment at a time',
+  description: 'A quiet place for your days',
 };
 
 export const viewport: Viewport = {

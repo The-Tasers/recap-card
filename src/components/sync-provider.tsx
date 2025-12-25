@@ -11,7 +11,14 @@ import {
 import { useAuth } from '@/components/auth-provider';
 import { useCardStore, loadLocalCards, clearLocalCards } from '@/lib/store';
 import { createClient } from '@/lib/supabase/client';
-import type { DailyCard } from '@/lib/types';
+import type { DailyCard, Mood } from '@/lib/types';
+import { MAX_RECAPS } from '@/lib/types';
+import { uploadDataUrlImage, isDataUrl } from '@/lib/supabase/storage';
+
+// Valid mood values for database constraint
+const VALID_MOODS: Mood[] = ['great', 'good', 'okay', 'low', 'rough'];
+const isValidMood = (mood: unknown): mood is Mood =>
+  typeof mood === 'string' && VALID_MOODS.includes(mood as Mood);
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -129,14 +136,35 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         cloudRecaps.forEach((card) => cloudDates.add(getDateStr(card)));
 
         // 3. Find local recaps for dates that don't exist in cloud
+        // Also filter out cards with invalid mood values
         const localOnlyCards = localCards.filter(
-          (card) => !cloudDates.has(getDateStr(card))
+          (card) => !cloudDates.has(getDateStr(card)) && isValidMood(card.mood)
         );
 
-        // 4. Upload local-only recaps to cloud
+        // 4. Upload local-only recaps to cloud (including their images)
         if (localOnlyCards.length > 0) {
+          // First, upload any local data URL images to cloud storage
+          const cardsWithUploadedImages = await Promise.all(
+            localOnlyCards.map(async (card) => {
+              if (card.photoUrl && isDataUrl(card.photoUrl)) {
+                // Upload the data URL image to Supabase storage
+                const { url, error } = await uploadDataUrlImage(
+                  card.photoUrl,
+                  user.id
+                );
+                if (error) {
+                  console.error('Error uploading image for card:', card.id, error);
+                  // Keep the data URL if upload fails (will be lost but recap is saved)
+                  return { ...card, photoUrl: undefined };
+                }
+                return { ...card, photoUrl: url ?? undefined };
+              }
+              return card;
+            })
+          );
+
           const { error } = await supabase.from('recaps').upsert(
-            localOnlyCards.map((card) => ({
+            cardsWithUploadedImages.map((card) => ({
               id: card.id,
               user_id: user.id,
               text: card.text,
@@ -187,12 +215,33 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     [user, fetchRecapsFromCloud, setCards, supabase, showSyncNotification]
   );
 
-  // Save a single recap to cloud
+  // Save a single recap to cloud (with limit check for new recaps)
   const saveRecapToCloud = useCallback(
     async (card: DailyCard) => {
       if (!user) return false;
 
       try {
+        // Check if this is a new recap (not an update)
+        const { data: existing } = await supabase
+          .from('recaps')
+          .select('id')
+          .eq('id', card.id)
+          .single();
+
+        // If it's a new recap, check the limit
+        if (!existing) {
+          const { count } = await supabase
+            .from('recaps')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .is('deleted_at', null);
+
+          if (count !== null && count >= MAX_RECAPS) {
+            showSyncNotification('error', 'Limit reached. Remove an older day first.');
+            return false;
+          }
+        }
+
         const { error } = await supabase.from('recaps').upsert({
           id: card.id,
           user_id: user.id,
@@ -214,7 +263,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
     },
-    [user, supabase]
+    [user, supabase, showSyncNotification]
   );
 
   // Soft delete a recap from cloud

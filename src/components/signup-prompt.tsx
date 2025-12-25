@@ -125,11 +125,11 @@ export function SignupPrompt() {
 
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-1">
-                  Keep your moments safe
+                  Keep your days safe
                 </h3>
                 <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
-                  You've captured {cards.length} {cards.length === 1 ? 'moment' : 'moments'}!
-                  Sign in to sync across devices and never lose them.
+                  {cards.length} {cards.length === 1 ? 'day' : 'days'} captured.
+                  Sign in to keep them across devices.
                 </p>
 
                 <div className="flex gap-2">

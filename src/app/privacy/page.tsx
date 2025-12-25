@@ -60,8 +60,8 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-foreground font-medium mb-2">Your Rights</h2>
             <p>
-              You can export or delete all your data at any time from the app
-              settings. Deleting your account removes all data from our servers
+              You can delete all your data at any time from the app settings.
+              Deleting your account removes all data from our servers
               permanently.
             </p>
           </section>
@@ -71,10 +71,10 @@ export default function PrivacyPage() {
             <p>
               Questions? Reach out at{' '}
               <a
-                href="mailto:sponom.dev@gmail.com"
+                href="mailto:support@recapz.app"
                 className="text-primary hover:underline"
               >
-                sponom.dev@gmail.com
+                support@recapz.app
               </a>
             </p>
           </section>

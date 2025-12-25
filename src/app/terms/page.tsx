@@ -69,10 +69,10 @@ export default function TermsPage() {
             <p>
               Questions? Reach out at{' '}
               <a
-                href="mailto:sponom.dev@gmail.com"
+                href="mailto:support@recapz.app"
                 className="text-primary hover:underline"
               >
-                sponom.dev@gmail.com
+                support@recapz.app
               </a>
             </p>
           </section>

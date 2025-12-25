@@ -204,6 +204,51 @@ export function isDataUrl(url: string): boolean {
 }
 
 /**
+ * Upload a data URL image to Supabase Storage
+ * Used during sync to migrate local images to cloud
+ */
+export async function uploadDataUrlImage(
+  dataUrl: string,
+  userId: string
+): Promise<{ url: string | null; error: string | null }> {
+  const supabase = createClient();
+
+  try {
+    // Convert data URL to blob
+    const response = await fetch(dataUrl);
+    const blob = await response.blob();
+
+    const path = generateImagePath(userId);
+
+    // Upload to Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from(BUCKET_NAME)
+      .upload(path, blob, {
+        contentType: 'image/jpeg',
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      return { url: null, error: uploadError.message };
+    }
+
+    // Get the public URL
+    const { data: urlData } = supabase.storage
+      .from(BUCKET_NAME)
+      .getPublicUrl(path);
+
+    return { url: urlData.publicUrl, error: null };
+  } catch (error) {
+    console.error('Data URL image upload failed:', error);
+    return {
+      url: null,
+      error: error instanceof Error ? error.message : 'Failed to upload image',
+    };
+  }
+}
+
+/**
  * Compress image to base64 data URL (for anonymous users)
  */
 export async function compressImageToDataUrl(

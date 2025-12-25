@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AnimatePresence } from 'framer-motion';
-import { ColorTheme, COLOR_THEMES } from '@/lib/types';
+import { ColorTheme, COLOR_THEMES, ALL_COLOR_THEMES } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useCardStore, useSettingsStore, clearIndexedDB } from '@/lib/store';
 import { applyColorTheme } from '@/components/theme-provider';
@@ -275,7 +275,7 @@ export default function SettingsPage() {
                     className="h-9 w-9 rounded-full flex items-center justify-center"
                     style={{
                       backgroundColor: `${
-                        COLOR_THEMES.find((t) => t.value === colorTheme)
+                        ALL_COLOR_THEMES.find((t) => t.value === colorTheme)
                           ?.preview.accent
                       }20`,
                     }}
@@ -286,7 +286,7 @@ export default function SettingsPage() {
                       <User
                         className="h-4 w-4"
                         style={{
-                          color: COLOR_THEMES.find(
+                          color: ALL_COLOR_THEMES.find(
                             (t) => t.value === colorTheme
                           )?.preview.accent,
                         }}
@@ -480,7 +480,7 @@ export default function SettingsPage() {
               Appearance
             </h2>
 
-            <div className="grid grid-cols-3 gap-3 py-1 px-1">
+            <div className="grid grid-cols-2 gap-3 py-1 px-1">
               {COLOR_THEMES.map((theme) => (
                 <button
                   key={theme.value}
@@ -545,10 +545,9 @@ export default function SettingsPage() {
 
             <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50">
               <p className="text-sm text-muted-foreground">
-                {cards.length} {cards.length === 1 ? 'recap' : 'recaps'} saved
-                {user ? ' locally and in the cloud' : ' locally'}
+                {cards.length} {cards.length === 1 ? 'day' : 'days'} captured
               </p>
-              {cards.length > 0 && (
+              {/* {cards.length > 0 && (
                 <button
                   onClick={handleExportCSV}
                   disabled={exportSuccess}
@@ -566,7 +565,7 @@ export default function SettingsPage() {
                     <Download className="h-4 w-4" />
                   )}
                 </button>
-              )}
+              )} */}
             </div>
 
             {cards.length > 0 && (
@@ -592,8 +591,7 @@ export default function SettingsPage() {
                   >
                     <p className="text-sm text-destructive/70 text-center">
                       This will permanently delete {cards.length}{' '}
-                      {cards.length === 1 ? 'recap' : 'recaps'}
-                      {user ? ' from your device and the cloud' : ''}.
+                      {cards.length === 1 ? 'day' : 'days'}.
                     </p>
                     <div className="flex justify-center gap-4">
                       <button

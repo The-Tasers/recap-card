@@ -1,5 +1,8 @@
 export type Mood = 'great' | 'good' | 'okay' | 'low' | 'rough';
 
+// Demo limits
+export const MAX_RECAPS = 7;
+
 // App color themes
 export type ColorTheme =
   | 'midnight'
@@ -9,7 +12,8 @@ export type ColorTheme =
   | 'sage'
   | 'rose';
 
-export const COLOR_THEMES: {
+// All available themes (kept for future use)
+export const ALL_COLOR_THEMES: {
   value: ColorTheme;
   label: string;
   description: string;
@@ -59,6 +63,11 @@ export const COLOR_THEMES: {
     isDark: false,
   },
 ];
+
+// Visible themes for MVP (one dark, one light)
+export const COLOR_THEMES = ALL_COLOR_THEMES.filter(
+  (theme) => theme.value === 'midnight' || theme.value === 'linen'
+);
 
 // Block types for modular card content
 export type BlockType = 'text' | 'number' | 'multiselect';

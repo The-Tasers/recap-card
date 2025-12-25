@@ -7,10 +7,11 @@ import { AppFooter, AppLogo } from '@/components/app-footer';
 import { SettingsButton } from '@/components/settings-button';
 import { SyncStatusIndicator } from '@/components/sync-status-indicator';
 import { TimelineEntry } from '@/components/timeline-entry';
+import { LimitReached } from '@/components/limit-reached';
 import { DailyCard, Mood, MOODS } from '@/lib/types';
 import { formatDate } from '@/lib/date-utils';
 import { type SyncNotification } from '@/components/sync-provider';
-import { ChevronDown, ChevronUp, History } from 'lucide-react';
+import { ChevronUp, History } from 'lucide-react';
 
 interface CardGroup {
   label: string;
@@ -29,6 +30,8 @@ interface MoodSelectViewProps {
   onUndo?: (cardId: string) => void;
   onDismissUndo?: (cardId: string) => void;
   pendingDeleteIds?: string[];
+  isAtLimit?: boolean;
+  currentCount?: number;
 }
 
 export function MoodSelectView({
@@ -43,6 +46,8 @@ export function MoodSelectView({
   onUndo,
   onDismissUndo,
   pendingDeleteIds = [],
+  isAtLimit = false,
+  currentCount = 0,
 }: MoodSelectViewProps) {
   // Track highlighted mood for keyboard navigation (-1 means no highlight until user presses arrow)
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -167,23 +172,29 @@ export function MoodSelectView({
           />
         </div>
 
-        <h1 className="text-center text-2xl md:text-3xl font-medium text-neutral-700 dark:text-neutral-300 mb-8">
-          How does today feel?
-        </h1>
+        {isAtLimit ? (
+          <LimitReached currentCount={currentCount} />
+        ) : (
+          <>
+            <h1 className="text-center text-2xl md:text-3xl font-medium text-neutral-700 dark:text-neutral-300 mb-8">
+              How was today?
+            </h1>
 
-        <div className="py-4">
-          <MoodSelector
-            value={mood}
-            onChange={onMoodChange}
-            size="lg"
-            highlightedIndex={highlightedIndex}
-          />
-        </div>
+            <div className="py-4">
+              <MoodSelector
+                value={mood}
+                onChange={onMoodChange}
+                size="lg"
+                highlightedIndex={highlightedIndex}
+              />
+            </div>
 
-        {!hasEntries && (
-          <p className="text-center text-sm text-muted-foreground mt-8">
-            Pick a mood to start your first recap.
-          </p>
+            {!hasEntries && (
+              <p className="text-center text-sm text-muted-foreground mt-8">
+                Start with how the day felt.
+              </p>
+            )}
+          </>
         )}
 
         {/* View past entries button */}
@@ -193,8 +204,7 @@ export function MoodSelectView({
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mt-8"
           >
             <History className="h-4 w-4" />
-            View {allPastEntries.length} past{' '}
-            {allPastEntries.length === 1 ? 'recap' : 'recaps'}
+            {allPastEntries.length} {allPastEntries.length === 1 ? 'day' : 'days'} remembered
           </button>
         )}
       </div>

@@ -6,6 +6,7 @@ import { useCardStore, useSettingsStore, saveLocalCards } from '@/lib/store';
 import { getTodayRecap } from '@/lib/daily-utils';
 import { groupCardsByWeek } from '@/lib/date-utils';
 import { SignupPrompt } from '@/components/signup-prompt';
+import { Onboarding, useOnboarding } from '@/components/onboarding';
 import { PhotoData } from '@/components/photo-uploader';
 import { RecapForm } from '@/components/recap-form';
 import { MoodSelectView } from '@/components/mood-select-view';
@@ -19,6 +20,7 @@ import {
   CardBlock,
   BlockId,
   BLOCK_DEFINITIONS,
+  MAX_RECAPS,
 } from '@/lib/types';
 import { Activity } from 'lucide-react';
 import { generateId } from '@/lib/export';
@@ -39,6 +41,7 @@ export default function Canvas() {
     pendingDeletes,
   } = useCardStore();
   const { clearDraft } = useSettingsStore();
+  const { showOnboarding, completeOnboarding, checked: onboardingChecked } = useOnboarding();
   const {
     saveRecapToCloud,
     deleteRecapFromCloud,
@@ -117,6 +120,9 @@ export default function Canvas() {
     );
     return pendingToday?.card ?? null;
   }, [cards, pendingDeletes]);
+
+  // Check if user has reached the demo limit
+  const isAtLimit = cards.length >= MAX_RECAPS && !todayEntry;
 
   // Check if today's entry is in pending delete state
   const isTodayPendingDelete = useMemo(() => {
@@ -530,7 +536,7 @@ export default function Canvas() {
   };
 
   // Loading state
-  if (!hydrated) {
+  if (!hydrated || !onboardingChecked) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
         <span className="text-2xl font-bold tracking-wide uppercase flex items-center">
@@ -543,6 +549,11 @@ export default function Canvas() {
         </span>
       </div>
     );
+  }
+
+  // Show onboarding for first-time users
+  if (showOnboarding) {
+    return <Onboarding onComplete={completeOnboarding} />;
   }
 
   const isInFormMode = !!editingCard || isCreating;
@@ -598,6 +609,8 @@ export default function Canvas() {
               onUndo={handleUndo}
               onDismissUndo={handleDismissUndo}
               pendingDeleteIds={pendingDeletes.map((pd) => pd.card.id)}
+              isAtLimit={isAtLimit}
+              currentCount={cards.length}
             />
           </AnimatePresence>
         </div>

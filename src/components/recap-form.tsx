@@ -131,7 +131,7 @@ export function RecapForm({
           ref={textareaRef}
           value={text}
           onChange={handleTextChange}
-          placeholder="What happened today..."
+          placeholder="What stood out today..."
           autoFocus
           className={cn(
             'w-full h-full flex resize-none text-xl leading-relaxed bg-transparent border-0 outline-none placeholder:text-muted-foreground/30 focus:outline-none caret-primary scrollbar-themed',
