@@ -20,6 +20,9 @@ import {
   SELFCARE_ICONS,
   HEALTH_ICONS,
   EXERCISE_ICONS,
+  SOCIAL_ICONS,
+  HOBBIES_ICONS,
+  PRODUCTIVITY_ICONS,
 } from '@/lib/icons';
 import { DailyCard } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -34,6 +37,9 @@ const BLOCK_ICON_MAPS: Record<string, Record<string, LucideIcon>> = {
   selfcare: SELFCARE_ICONS,
   health: HEALTH_ICONS,
   exercise: EXERCISE_ICONS,
+  social: SOCIAL_ICONS,
+  productivity: PRODUCTIVITY_ICONS,
+  hobbies: HOBBIES_ICONS,
 };
 
 // Get icon for a block value
