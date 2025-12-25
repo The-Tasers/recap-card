@@ -2,7 +2,25 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
+const ONBOARDING_COOKIE = 'onboarding-completed';
+
+// Pages that should be accessible without completing onboarding
+const PUBLIC_PATHS = ['/privacy', '/terms'];
+
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Check if onboarding is completed
+  const hasCompletedOnboarding = request.cookies.get(ONBOARDING_COOKIE)?.value;
+
+  // If onboarding not completed and trying to access protected page, redirect to home
+  const isPublicPath = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
+  if (!hasCompletedOnboarding && pathname !== '/' && !isPublicPath) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/';
+    return NextResponse.redirect(url);
+  }
+
   // Create Supabase client and refresh session
   let supabaseResponse = NextResponse.next({
     request,

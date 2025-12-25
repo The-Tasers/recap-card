@@ -302,6 +302,14 @@ interface SettingsStore {
   clearDraft: () => void;
 }
 
+// Helper to set language cookie (accessible from server)
+function setLanguageCookie(lang: Language) {
+  if (typeof document !== 'undefined') {
+    // Set cookie with 1 year expiry, accessible across the site
+    document.cookie = `language=${lang};path=/;max-age=${60 * 60 * 24 * 365};SameSite=Lax`;
+  }
+}
+
 export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set) => ({
@@ -310,7 +318,10 @@ export const useSettingsStore = create<SettingsStore>()(
       draftEntry: null,
 
       setColorTheme: (theme) => set({ colorTheme: theme }),
-      setLanguage: (lang) => set({ language: lang }),
+      setLanguage: (lang) => {
+        setLanguageCookie(lang);
+        set({ language: lang });
+      },
 
       saveDraft: (draft) => {
         set({

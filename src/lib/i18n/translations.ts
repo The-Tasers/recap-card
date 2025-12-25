@@ -9,6 +9,10 @@ export type TranslationKey = keyof typeof translations.en;
 
 export const translations = {
   en: {
+    // App metadata
+    'meta.title': 'RECAPZ - Daily Reflection',
+    'meta.description': 'A quiet place for your days',
+
     // Onboarding
     'onboarding.title': 'A quiet place for your days',
     'onboarding.description':
@@ -52,6 +56,7 @@ export const translations = {
 
     // Settings
     'settings.title': 'Settings',
+    'settings.logOut': 'Log out',
     'settings.account': 'Account',
     'settings.appearance': 'Appearance',
     'settings.data': 'Data',
@@ -111,6 +116,25 @@ export const translations = {
     'auth.invalidEmail': 'Please enter a valid email address',
     'auth.passwordMismatch': 'Passwords do not match',
     'auth.passwordTooShort': 'Password must be at least 6 characters',
+
+    // Auth errors (Supabase)
+    'auth.error.invalid_credentials': 'Invalid email or password',
+    'auth.error.email_not_confirmed': 'Please confirm your email first',
+    'auth.error.user_not_found': 'No account found with this email',
+    'auth.error.email_exists': 'An account with this email already exists',
+    'auth.error.user_already_exists':
+      'An account with this email already exists',
+    'auth.error.weak_password':
+      'Password is too weak. Use at least 6 characters',
+    'auth.error.over_request_rate_limit':
+      'Too many attempts. Please wait a moment',
+    'auth.error.over_email_send_rate_limit':
+      'Too many emails sent. Please wait a moment',
+    'auth.error.email_address_invalid': 'Invalid email address',
+    'auth.error.user_banned': 'This account has been suspended',
+    'auth.error.session_expired':
+      'Your session has expired. Please sign in again',
+    'auth.error.unknown': 'Something went wrong. Please try again',
 
     // Settings - appearance
     'settings.theme': 'Theme',
@@ -268,6 +292,11 @@ export const translations = {
     'card.undo': 'Undo',
     'card.more': '+{count} more',
     'card.less': 'Less',
+    'card.deleting.0': 'Letting go...',
+    'card.deleting.1': 'Making space...',
+    'card.deleting.2': 'Released',
+    'card.deleting.3': 'Gone gently',
+    'card.deleting.4': 'Fading away...',
 
     // Sync notifications
     'sync.synced': 'Synced {count} {count, plural, one {recap} other {recaps}}',
@@ -277,6 +306,8 @@ export const translations = {
     'sync.loadFailed': 'Failed to load recaps',
     'sync.uploadFailed': 'Failed to upload',
     'sync.limitReached': 'Limit reached. Remove an older day first.',
+    'sync.restored': 'Recap restored',
+    'sync.imageUploadFailed': 'Image upload failed',
 
     // Toasts
     'toast.allDataCleared': 'All data cleared',
@@ -285,13 +316,51 @@ export const translations = {
     'toast.accountDeleted': 'Account deleted',
     'toast.failedToDeleteAccount': 'Failed to delete account',
     'toast.noDataToExport': 'No data to export',
+    'toast.invalidImage': 'Invalid image',
+    'toast.failedToProcessImage': 'Failed to process image',
+    'toast.trySmallerImage': 'Please try a smaller image.',
+
+    // Image validation errors
+    'image.error.notImage': 'Please select an image file.',
+    'image.error.unsupportedFormat':
+      'Unsupported format. Allowed: JPEG, PNG, GIF, WebP, HEIC.',
+    'image.error.tooLarge': 'Image too large ({size}MB). Maximum is 5MB.',
+
+    // Storage errors
+    'storage.error.uploadFailed': 'Failed to upload image',
+    'storage.error.deleteFailed': 'Failed to delete image',
+    'storage.error.fileTooLarge': 'File is too large',
+    'storage.error.accessDenied': 'Access denied',
+    'storage.error.bucketNotFound': 'Storage not available',
+    'storage.error.networkError': 'Network error. Check your connection',
+    'storage.error.unknown': 'Something went wrong',
+
+    // Database errors
+    'db.error.connectionFailed': 'Connection lost. Please try again',
+    'db.error.uniqueViolation': 'This entry already exists',
+    'db.error.foreignKeyViolation': 'Related data not found',
+    'db.error.notNullViolation': 'Required field is missing',
+    'db.error.checkViolation': 'Invalid data',
+    'db.error.timeout': 'Request timed out. Please try again',
+    'db.error.tooManyRequests': 'Too many requests. Please wait',
+    'db.error.unauthorized': 'Please sign in again',
+    'db.error.forbidden': 'Access denied',
+    'db.error.notFound': 'Data not found',
+    'db.error.conflict': 'Data was modified. Please refresh',
+    'db.error.serverError': 'Server error. Please try again later',
+    'db.error.networkError': 'Network error. Check your connection',
+    'db.error.unknown': 'Something went wrong',
   },
 
   ru: {
+    // App metadata
+    'meta.title': 'RECAPZ - Итоги дня',
+    'meta.description': 'Тихое место для твоих дней',
+
     // Onboarding
-    'onboarding.title': 'Место для твоих дней',
+    'onboarding.title': 'Тихое место для твоих дней',
     'onboarding.description':
-      'Каждый день оставляет след. Записывай главное — и наблюдай, как складывается твоя история.',
+      'Каждый день что-то значит. Фиксируй главное - и смотри, как складывается картина.',
     'onboarding.button': 'Начать',
 
     // Mood select view
@@ -331,6 +400,7 @@ export const translations = {
 
     // Settings
     'settings.title': 'Настройки',
+    'settings.logOut': 'Выйти',
     'settings.account': 'Аккаунт',
     'settings.appearance': 'Оформление',
     'settings.data': 'Данные',
@@ -378,7 +448,7 @@ export const translations = {
     'auth.createAccount': 'Создать аккаунт',
     'auth.forgotPasswordTitle': 'Восстановление пароля',
     'auth.forgotPasswordDescription':
-      'Укажи email — отправим ссылку для сброса.',
+      'Укажи email - отправим ссылку для сброса.',
     'auth.sendResetLink': 'Отправить',
     'auth.backToLogin': 'Назад',
     'auth.rememberPassword': 'Помнишь пароль?',
@@ -390,6 +460,20 @@ export const translations = {
     'auth.invalidEmail': 'Некорректный email',
     'auth.passwordMismatch': 'Пароли не совпадают',
     'auth.passwordTooShort': 'Минимум 6 символов',
+
+    // Auth errors (Supabase)
+    'auth.error.invalid_credentials': 'Неверный email или пароль',
+    'auth.error.email_not_confirmed': 'Сначала подтвердите email',
+    'auth.error.user_not_found': 'Аккаунт с таким email не найден',
+    'auth.error.email_exists': 'Аккаунт с таким email уже есть',
+    'auth.error.user_already_exists': 'Аккаунт с таким email уже есть',
+    'auth.error.weak_password': 'Слабый пароль. Минимум 6 символов',
+    'auth.error.over_request_rate_limit': 'Слишком много попыток. Подождите',
+    'auth.error.over_email_send_rate_limit': 'Слишком много писем. Подождите',
+    'auth.error.email_address_invalid': 'Некорректный email',
+    'auth.error.user_banned': 'Аккаунт заблокирован',
+    'auth.error.session_expired': 'Сессия истекла. Войдите снова',
+    'auth.error.unknown': 'Что-то пошло не так. Попробуйте ещё раз',
 
     // Settings - appearance
     'settings.theme': 'Тема',
@@ -404,13 +488,13 @@ export const translations = {
     'privacy.title': 'Конфиденциальность',
     'privacy.yourData': 'Твои данные',
     'privacy.yourDataText':
-      'Recapz хранит записи на твоём устройстве. Если создашь аккаунт — они синхронизируются с нашими серверами для доступа с других устройств.',
+      'Recapz хранит записи на твоём устройстве. Если создашь аккаунт - они синхронизируются с нашими серверами для доступа с других устройств.',
     'privacy.whatWeCollect': 'Что мы собираем',
     'privacy.whatWeCollectText':
       'Только то, что ты сам добавляешь: email, записи, настроение и фото. Мы не следим за тобой и не продаём данные.',
     'privacy.dataSecurity': 'Безопасность',
     'privacy.dataSecurityText':
-      'Данные шифруются при передаче и хранении. Мы используем Supabase — надёжное облачное хранилище.',
+      'Данные шифруются при передаче и хранении. Мы используем Supabase - надёжное облачное хранилище.',
     'privacy.yourRights': 'Твои права',
     'privacy.yourRightsText':
       'Ты можешь удалить все данные в любой момент через настройки. При удалении аккаунта всё стирается с серверов навсегда.',
@@ -421,7 +505,7 @@ export const translations = {
     'terms.title': 'Условия',
     'terms.using': 'Использование',
     'terms.usingText':
-      'Recapz — приложение для личного дневника. Используя его, ты соглашаешься вести себя ответственно и не нарушать закон.',
+      'Recapz - приложение для личного дневника. Используя его, ты соглашаешься вести себя ответственно и не нарушать закон.',
     'terms.yourContent': 'Твой контент',
     'terms.yourContentText':
       'Всё, что ты создаёшь в Recapz, принадлежит тебе. Мы не претендуем на твои записи, фото или другой контент. Ты сам отвечаешь за то, что пишешь.',
@@ -547,6 +631,11 @@ export const translations = {
     'card.undo': 'Вернуть',
     'card.more': '+{count} ещё',
     'card.less': 'Меньше',
+    'card.deleting.0': 'Удаляется...',
+    'card.deleting.1': 'Убираю...',
+    'card.deleting.2': 'Готово',
+    'card.deleting.3': 'Удалено',
+    'card.deleting.4': 'Пока-пока...',
 
     // Sync notifications
     'sync.synced': 'Синхронизировано: {count}',
@@ -556,6 +645,8 @@ export const translations = {
     'sync.loadFailed': 'Не удалось загрузить',
     'sync.uploadFailed': 'Не удалось отправить',
     'sync.limitReached': 'Лимит. Сначала удали старую запись.',
+    'sync.restored': 'Запись восстановлена',
+    'sync.imageUploadFailed': 'Не удалось загрузить фото',
 
     // Toasts
     'toast.allDataCleared': 'Данные удалены',
@@ -564,5 +655,39 @@ export const translations = {
     'toast.accountDeleted': 'Аккаунт удалён',
     'toast.failedToDeleteAccount': 'Не удалось удалить аккаунт',
     'toast.noDataToExport': 'Нечего экспортировать',
+    'toast.invalidImage': 'Неверный формат',
+    'toast.failedToProcessImage': 'Не удалось обработать',
+    'toast.trySmallerImage': 'Попробуй фото поменьше.',
+
+    // Image validation errors
+    'image.error.notImage': 'Выбери файл изображения.',
+    'image.error.unsupportedFormat':
+      'Неподдерживаемый формат. Можно: JPEG, PNG, GIF, WebP, HEIC.',
+    'image.error.tooLarge': 'Слишком большое ({size}МБ). Максимум 5МБ.',
+
+    // Storage errors
+    'storage.error.uploadFailed': 'Не удалось загрузить',
+    'storage.error.deleteFailed': 'Не удалось удалить',
+    'storage.error.fileTooLarge': 'Файл слишком большой',
+    'storage.error.accessDenied': 'Доступ запрещён',
+    'storage.error.bucketNotFound': 'Хранилище недоступно',
+    'storage.error.networkError': 'Ошибка сети. Проверь подключение',
+    'storage.error.unknown': 'Что-то пошло не так',
+
+    // Database errors
+    'db.error.connectionFailed': 'Соединение потеряно. Попробуй ещё раз',
+    'db.error.uniqueViolation': 'Такая запись уже есть',
+    'db.error.foreignKeyViolation': 'Связанные данные не найдены',
+    'db.error.notNullViolation': 'Обязательное поле не заполнено',
+    'db.error.checkViolation': 'Неверные данные',
+    'db.error.timeout': 'Время ожидания истекло. Попробуй ещё раз',
+    'db.error.tooManyRequests': 'Слишком много запросов. Подожди',
+    'db.error.unauthorized': 'Войди заново',
+    'db.error.forbidden': 'Доступ запрещён',
+    'db.error.notFound': 'Данные не найдены',
+    'db.error.conflict': 'Данные изменились. Обнови страницу',
+    'db.error.serverError': 'Ошибка сервера. Попробуй позже',
+    'db.error.networkError': 'Ошибка сети. Проверь подключение',
+    'db.error.unknown': 'Что-то пошло не так',
   },
 } as const;

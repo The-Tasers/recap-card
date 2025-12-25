@@ -24,7 +24,7 @@ import {
 import { DailyCard } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
-import { useI18n, useTranslatedOptions } from '@/lib/i18n';
+import { useI18n, useTranslatedOptions, type TranslationKey } from '@/lib/i18n';
 import { formatRelativeDate } from '@/lib/date-utils';
 
 // Map of blockId to icon lookup
@@ -63,14 +63,8 @@ const MOOD_ACCENTS: Record<string, string> = {
   rough: 'text-[#ef4444]',
 };
 
-// Warm delete messages
-const DELETE_MESSAGES = [
-  'Letting go...',
-  'Making space...',
-  'Released',
-  'Gone gently',
-  'Fading away...',
-];
+// Delete message count (for index calculation)
+const DELETE_MESSAGE_COUNT = 5;
 
 interface TimelineEntryProps {
   card: DailyCard;
@@ -111,8 +105,8 @@ export function TimelineEntry({
   const getDeleteMessage = () => {
     const index =
       card.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) %
-      DELETE_MESSAGES.length;
-    return DELETE_MESSAGES[index];
+      DELETE_MESSAGE_COUNT;
+    return t(`card.deleting.${index}` as TranslationKey);
   };
 
   // Use local message if set, otherwise get deterministic message for external delete

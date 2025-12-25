@@ -7,6 +7,8 @@ import { SettingsButton } from '@/components/settings-button';
 import { SyncStatusIndicator } from '@/components/sync-status-indicator';
 import { DailyCard } from '@/lib/types';
 import { type SyncNotification } from '@/components/sync-provider';
+import { formatDate } from '@/lib/date-utils';
+import { useI18n } from '@/lib/i18n';
 
 interface CardGroup {
   label: string;
@@ -39,6 +41,7 @@ export function TodayView({
   isAuthenticated = false,
   syncNotification,
 }: TodayViewProps) {
+  const { language } = useI18n();
   // Flatten all entries into a single timeline
   const allPastEntries = groupedEntries.flatMap((group) => group.cards);
 
@@ -67,11 +70,7 @@ export function TodayView({
       {/* Date and sync status */}
       <div className="flex items-center justify-center gap-2 mt-4 mb-1.5 shrink-0 px-6">
         <span className="text-base text-muted-foreground">
-          {new Date().toLocaleDateString('en-US', {
-            weekday: 'long',
-            month: 'long',
-            day: 'numeric',
-          })}
+          {formatDate(new Date(), language)}
         </span>
         <SyncStatusIndicator
           isAuthenticated={isAuthenticated}

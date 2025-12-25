@@ -1,9 +1,50 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User, Session, AuthError } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 import { useCardStore, clearLocalCards } from '@/lib/store';
+
+// Map Supabase error codes to translation keys
+function getAuthErrorCode(error: AuthError): string {
+  // Supabase error codes from: https://supabase.com/docs/guides/auth/debugging/error-codes
+  const code = error.code || '';
+
+  const knownCodes = [
+    'invalid_credentials',
+    'email_not_confirmed',
+    'user_not_found',
+    'email_exists',
+    'user_already_exists',
+    'weak_password',
+    'over_request_rate_limit',
+    'over_email_send_rate_limit',
+    'email_address_invalid',
+    'user_banned',
+    'session_expired',
+  ];
+
+  if (knownCodes.includes(code)) {
+    return code;
+  }
+
+  // Fallback: check message for common patterns
+  const message = error.message.toLowerCase();
+  if (message.includes('invalid login credentials') || message.includes('invalid_credentials')) {
+    return 'invalid_credentials';
+  }
+  if (message.includes('email not confirmed')) {
+    return 'email_not_confirmed';
+  }
+  if (message.includes('user already registered') || message.includes('already exists')) {
+    return 'user_already_exists';
+  }
+  if (message.includes('rate limit') || message.includes('too many')) {
+    return 'over_request_rate_limit';
+  }
+
+  return 'unknown';
+}
 
 interface AuthContextType {
   user: User | null;
@@ -50,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password,
     });
     if (error) {
-      return { error: error.message };
+      return { error: getAuthErrorCode(error) };
     }
     return { error: null };
   };
@@ -64,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
     });
     if (error) {
-      return { error: error.message };
+      return { error: getAuthErrorCode(error) };
     }
     return { error: null };
   };
@@ -74,7 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
     });
     if (error) {
-      return { error: error.message };
+      return { error: getAuthErrorCode(error) };
     }
     return { error: null };
   };
@@ -84,7 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password: newPassword,
     });
     if (error) {
-      return { error: error.message };
+      return { error: getAuthErrorCode(error) };
     }
     return { error: null };
   };

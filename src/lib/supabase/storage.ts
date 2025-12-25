@@ -6,28 +6,65 @@ const BUCKET_NAME = 'recap-images';
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
 
+export type ImageErrorCode = 'notImage' | 'unsupportedFormat' | 'tooLarge';
+
 export interface ImageValidationResult {
   valid: boolean;
-  error?: string;
+  errorCode?: ImageErrorCode;
+  errorParams?: Record<string, string>;
+}
+
+// Storage error codes for translation
+export type StorageErrorCode =
+  | 'uploadFailed'
+  | 'deleteFailed'
+  | 'fileTooLarge'
+  | 'accessDenied'
+  | 'bucketNotFound'
+  | 'networkError'
+  | 'unknown';
+
+/**
+ * Map Supabase storage error to translation code
+ */
+function getStorageErrorCode(error: { message?: string; name?: string; statusCode?: string }): StorageErrorCode {
+  const message = (error.message || '').toLowerCase();
+  const statusCode = error.statusCode || '';
+
+  if (message.includes('entity too large') || message.includes('payload too large') || statusCode === '413') {
+    return 'fileTooLarge';
+  }
+  if (message.includes('access denied') || message.includes('not authorized') || statusCode === '403') {
+    return 'accessDenied';
+  }
+  if (message.includes('bucket') && message.includes('not found') || statusCode === '404') {
+    return 'bucketNotFound';
+  }
+  if (message.includes('network') || message.includes('fetch')) {
+    return 'networkError';
+  }
+
+  return 'unknown';
 }
 
 /**
  * Validate image file (size and type)
+ * Returns error codes for translation in UI layer
  */
 export function validateImage(file: File): ImageValidationResult {
   // Check file type
   if (!file.type.startsWith('image/')) {
-    return { valid: false, error: 'Please select an image file.' };
+    return { valid: false, errorCode: 'notImage' };
   }
 
   if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-    return { valid: false, error: `Unsupported image format. Allowed: JPEG, PNG, GIF, WebP, HEIC.` };
+    return { valid: false, errorCode: 'unsupportedFormat' };
   }
 
   // Check file size
   if (file.size > MAX_FILE_SIZE) {
     const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
-    return { valid: false, error: `Image too large (${sizeMB}MB). Maximum size is 5MB.` };
+    return { valid: false, errorCode: 'tooLarge', errorParams: { size: sizeMB } };
   }
 
   return { valid: true };
@@ -112,12 +149,12 @@ export function getPathFromUrl(url: string): string | null {
  * Upload an image to Supabase Storage
  * @param file The file to upload
  * @param userId The user's ID (for folder organization)
- * @returns The public URL of the uploaded image, or null if upload failed
+ * @returns The public URL of the uploaded image, or error code for translation
  */
 export async function uploadImage(
   file: File,
   userId: string
-): Promise<{ url: string | null; error: string | null }> {
+): Promise<{ url: string | null; errorCode: StorageErrorCode | null }> {
   const supabase = createClient();
 
   try {
@@ -135,7 +172,7 @@ export async function uploadImage(
 
     if (uploadError) {
       console.error('Upload error:', uploadError);
-      return { url: null, error: uploadError.message };
+      return { url: null, errorCode: getStorageErrorCode(uploadError) };
     }
 
     // Get the public URL
@@ -143,12 +180,12 @@ export async function uploadImage(
       .from(BUCKET_NAME)
       .getPublicUrl(path);
 
-    return { url: urlData.publicUrl, error: null };
+    return { url: urlData.publicUrl, errorCode: null };
   } catch (error) {
     console.error('Image upload failed:', error);
     return {
       url: null,
-      error: error instanceof Error ? error.message : 'Failed to upload image',
+      errorCode: error instanceof Error ? getStorageErrorCode(error) : 'unknown',
     };
   }
 }
@@ -160,14 +197,14 @@ export async function uploadImage(
  */
 export async function deleteImage(
   url: string
-): Promise<{ success: boolean; error: string | null }> {
+): Promise<{ success: boolean; errorCode: StorageErrorCode | null }> {
   const supabase = createClient();
 
   try {
     const path = getPathFromUrl(url);
     if (!path) {
       // Not a Supabase URL, nothing to delete
-      return { success: true, error: null };
+      return { success: true, errorCode: null };
     }
 
     const { error: deleteError } = await supabase.storage
@@ -176,15 +213,15 @@ export async function deleteImage(
 
     if (deleteError) {
       console.error('Delete error:', deleteError);
-      return { success: false, error: deleteError.message };
+      return { success: false, errorCode: getStorageErrorCode(deleteError) };
     }
 
-    return { success: true, error: null };
+    return { success: true, errorCode: null };
   } catch (error) {
     console.error('Image delete failed:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to delete image',
+      errorCode: error instanceof Error ? getStorageErrorCode(error) : 'unknown',
     };
   }
 }
@@ -210,7 +247,7 @@ export function isDataUrl(url: string): boolean {
 export async function uploadDataUrlImage(
   dataUrl: string,
   userId: string
-): Promise<{ url: string | null; error: string | null }> {
+): Promise<{ url: string | null; errorCode: StorageErrorCode | null }> {
   const supabase = createClient();
 
   try {
@@ -230,7 +267,7 @@ export async function uploadDataUrlImage(
 
     if (uploadError) {
       console.error('Upload error:', uploadError);
-      return { url: null, error: uploadError.message };
+      return { url: null, errorCode: getStorageErrorCode(uploadError) };
     }
 
     // Get the public URL
@@ -238,12 +275,12 @@ export async function uploadDataUrlImage(
       .from(BUCKET_NAME)
       .getPublicUrl(path);
 
-    return { url: urlData.publicUrl, error: null };
+    return { url: urlData.publicUrl, errorCode: null };
   } catch (error) {
     console.error('Data URL image upload failed:', error);
     return {
       url: null,
-      error: error instanceof Error ? error.message : 'Failed to upload image',
+      errorCode: error instanceof Error ? getStorageErrorCode(error) : 'unknown',
     };
   }
 }

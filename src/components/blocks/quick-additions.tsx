@@ -38,7 +38,7 @@ import { cn } from '@/lib/utils';
 import { validateImage } from '@/lib/supabase/storage';
 import { PhotoData } from '@/components/photo-uploader';
 import type { LucideIcon } from 'lucide-react';
-import { useI18n, useTranslatedOptions } from '@/lib/i18n';
+import { useI18n, useTranslatedOptions, type TranslationKey } from '@/lib/i18n';
 
 // All available quick additions in one flat list
 interface QuickOption {
@@ -330,7 +330,8 @@ export function QuickAdditions({
 
     const validation = validateImage(file);
     if (!validation.valid) {
-      toast.error('Invalid image', { description: validation.error });
+      const errorKey = `image.error.${validation.errorCode}` as TranslationKey;
+      toast.error(t('toast.invalidImage'), { description: t(errorKey, validation.errorParams) });
       return;
     }
 
@@ -343,7 +344,7 @@ export function QuickAdditions({
         existingUrl: photoData?.existingUrl,
       });
     } catch {
-      toast.error('Failed to process image');
+      toast.error(t('toast.failedToProcessImage'));
     } finally {
       setIsProcessingPhoto(false);
     }

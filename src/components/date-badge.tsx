@@ -1,6 +1,9 @@
-import { formatDate } from '@/lib/export';
+'use client';
+
+import { formatDate } from '@/lib/date-utils';
 import { cn } from '@/lib/utils';
 import { Calendar } from 'lucide-react';
+import { useI18n } from '@/lib/i18n';
 
 interface DateBadgeProps {
   date: string;
@@ -13,6 +16,8 @@ export function DateBadge({
   variant = 'default',
   showIcon = false,
 }: DateBadgeProps) {
+  const { language } = useI18n();
+
   return (
     <span
       className={cn(
@@ -23,7 +28,7 @@ export function DateBadge({
       )}
     >
       {showIcon && <Calendar className="h-3.5 w-3.5" />}
-      {formatDate(date)}
+      {formatDate(new Date(date), language)}
     </span>
   );
 }

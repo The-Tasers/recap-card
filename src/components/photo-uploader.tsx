@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { validateImage } from '@/lib/supabase/storage';
+import { useI18n, type TranslationKey } from '@/lib/i18n';
 
 export interface PhotoData {
   file?: File; // New file to upload
@@ -22,6 +23,7 @@ interface PhotoUploaderProps {
 }
 
 export function PhotoUploader({ value, onChange, collapsible = false }: PhotoUploaderProps) {
+  const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -36,8 +38,9 @@ export function PhotoUploader({ value, onChange, collapsible = false }: PhotoUpl
     // Validate image (type and size)
     const validation = validateImage(file);
     if (!validation.valid) {
-      toast.error('Invalid image', {
-        description: validation.error,
+      const errorKey = `image.error.${validation.errorCode}` as TranslationKey;
+      toast.error(t('toast.invalidImage'), {
+        description: t(errorKey, validation.errorParams),
       });
       return;
     }
@@ -55,8 +58,8 @@ export function PhotoUploader({ value, onChange, collapsible = false }: PhotoUpl
       });
     } catch (error) {
       console.error('Image processing failed:', error);
-      toast.error('Failed to process image', {
-        description: 'Please try a smaller image.',
+      toast.error(t('toast.failedToProcessImage'), {
+        description: t('toast.trySmallerImage'),
       });
     } finally {
       setIsProcessing(false);

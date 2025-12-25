@@ -9,7 +9,7 @@ import isEmail from 'validator/es/lib/isEmail';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/auth-provider';
 import { AppFooter, AppLogo } from '@/components/app-footer';
-import { useI18n } from '@/lib/i18n';
+import { useI18n, type TranslationKey } from '@/lib/i18n';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -46,7 +46,7 @@ export default function ForgotPasswordPage() {
     const { error } = await resetPassword(email);
 
     if (error) {
-      setError(error);
+      setError(t(`auth.error.${error}` as TranslationKey));
       setIsLoading(false);
     } else {
       setSuccess(true);

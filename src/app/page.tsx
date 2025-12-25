@@ -26,7 +26,7 @@ import { Activity } from 'lucide-react';
 import { generateId } from '@/lib/export';
 import { useSyncContext } from '@/components/sync-provider';
 import { deleteImage, isSupabaseStorageUrl } from '@/lib/supabase/storage';
-import { useI18n } from '@/lib/i18n';
+import { useI18n, type TranslationKey } from '@/lib/i18n';
 
 type SaveStatus = 'idle' | 'saving' | 'saved';
 
@@ -42,7 +42,7 @@ export default function Canvas() {
     pendingDeletes,
   } = useCardStore();
   const { clearDraft } = useSettingsStore();
-  const { language } = useI18n();
+  const { language, t } = useI18n();
   const { showOnboarding, completeOnboarding, checked: onboardingChecked } = useOnboarding();
   const {
     saveRecapToCloud,
@@ -192,9 +192,9 @@ export default function Canvas() {
       if (hasNewPhoto && editPhotoData?.file) {
         // Upload new photo
         if (user?.id) {
-          const { url, error } = await uploadImage(editPhotoData.file, user.id);
-          if (error) {
-            showNotification('error', 'Image upload failed');
+          const { url, errorCode } = await uploadImage(editPhotoData.file, user.id);
+          if (errorCode) {
+            showNotification('error', t(`storage.error.${errorCode}` as TranslationKey));
             setSaveStatus('idle');
             return;
           }
@@ -324,6 +324,7 @@ export default function Canvas() {
     saveRecapToCloud,
     showNotification,
     user?.id,
+    t,
   ]);
 
   // Track dirty state when edit fields change
@@ -493,7 +494,7 @@ export default function Canvas() {
       if (isAuthenticated) {
         await restoreRecapInCloud(cardId);
       }
-      showNotification('success', 'Recap restored');
+      showNotification('success', t('sync.restored'));
     } catch (err) {
       console.error('Failed to restore card', err);
     }

@@ -5,6 +5,7 @@ import {
   useContext,
   useCallback,
   useMemo,
+  useEffect,
   type ReactNode,
 } from 'react';
 import { useSettingsStore } from '@/lib/store';
@@ -87,8 +88,20 @@ function interpolate(
   });
 }
 
+// Sync language to cookie on hydration (for server-side access)
+function syncLanguageToCookie(lang: Language) {
+  if (typeof document !== 'undefined') {
+    document.cookie = `language=${lang};path=/;max-age=${60 * 60 * 24 * 365};SameSite=Lax`;
+  }
+}
+
 export function I18nProvider({ children }: { children: ReactNode }) {
   const { language, setLanguage } = useSettingsStore();
+
+  // Sync language to cookie on mount and when it changes
+  useEffect(() => {
+    syncLanguageToCookie(language);
+  }, [language]);
 
   const t = useCallback(
     (key: TranslationKey, params?: Record<string, string | number>): string => {

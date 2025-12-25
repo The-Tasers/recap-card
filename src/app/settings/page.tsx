@@ -27,7 +27,7 @@ import { useAuth } from '@/components/auth-provider';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { AppFooter, AppLogo } from '@/components/app-footer';
-import { useI18n } from '@/lib/i18n';
+import { useI18n, type TranslationKey } from '@/lib/i18n';
 import { LANGUAGES } from '@/lib/i18n/translations';
 
 export default function SettingsPage() {
@@ -64,12 +64,12 @@ export default function SettingsPage() {
     setPasswordError(null);
 
     if (newPassword !== confirmNewPassword) {
-      setPasswordError('Passwords do not match');
+      setPasswordError(t('settings.passwordMismatch'));
       return;
     }
 
     if (newPassword.length < 6) {
-      setPasswordError('Password must be at least 6 characters');
+      setPasswordError(t('settings.passwordTooShort'));
       return;
     }
 
@@ -77,10 +77,10 @@ export default function SettingsPage() {
     const { error } = await updatePassword(newPassword);
 
     if (error) {
-      setPasswordError(error);
+      setPasswordError(t(`auth.error.${error}` as TranslationKey));
       setIsChangingPassword(false);
     } else {
-      toast.success('Password updated');
+      toast.success(t('settings.passwordUpdated'));
       setShowChangePassword(false);
       setNewPassword('');
       setConfirmNewPassword('');
@@ -107,19 +107,19 @@ export default function SettingsPage() {
 
         if (error) {
           console.error('Error deleting cloud recaps:', error);
-          toast.error('Failed to delete cloud data');
+          toast.error(t('toast.failedToDeleteCloudData'));
           setIsClearing(false);
           return;
         }
       }
 
       await clearIndexedDB();
-      toast.success('All data cleared');
+      toast.success(t('toast.allDataCleared'));
       setShowClearConfirm(false);
       setTimeout(() => window.location.reload(), 100);
     } catch (error) {
       console.error('Error clearing data:', error);
-      toast.error('Failed to clear data');
+      toast.error(t('toast.failedToClearData'));
     } finally {
       setIsClearing(false);
     }
@@ -127,7 +127,7 @@ export default function SettingsPage() {
 
   const handleExportCSV = () => {
     if (cards.length === 0) {
-      toast.error('No data to export');
+      toast.error(t('toast.noDataToExport'));
       return;
     }
 
@@ -227,7 +227,7 @@ export default function SettingsPage() {
       await clearIndexedDB();
       await signOut();
 
-      toast.success('Account deleted');
+      toast.success(t('toast.accountDeleted'));
       setShowDeleteAccountDialog(false);
 
       setTimeout(() => {
@@ -236,7 +236,7 @@ export default function SettingsPage() {
       }, 100);
     } catch (error) {
       console.error('Error deleting account:', error);
-      toast.error('Failed to delete account');
+      toast.error(t('toast.failedToDeleteAccount'));
     } finally {
       setIsDeletingAccount(false);
     }
@@ -407,7 +407,9 @@ export default function SettingsPage() {
                           }
                           className="text-sm text-primary cursor-pointer hover:text-primary/80 font-medium transition-colors disabled:opacity-50"
                         >
-                          {isChangingPassword ? t('settings.saving') : t('settings.save')}
+                          {isChangingPassword
+                            ? t('settings.saving')
+                            : t('settings.save')}
                         </button>
                       </div>
                     </motion.form>
@@ -450,7 +452,9 @@ export default function SettingsPage() {
                           disabled={isDeletingAccount}
                           className="text-sm text-destructive/70 cursor-pointer hover:text-destructive font-medium transition-colors disabled:opacity-50"
                         >
-                          {isDeletingAccount ? t('settings.deleting') : t('settings.yesDelete')}
+                          {isDeletingAccount
+                            ? t('settings.deleting')
+                            : t('settings.yesDelete')}
                         </button>
                       </div>
                     </motion.div>
@@ -488,11 +492,15 @@ export default function SettingsPage() {
               <div className="rounded-xl bg-muted/30 p-3">
                 <div className="flex items-center gap-2 mb-2">
                   <Palette className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-foreground">{t('settings.theme')}</span>
+                  <span className="text-sm text-foreground">
+                    {t('settings.theme')}
+                  </span>
                 </div>
                 <select
                   value={colorTheme}
-                  onChange={(e) => handleThemeChange(e.target.value as ColorTheme)}
+                  onChange={(e) =>
+                    handleThemeChange(e.target.value as ColorTheme)
+                  }
                   className="w-full h-9 px-3 rounded-lg bg-background border border-border/50 focus:border-primary focus:outline-none transition-colors text-sm cursor-pointer appearance-none"
                   style={{
                     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
@@ -512,7 +520,9 @@ export default function SettingsPage() {
               <div className="rounded-xl bg-muted/30 p-3">
                 <div className="flex items-center gap-2 mb-2">
                   <Globe className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-foreground">{t('settings.language')}</span>
+                  <span className="text-sm text-foreground">
+                    {t('settings.language')}
+                  </span>
                 </div>
                 <select
                   value={language}
@@ -602,7 +612,9 @@ export default function SettingsPage() {
                         disabled={isClearing}
                         className="text-sm text-destructive/70 cursor-pointer hover:text-destructive font-medium transition-colors disabled:opacity-50"
                       >
-                        {isClearing ? t('settings.deleting') : t('settings.deleteAll')}
+                        {isClearing
+                          ? t('settings.deleting')
+                          : t('settings.deleteAll')}
                       </button>
                     </div>
                   </motion.div>

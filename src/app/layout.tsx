@@ -8,6 +8,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { SyncProvider } from '@/components/sync-provider';
 import { I18nProvider } from '@/lib/i18n';
+import { DynamicMetadata } from '@/components/dynamic-metadata';
 
 // Inline script to prevent theme flash - runs before React hydration
 const themeScript = `
@@ -74,6 +75,7 @@ export default function RootLayout({
         <AuthProvider>
           <ThemeProvider>
             <I18nProvider>
+              <DynamicMetadata />
               <SyncProvider>
                 <AppLoader>
                   <Suspense

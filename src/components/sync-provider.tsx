@@ -14,19 +14,82 @@ import { createClient } from '@/lib/supabase/client';
 import type { DailyCard, Mood } from '@/lib/types';
 import { MAX_RECAPS } from '@/lib/types';
 import { uploadDataUrlImage, isDataUrl } from '@/lib/supabase/storage';
+import { useI18n, type TranslationKey } from '@/lib/i18n';
 
 // Valid mood values for database constraint
 const VALID_MOODS: Mood[] = ['great', 'good', 'okay', 'low', 'rough'];
 const isValidMood = (mood: unknown): mood is Mood =>
   typeof mood === 'string' && VALID_MOODS.includes(mood as Mood);
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient, PostgrestError } from '@supabase/supabase-js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnySupabase = SupabaseClient<any, any, any>;
 
-// Helper for pluralization
-const pluralize = (count: number, singular: string, plural: string) =>
-  count === 1 ? `${count} ${singular}` : `${count} ${plural}`;
+// Database error codes for translation
+export type DbErrorCode =
+  | 'connectionFailed'
+  | 'uniqueViolation'
+  | 'foreignKeyViolation'
+  | 'notNullViolation'
+  | 'checkViolation'
+  | 'timeout'
+  | 'tooManyRequests'
+  | 'unauthorized'
+  | 'forbidden'
+  | 'notFound'
+  | 'conflict'
+  | 'serverError'
+  | 'networkError'
+  | 'unknown';
+
+/**
+ * Map Supabase/Postgres error to translation code
+ */
+function getDbErrorCode(error: PostgrestError | Error | unknown): DbErrorCode {
+  // Handle PostgrestError
+  if (error && typeof error === 'object' && 'code' in error) {
+    const pgError = error as PostgrestError;
+    const code = pgError.code || '';
+    const message = (pgError.message || '').toLowerCase();
+
+    // PostgreSQL error codes (SQLSTATE)
+    // Class 08 - Connection Exception
+    if (code.startsWith('08')) return 'connectionFailed';
+    // 23505 - unique_violation
+    if (code === '23505') return 'uniqueViolation';
+    // 23503 - foreign_key_violation
+    if (code === '23503') return 'foreignKeyViolation';
+    // 23502 - not_null_violation
+    if (code === '23502') return 'notNullViolation';
+    // 23514 - check_violation
+    if (code === '23514') return 'checkViolation';
+    // 57014 - query_canceled (timeout)
+    if (code === '57014') return 'timeout';
+    // PGRST codes (PostgREST)
+    if (code === 'PGRST301') return 'timeout';
+    if (code === '42501') return 'forbidden'; // insufficient_privilege
+
+    // HTTP status codes in message or code
+    if (message.includes('401') || code === '401') return 'unauthorized';
+    if (message.includes('403') || code === '403') return 'forbidden';
+    if (message.includes('404') || code === '404') return 'notFound';
+    if (message.includes('409') || code === '409') return 'conflict';
+    if (message.includes('429') || code === '429') return 'tooManyRequests';
+    if (message.includes('500') || message.includes('502') || message.includes('503')) return 'serverError';
+  }
+
+  // Handle generic errors
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase();
+    if (message.includes('network') || message.includes('fetch') || message.includes('failed to fetch')) {
+      return 'networkError';
+    }
+    if (message.includes('timeout')) return 'timeout';
+    if (message.includes('unauthorized') || message.includes('jwt')) return 'unauthorized';
+  }
+
+  return 'unknown';
+}
 
 export type SyncNotification = {
   type: 'success' | 'error';
@@ -56,6 +119,7 @@ export function useSyncContext() {
 export function SyncProvider({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const { setCards, setHydrated } = useCardStore();
+  const { t } = useI18n();
   const supabase = createClient() as AnySupabase;
 
   // Track if initial sync has been done for this session
@@ -95,7 +159,8 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Error fetching recaps:', error);
-        showSyncNotification('error', 'Failed to load recaps');
+        const errorCode = getDbErrorCode(error);
+        showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
         return [];
       }
 
@@ -111,9 +176,11 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
       );
     } catch (error) {
       console.error('Error fetching recaps:', error);
+      const errorCode = getDbErrorCode(error);
+      showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
       return [];
     }
-  }, [user, supabase, showSyncNotification]);
+  }, [user, supabase, showSyncNotification, t]);
 
   // Full sync: cloud is source of truth, merge local cards for missing dates
   // Flow:
@@ -148,12 +215,12 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
             localOnlyCards.map(async (card) => {
               if (card.photoUrl && isDataUrl(card.photoUrl)) {
                 // Upload the data URL image to Supabase storage
-                const { url, error } = await uploadDataUrlImage(
+                const { url, errorCode } = await uploadDataUrlImage(
                   card.photoUrl,
                   user.id
                 );
-                if (error) {
-                  console.error('Error uploading image for card:', card.id, error);
+                if (errorCode) {
+                  console.error('Error uploading image for card:', card.id, errorCode);
                   // Keep the data URL if upload fails (will be lost but recap is saved)
                   return { ...card, photoUrl: undefined };
                 }
@@ -178,7 +245,8 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
           if (error) {
             console.error('Error uploading local recaps:', error);
-            showSyncNotification('error', 'Failed to upload');
+            const errorCode = getDbErrorCode(error);
+            showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
           }
         }
 
@@ -198,7 +266,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         if (localOnlyCards.length > 0) {
           showSyncNotification(
             'success',
-            `Synced ${pluralize(finalRecaps.length, 'recap', 'recaps')}`
+            t('sync.synced', { count: finalRecaps.length })
           );
         }
 
@@ -208,11 +276,12 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         };
       } catch (error) {
         console.error('Error during full sync:', error);
-        showSyncNotification('error', 'Sync failed');
+        const errorCode = getDbErrorCode(error);
+        showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
         return { uploaded: 0, total: 0 };
       }
     },
-    [user, fetchRecapsFromCloud, setCards, supabase, showSyncNotification]
+    [user, fetchRecapsFromCloud, setCards, supabase, showSyncNotification, t]
   );
 
   // Save a single recap to cloud (with limit check for new recaps)
@@ -237,7 +306,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
             .is('deleted_at', null);
 
           if (count !== null && count >= MAX_RECAPS) {
-            showSyncNotification('error', 'Limit reached. Remove an older day first.');
+            showSyncNotification('error', t('sync.limitReached'));
             return false;
           }
         }
@@ -254,16 +323,20 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
         if (error) {
           console.error('Error saving recap:', error);
+          const errorCode = getDbErrorCode(error);
+          showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
           return false;
         }
 
         return true;
       } catch (error) {
         console.error('Error saving recap:', error);
+        const errorCode = getDbErrorCode(error);
+        showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
         return false;
       }
     },
-    [user, supabase, showSyncNotification]
+    [user, supabase, showSyncNotification, t]
   );
 
   // Soft delete a recap from cloud
@@ -280,16 +353,20 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
         if (error) {
           console.error('Error deleting recap:', error);
+          const errorCode = getDbErrorCode(error);
+          showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
           return false;
         }
 
         return true;
       } catch (error) {
         console.error('Error deleting recap:', error);
+        const errorCode = getDbErrorCode(error);
+        showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
         return false;
       }
     },
-    [user, supabase]
+    [user, supabase, showSyncNotification, t]
   );
 
   // Restore a soft-deleted recap
@@ -306,16 +383,20 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
         if (error) {
           console.error('Error restoring recap:', error);
+          const errorCode = getDbErrorCode(error);
+          showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
           return false;
         }
 
         return true;
       } catch (error) {
         console.error('Error restoring recap:', error);
+        const errorCode = getDbErrorCode(error);
+        showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
         return false;
       }
     },
-    [user, supabase]
+    [user, supabase, showSyncNotification, t]
   );
 
   // Permanently delete a recap from cloud
@@ -332,16 +413,20 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
         if (error) {
           console.error('Error permanently deleting recap:', error);
+          const errorCode = getDbErrorCode(error);
+          showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
           return false;
         }
 
         return true;
       } catch (error) {
         console.error('Error permanently deleting recap:', error);
+        const errorCode = getDbErrorCode(error);
+        showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
         return false;
       }
     },
-    [user, supabase]
+    [user, supabase, showSyncNotification, t]
   );
 
   // Initialize: Load local cards and sync with cloud if authenticated
