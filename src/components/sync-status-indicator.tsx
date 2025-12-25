@@ -17,7 +17,12 @@ export function SyncStatusIndicator({
   className,
 }: SyncStatusIndicatorProps) {
   return (
-    <div className={cn('flex items-center gap-1.5 text-muted-foreground/50', className)}>
+    <div
+      className={cn(
+        'flex items-center gap-1.5 text-muted-foreground/50',
+        className
+      )}
+    >
       <AnimatePresence mode="wait">
         {syncNotification ? (
           <motion.div
@@ -46,7 +51,7 @@ export function SyncStatusIndicator({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="flex items-center gap-1.5"
+            className="flex items-center gap-1.5 text-muted-foreground rounded-sm bg-muted px-2 py-1"
           >
             {isAuthenticated ? (
               <>

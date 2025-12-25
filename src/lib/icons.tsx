@@ -25,11 +25,6 @@ import {
   Building2,
   Stethoscope,
   ThermometerSun,
-  Eye,
-  Heart,
-  Briefcase,
-  Palette,
-  Dices,
   CloudSun,
   Waves,
   Dumbbell,
@@ -41,17 +36,38 @@ import {
   PersonStanding,
   Activity,
   Move,
+  Heart,
+  Briefcase,
+  Lightbulb,
+  Dices,
+  Users,
+  Phone,
+  MessageCircle,
+  Video,
+  Coffee,
+  Target,
+  BookOpen,
+  PenTool,
+  CheckSquare,
+  Laptop,
+  Gamepad2,
+  Palette,
+  Camera,
+  Headphones,
+  Book,
+  Tv,
+  TreePine,
   type LucideIcon,
 } from 'lucide-react';
-import { Mood, BlockId } from './types';
+import { Mood, BlockId, QuestionCategory } from './types';
 
 // Mood icons mapping
 export const MOOD_ICONS: Record<Mood, LucideIcon> = {
   great: Laugh,
   good: Smile,
-  neutral: Meh,
-  bad: Frown,
-  terrible: Angry,
+  okay: Meh,
+  low: Frown,
+  rough: Angry,
 };
 
 // Block definition icons
@@ -62,6 +78,9 @@ export const BLOCK_ICONS: Record<BlockId, LucideIcon> = {
   selfcare: ShowerHead,
   health: Stethoscope,
   exercise: Dumbbell,
+  social: Users,
+  productivity: Target,
+  hobbies: Palette,
 };
 
 // Weather option icons
@@ -114,12 +133,48 @@ export const EXERCISE_ICONS: Record<string, LucideIcon> = {
   sports: Goal,
 };
 
-// Question category icons
-export const CATEGORY_ICONS: Record<string, LucideIcon> = {
-  reflection: Eye,
-  gratitude: Heart,
+// Social option icons
+export const SOCIAL_ICONS: Record<string, LucideIcon> = {
+  family: Heart,
+  friends: Users,
+  date: Coffee,
+  call: Phone,
+  texting: MessageCircle,
+  videocall: Video,
+  party: Music,
+  alone: PersonStanding,
+};
+
+// Productivity option icons
+export const PRODUCTIVITY_ICONS: Record<string, LucideIcon> = {
   work: Briefcase,
-  creativity: Palette,
+  study: BookOpen,
+  writing: PenTool,
+  tasks: CheckSquare,
+  goals: Target,
+  coding: Laptop,
+  meeting: Users,
+  focused: Activity,
+};
+
+// Hobbies option icons
+export const HOBBIES_ICONS: Record<string, LucideIcon> = {
+  gaming: Gamepad2,
+  art: Palette,
+  photography: Camera,
+  music: Headphones,
+  reading: Book,
+  movies: Tv,
+  cooking: UtensilsCrossed,
+  outdoors: TreePine,
+};
+
+// Question category icons
+export const CATEGORY_ICONS: Record<QuestionCategory, LucideIcon> = {
+  reflection: Heart,
+  gratitude: Sparkles,
+  work: Briefcase,
+  creativity: Lightbulb,
   random: Dices,
 };
 
@@ -136,7 +191,7 @@ export function MoodIcon({ mood, className = 'h-6 w-6' }: MoodIconProps) {
 
 // Helper to get icon component for options
 export function getOptionIcon(
-  type: 'weather' | 'meals' | 'selfcare' | 'health' | 'exercise',
+  type: 'weather' | 'meals' | 'selfcare' | 'health' | 'exercise' | 'social' | 'productivity' | 'hobbies',
   value: string
 ): LucideIcon {
   switch (type) {
@@ -150,5 +205,11 @@ export function getOptionIcon(
       return HEALTH_ICONS[value] || Stethoscope;
     case 'exercise':
       return EXERCISE_ICONS[value] || Dumbbell;
+    case 'social':
+      return SOCIAL_ICONS[value] || Users;
+    case 'productivity':
+      return PRODUCTIVITY_ICONS[value] || Target;
+    case 'hobbies':
+      return HOBBIES_ICONS[value] || Palette;
   }
 }

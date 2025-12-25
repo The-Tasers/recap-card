@@ -5,50 +5,46 @@ import { Mood, MOODS } from '@/lib/types';
 import { MOOD_ICONS } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
-// Simple solid mood colors (non-gradient)
+// Simple solid mood colors (non-gradient) - using hex values
 const MOOD_COLORS = {
-  great: 'bg-emerald-500',
-  good: 'bg-green-500',
-  neutral: 'bg-amber-500',
-  bad: 'bg-orange-500',
-  terrible: 'bg-red-500',
+  great: 'bg-[#22c55e]',
+  good: 'bg-[#84cc16]',
+  okay: 'bg-[#eab308]',
+  low: 'bg-[#f97316]',
+  rough: 'bg-[#ef4444]',
 };
 
-// Mood colors - simple solid colors
+// Mood colors - simple solid colors with new palette
 const MOOD_STYLES = {
   great: {
-    base: 'bg-emerald-100 dark:bg-emerald-900/40 border-emerald-300 dark:border-emerald-700',
-    hover: 'hover:bg-emerald-200 dark:hover:bg-emerald-800/50',
-    selected:
-      'bg-emerald-500 border-emerald-600 border-3',
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    base: 'bg-[#22c55e]/10 border-[#22c55e]/30',
+    hover: 'hover:bg-[#22c55e]/20',
+    selected: 'bg-[#22c55e] border-[#22c55e] border-3',
+    iconColor: 'text-[#22c55e]',
   },
   good: {
-    base: 'bg-green-100 dark:bg-green-900/40 border-green-300 dark:border-green-700',
-    hover: 'hover:bg-green-200 dark:hover:bg-green-800/50',
-    selected:
-      'bg-green-500 border-green-600 border-3',
-    iconColor: 'text-green-600 dark:text-green-400',
+    base: 'bg-[#84cc16]/10 border-[#84cc16]/30',
+    hover: 'hover:bg-[#84cc16]/20',
+    selected: 'bg-[#84cc16] border-[#84cc16] border-3',
+    iconColor: 'text-[#84cc16]',
   },
-  neutral: {
-    base: 'bg-amber-100 dark:bg-amber-900/40 border-amber-300 dark:border-amber-700',
-    hover: 'hover:bg-amber-200 dark:hover:bg-amber-800/50',
-    selected:
-      'bg-amber-500 border-amber-600 border-3',
-    iconColor: 'text-amber-600 dark:text-amber-400',
+  okay: {
+    base: 'bg-[#eab308]/10 border-[#eab308]/30',
+    hover: 'hover:bg-[#eab308]/20',
+    selected: 'bg-[#eab308] border-[#eab308] border-3',
+    iconColor: 'text-[#eab308]',
   },
-  bad: {
-    base: 'bg-orange-100 dark:bg-orange-900/40 border-orange-300 dark:border-orange-700',
-    hover: 'hover:bg-orange-200 dark:hover:bg-orange-800/50',
-    selected:
-      'bg-orange-500 border-orange-600 border-3',
-    iconColor: 'text-orange-600 dark:text-orange-400',
+  low: {
+    base: 'bg-[#f97316]/10 border-[#f97316]/30',
+    hover: 'hover:bg-[#f97316]/20',
+    selected: 'bg-[#f97316] border-[#f97316] border-3',
+    iconColor: 'text-[#f97316]',
   },
-  terrible: {
-    base: 'bg-red-100 dark:bg-red-900/40 border-red-300 dark:border-red-700',
-    hover: 'hover:bg-red-200 dark:hover:bg-red-800/50',
-    selected: 'bg-red-500 border-red-600 border-3',
-    iconColor: 'text-red-600 dark:text-red-400',
+  rough: {
+    base: 'bg-[#ef4444]/10 border-[#ef4444]/30',
+    hover: 'hover:bg-[#ef4444]/20',
+    selected: 'bg-[#ef4444] border-[#ef4444] border-3',
+    iconColor: 'text-[#ef4444]',
   },
 };
 
@@ -56,27 +52,27 @@ interface MoodSelectorProps {
   value?: Mood;
   onChange: (mood: Mood) => void;
   size?: 'sm' | 'md' | 'lg';
-  showPreview?: boolean;
   highlightedIndex?: number;
+  fullWidth?: boolean;
 }
 
 export function MoodSelector({
   value,
   onChange,
   size = 'sm',
-  showPreview = false,
   highlightedIndex,
+  fullWidth = false,
 }: MoodSelectorProps) {
   const sizeClasses = {
-    sm: 'p-1.5 sm:py-2 sm:px-3',
+    sm: 'p-2.5',
     md: 'p-3',
-    lg: 'p-2.5 md:p-4',
+    lg: 'p-2 md:p-3',
   };
 
   const iconSizeClasses = {
-    sm: 'h-5 w-5 sm:h-6 sm:w-6',
+    sm: 'h-6 w-6',
     md: 'h-8 w-8',
-    lg: 'h-8 w-8 md:h-10 md:w-10',
+    lg: 'h-7 w-7 md:h-9 md:w-9',
   };
 
   // Container animation variants
@@ -105,7 +101,10 @@ export function MoodSelector({
   return (
     <div className="space-y-4">
       <motion.div
-        className="flex justify-center gap-1 sm:gap-2 md:gap-3 py-1 px-1"
+        className={cn(
+          'flex py-1',
+          fullWidth ? 'w-full' : 'justify-center gap-2'
+        )}
         variants={containerVariants}
         initial="hidden"
         animate="show"
@@ -116,86 +115,61 @@ export function MoodSelector({
           const styles = MOOD_STYLES[mood.value];
 
           return (
-            <motion.button
+            <div
               key={mood.value}
-              type="button"
-              onClick={() => onChange(mood.value)}
-              className={cn(
-                'rounded-2xl border-2 relative overflow-hidden cursor-pointer',
-                sizeClasses[size],
-                isSelected
-                  ? `${styles.selected}`
-                  : `${styles.base} ${styles.hover}`,
-                // Keyboard highlight - subtle ring
-                isHighlighted && !isSelected && 'ring-2 ring-primary/50 ring-offset-2 ring-offset-background'
-              )}
-              title={mood.label}
-              variants={getButtonVariants(isSelected)}
-              animate={{
-                scale: isSelected ? 1.1 : isHighlighted ? 1.08 : 1,
-              }}
-              whileHover={{
-                scale: isSelected ? 1.15 : 1.08,
-              }}
-              whileTap={{
-                scale: 0.95,
-              }}
-              transition={{
-                type: 'spring',
-                stiffness: 400,
-                damping: 15,
-              }}
+              className={cn('flex justify-center', fullWidth && 'flex-1')}
             >
-              {/* Ripple effect on selection */}
-              {isSelected && (
-                <motion.div
-                  className="absolute z-1 inset-0 bg-white/30 rounded-2xl"
-                  initial={{ scale: 0, opacity: 1 }}
-                  animate={{ scale: 2, opacity: 0 }}
-                  transition={{ duration: 0.6, ease: 'easeOut' }}
-                />
-              )}
-              <motion.span
-                aria-label={mood.label}
+              <motion.button
+                type="button"
+                onClick={() => onChange(mood.value)}
                 className={cn(
-                  'relative z-10 block',
-                  isSelected ? 'text-white' : styles.iconColor
+                  'rounded-2xl border-2 relative overflow-hidden cursor-pointer',
+                  sizeClasses[size],
+                  isSelected
+                    ? `${styles.selected}`
+                    : `${styles.base} ${styles.hover}`,
+                  // Keyboard highlight - subtle ring
+                  isHighlighted &&
+                    !isSelected &&
+                    'ring-2 ring-primary/50 ring-offset-2 ring-offset-background'
                 )}
-                animate={{
-                  scale: isSelected ? [1, 1.1, 1] : 1,
+                title={mood.label}
+                variants={getButtonVariants(isSelected)}
+                whileTap={{
+                  scale: 0.95,
                 }}
                 transition={{
-                  duration: 0.3,
-                  ease: 'easeInOut',
+                  type: 'spring',
+                  stiffness: 400,
+                  damping: 15,
                 }}
               >
-                {(() => {
-                  const Icon = MOOD_ICONS[mood.value];
-                  return <Icon className={iconSizeClasses[size]} />;
-                })()}
-              </motion.span>
-            </motion.button>
+                {/* Ripple effect on selection */}
+                {isSelected && (
+                  <motion.div
+                    className="absolute z-1 inset-0 bg-white/30 rounded-2xl"
+                    initial={{ scale: 0, opacity: 1 }}
+                    animate={{ scale: 0, opacity: 0 }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
+                  />
+                )}
+                <span
+                  aria-label={mood.label}
+                  className={cn(
+                    'relative z-10 block',
+                    isSelected ? 'text-white' : styles.iconColor
+                  )}
+                >
+                  {(() => {
+                    const Icon = MOOD_ICONS[mood.value];
+                    return <Icon className={iconSizeClasses[size]} />;
+                  })()}
+                </span>
+              </motion.button>
+            </div>
           );
         })}
       </motion.div>
-      {showPreview && value && (
-        <motion.div
-          className="flex flex-col items-center gap-2"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
-        >
-          <motion.div
-            className={cn('w-full h-20 rounded-2xl', MOOD_COLORS[value])}
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          />
-          <p className="text-sm text-muted-foreground">
-            Preview of {MOODS.find((m) => m.value === value)?.label} mood
-          </p>
-        </motion.div>
-      )}
     </div>
   );
 }

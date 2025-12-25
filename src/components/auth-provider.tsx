@@ -9,9 +9,10 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<void>;
-  signInWithEmail: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUpWithEmail: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithEmail: (email: string, password: string) => Promise<{ error: string | null }>;
+  signUpWithEmail: (email: string, password: string) => Promise<{ error: string | null }>;
+  resetPassword: (email: string) => Promise<{ error: string | null }>;
+  updatePassword: (newPassword: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -24,59 +25,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
 
   useEffect(() => {
-    // Clean up OAuth code param from URL if present
-    const cleanupOAuthParams = () => {
-      const url = new URL(window.location.href);
-      if (url.searchParams.has('code') || url.searchParams.has('error')) {
-        url.searchParams.delete('code');
-        url.searchParams.delete('error');
-        url.searchParams.delete('error_description');
-        window.history.replaceState({}, '', url.pathname + url.search);
-      }
-    };
-
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
-      // Clean up URL after session is established
-      if (session) {
-        cleanupOAuthParams();
-      }
     });
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
-      // Clean up URL when user signs in
-      if (event === 'SIGNED_IN') {
-        cleanupOAuthParams();
-      }
     });
 
     return () => subscription.unsubscribe();
   }, [supabase.auth]);
-
-  const signInWithGoogle = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-  };
 
   const signInWithEmail = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    return { error: error as Error | null };
+    if (error) {
+      return { error: error.message };
+    }
+    return { error: null };
   };
 
   const signUpWithEmail = async (email: string, password: string) => {
@@ -87,7 +63,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
-    return { error: error as Error | null };
+    if (error) {
+      return { error: error.message };
+    }
+    return { error: null };
+  };
+
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
+    });
+    if (error) {
+      return { error: error.message };
+    }
+    return { error: null };
+  };
+
+  const updatePassword = async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+    if (error) {
+      return { error: error.message };
+    }
+    return { error: null };
   };
 
   const signOut = async () => {
@@ -105,9 +104,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         session,
         loading,
-        signInWithGoogle,
         signInWithEmail,
         signUpWithEmail,
+        resetPassword,
+        updatePassword,
         signOut,
       }}
     >

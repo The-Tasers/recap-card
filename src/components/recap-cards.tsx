@@ -48,13 +48,13 @@ import {
 } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-// Mood color mapping for gradient overlay
+// Mood color mapping for gradient overlay using new palette
 const MOOD_COLORS: Record<Mood, string> = {
-  great: 'rgba(16, 185, 129, 0.85)', // emerald
-  good: 'rgba(34, 197, 94, 0.85)', // green
-  neutral: 'rgba(245, 158, 11, 0.85)', // amber
-  bad: 'rgba(249, 115, 22, 0.85)', // orange
-  terrible: 'rgba(239, 68, 68, 0.85)', // red
+  great: 'rgba(34, 197, 94, 0.85)', // #22c55e
+  good: 'rgba(132, 204, 22, 0.85)', // #84cc16
+  okay: 'rgba(234, 179, 8, 0.85)', // #eab308
+  low: 'rgba(249, 115, 22, 0.85)', // #f97316
+  rough: 'rgba(239, 68, 68, 0.85)', // #ef4444
 };
 
 // Format relative date for stream

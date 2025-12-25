@@ -14,7 +14,7 @@ export interface Database {
           id: string;
           user_id: string;
           text: string;
-          mood: 'great' | 'good' | 'neutral' | 'bad' | 'terrible';
+          mood: 'great' | 'good' | 'okay' | 'low' | 'rough';
           photo_url: string | null;
           blocks: Json | null;
           created_at: string;
@@ -24,7 +24,7 @@ export interface Database {
           id?: string;
           user_id: string;
           text: string;
-          mood: 'great' | 'good' | 'neutral' | 'bad' | 'terrible';
+          mood: 'great' | 'good' | 'okay' | 'low' | 'rough';
           photo_url?: string | null;
           blocks?: Json | null;
           created_at?: string;
@@ -34,7 +34,7 @@ export interface Database {
           id?: string;
           user_id?: string;
           text?: string;
-          mood?: 'great' | 'good' | 'neutral' | 'bad' | 'terrible';
+          mood?: 'great' | 'good' | 'okay' | 'low' | 'rough';
           photo_url?: string | null;
           blocks?: Json | null;
           created_at?: string;

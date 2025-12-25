@@ -1,7 +1,13 @@
-export type Mood = 'great' | 'good' | 'neutral' | 'bad' | 'terrible';
+export type Mood = 'great' | 'good' | 'okay' | 'low' | 'rough';
 
 // App color themes
-export type ColorTheme = 'midnight' | 'ocean' | 'ember' | 'linen' | 'sage' | 'rose';
+export type ColorTheme =
+  | 'midnight'
+  | 'ocean'
+  | 'ember'
+  | 'linen'
+  | 'sage'
+  | 'rose';
 
 export const COLOR_THEMES: {
   value: ColorTheme;
@@ -54,32 +60,19 @@ export const COLOR_THEMES: {
   },
 ];
 
-// Import design system types
-import {
-  type PaletteId as PaletteIdType,
-  type StoryTemplateId as StoryTemplateIdType,
-  type StyleId as StyleIdType,
-  type TypographySetId as TypographySetIdType,
-  COLOR_PALETTES as COLOR_PALETTES_IMPL,
-  STORY_TEMPLATES as STORY_TEMPLATES_IMPL,
-  VISUAL_STYLES as VISUAL_STYLES_IMPL,
-  TYPOGRAPHY_SETS as TYPOGRAPHY_SETS_IMPL,
-} from './design-system';
-
-// Re-export design system types for unified usage
-export type PaletteId = PaletteIdType;
-export type StoryTemplateId = StoryTemplateIdType;
-export type StyleId = StyleIdType;
-export type TypographySetId = TypographySetIdType;
-export const COLOR_PALETTES = COLOR_PALETTES_IMPL;
-export const STORY_TEMPLATES = STORY_TEMPLATES_IMPL;
-export const VISUAL_STYLES = VISUAL_STYLES_IMPL;
-export const TYPOGRAPHY_SETS = TYPOGRAPHY_SETS_IMPL;
-
 // Block types for modular card content
-export type BlockType = 'text' | 'number' | 'link' | 'slider' | 'weather' | 'multiselect' | 'checkbox';
+export type BlockType = 'text' | 'number' | 'multiselect';
 
-export type BlockId = 'sleep' | 'weather' | 'meals' | 'selfcare' | 'health' | 'exercise';
+export type BlockId =
+  | 'sleep'
+  | 'weather'
+  | 'meals'
+  | 'selfcare'
+  | 'health'
+  | 'exercise'
+  | 'social'
+  | 'productivity'
+  | 'hobbies';
 
 export interface CardBlock {
   id: string;
@@ -89,20 +82,156 @@ export interface CardBlock {
   value: string | number | string[]; // string[] for multiselect
   order: number;
   icon?: string;
-  // Weather-specific fields
-  weatherCondition?: string;
-  temperature?: number;
-  temperatureUnit?: 'C' | 'F';
 }
 
-// Legacy type aliases for backward compatibility
-export type TemplateId =
-  | 'default'
-  | 'photoHeader'
-  | 'ultraMinimal'
-  | 'mixedGrid';
-export type ThemeId = 'sunrise' | 'ocean' | 'sunset' | 'forest' | 'lavender';
-export type FontPreset = 'system' | 'serif' | 'mono' | 'rounded';
+export interface DailyCard {
+  id: string;
+  text: string;
+  mood: Mood;
+  photoUrl?: string;
+  createdAt: string;
+  blocks?: CardBlock[];
+}
+
+// Predefined block definitions
+export const BLOCK_DEFINITIONS: Record<
+  BlockId,
+  { type: BlockType; label: string }
+> = {
+  sleep: {
+    type: 'number',
+    label: 'Hours slept',
+  },
+  weather: {
+    type: 'multiselect',
+    label: 'Weather outside',
+  },
+  meals: {
+    type: 'multiselect',
+    label: 'Meals eaten',
+  },
+  selfcare: {
+    type: 'multiselect',
+    label: 'Daily hygiene',
+  },
+  health: {
+    type: 'multiselect',
+    label: 'Health events',
+  },
+  exercise: {
+    type: 'multiselect',
+    label: 'Workout done',
+  },
+  social: {
+    type: 'multiselect',
+    label: 'Social time',
+  },
+  productivity: {
+    type: 'multiselect',
+    label: 'Productive tasks',
+  },
+  hobbies: {
+    type: 'multiselect',
+    label: 'Hobbies enjoyed',
+  },
+};
+
+// Block options definitions
+export const WEATHER_OPTIONS = [
+  { value: 'sunny', label: 'sunny' },
+  { value: 'partly-cloudy', label: 'partly cloudy' },
+  { value: 'cloudy', label: 'cloudy' },
+  { value: 'rainy', label: 'rainy' },
+  { value: 'stormy', label: 'stormy' },
+  { value: 'snowy', label: 'snowy' },
+  { value: 'foggy', label: 'foggy' },
+  { value: 'windy', label: 'windy' },
+];
+
+export const MEAL_OPTIONS = [
+  { value: 'breakfast', label: 'breakfast' },
+  { value: 'lunch', label: 'lunch' },
+  { value: 'dinner', label: 'dinner' },
+  { value: 'night-snack', label: 'night snack' },
+];
+
+export const SELFCARE_OPTIONS = [
+  { value: 'shower', label: 'shower' },
+  { value: 'brush-teeth', label: 'brush teeth' },
+  { value: 'wash-face', label: 'wash face' },
+  { value: 'drink-water', label: 'drink water' },
+];
+
+export const HEALTH_OPTIONS = [
+  { value: 'sick', label: 'sick' },
+  { value: 'hospital', label: 'hospital' },
+  { value: 'checkup', label: 'checkup' },
+  { value: 'medicine', label: 'medicine' },
+];
+
+export const EXERCISE_OPTIONS = [
+  { value: 'running', label: 'running' },
+  { value: 'walking', label: 'walking' },
+  { value: 'cycling', label: 'cycling' },
+  { value: 'swimming', label: 'swimming' },
+  { value: 'gym', label: 'gym' },
+  { value: 'yoga', label: 'yoga' },
+  { value: 'stretching', label: 'stretching' },
+  { value: 'hiking', label: 'hiking' },
+  { value: 'dancing', label: 'dancing' },
+  { value: 'sports', label: 'sports' },
+];
+
+export const SOCIAL_OPTIONS = [
+  { value: 'family', label: 'family time' },
+  { value: 'friends', label: 'friends' },
+  { value: 'date', label: 'date' },
+  { value: 'call', label: 'phone call' },
+  { value: 'texting', label: 'texting' },
+  { value: 'videocall', label: 'video call' },
+  { value: 'party', label: 'party' },
+  { value: 'alone', label: 'alone time' },
+];
+
+export const PRODUCTIVITY_OPTIONS = [
+  { value: 'work', label: 'work' },
+  { value: 'study', label: 'study' },
+  { value: 'writing', label: 'writing' },
+  { value: 'tasks', label: 'tasks done' },
+  { value: 'goals', label: 'goal progress' },
+  { value: 'coding', label: 'coding' },
+  { value: 'meeting', label: 'meetings' },
+  { value: 'focused', label: 'deep focus' },
+];
+
+export const HOBBIES_OPTIONS = [
+  { value: 'gaming', label: 'gaming' },
+  { value: 'art', label: 'art' },
+  { value: 'photography', label: 'photography' },
+  { value: 'music', label: 'music' },
+  { value: 'reading', label: 'reading' },
+  { value: 'movies', label: 'movies/TV' },
+  { value: 'cooking', label: 'cooking' },
+  { value: 'outdoors', label: 'outdoors' },
+];
+
+export const MOODS: {
+  value: Mood;
+  label: string;
+  emoji: string;
+  color: string;
+  bgColor: string;
+}[] = [
+  { value: 'great', label: 'Great', emoji: '😄', color: '#22c55e', bgColor: '#16593420' },
+  { value: 'good', label: 'Good', emoji: '🙂', color: '#84cc16', bgColor: '#3f621220' },
+  { value: 'okay', label: 'Okay', emoji: '😐', color: '#eab308', bgColor: '#a1620720' },
+  { value: 'low', label: 'Low', emoji: '😔', color: '#f97316', bgColor: '#c2410c20' },
+  { value: 'rough', label: 'Rough', emoji: '😢', color: '#ef4444', bgColor: '#b91c1c20' },
+];
+
+export const getMoodInfo = (mood: Mood) => {
+  return MOODS.find((m) => m.value === mood) || MOODS[2];
+};
 
 // Question categories
 export type QuestionCategory =
@@ -111,186 +240,3 @@ export type QuestionCategory =
   | 'work'
   | 'creativity'
   | 'random';
-
-export interface DailyCard {
-  id: string;
-  text: string;
-  mood: Mood;
-  photoUrl?: string;
-  createdAt: string;
-
-  // New optional fields
-  blocks?: CardBlock[];
-
-  // New design system fields
-  palette?: PaletteId;
-  storyTemplate?: StoryTemplateId;
-  style?: StyleId;
-  typography?: TypographySetId;
-  showGrain?: boolean;
-  showVignette?: boolean;
-
-  // Legacy fields (deprecated, for backward compatibility)
-  template?: TemplateId;
-  theme?: ThemeId;
-  font?: FontPreset;
-  darkMode?: boolean;
-}
-
-// Predefined block definitions
-export const BLOCK_DEFINITIONS: Record<
-  BlockId,
-  { type: BlockType; label: string; placeholder: string; icon: string }
-> = {
-  sleep: {
-    type: 'number',
-    label: 'Hours slept',
-    placeholder: '0',
-    icon: '🌙',
-  },
-  weather: {
-    type: 'multiselect',
-    label: 'Weather outside',
-    placeholder: 'Select condition...',
-    icon: '☀️',
-  },
-  meals: {
-    type: 'multiselect',
-    label: 'Meals eaten',
-    placeholder: 'Select meals...',
-    icon: '🍳',
-  },
-  selfcare: {
-    type: 'multiselect',
-    label: 'Daily hygiene',
-    placeholder: 'Select activities...',
-    icon: '🚿',
-  },
-  health: {
-    type: 'multiselect',
-    label: 'Health events',
-    placeholder: 'Select items...',
-    icon: '🩺',
-  },
-  exercise: {
-    type: 'multiselect',
-    label: 'Workout done',
-    placeholder: 'Select activities...',
-    icon: '🏃',
-  },
-};
-
-// Template definitions
-export const TEMPLATES: Record<
-  TemplateId,
-  { name: string; description: string }
-> = {
-  default: { name: 'Classic', description: 'Standard card layout' },
-  photoHeader: {
-    name: 'Photo Header',
-    description: 'Large photo with two columns below',
-  },
-  ultraMinimal: {
-    name: 'Ultra Minimal',
-    description: 'Text-only, clean design',
-  },
-  mixedGrid: {
-    name: 'Mixed Grid',
-    description: 'Photo + metrics + notes in grid',
-  },
-};
-
-// Theme definitions
-export const THEMES: Record<ThemeId, { name: string; gradient: string }> = {
-  sunrise: {
-    name: 'Sunrise',
-    gradient: 'from-amber-50/80 via-white to-violet-50/80',
-  },
-  ocean: { name: 'Ocean', gradient: 'from-cyan-50/80 via-white to-blue-50/80' },
-  sunset: {
-    name: 'Sunset',
-    gradient: 'from-orange-50/80 via-white to-pink-50/80',
-  },
-  forest: {
-    name: 'Forest',
-    gradient: 'from-green-50/80 via-white to-emerald-50/80',
-  },
-  lavender: {
-    name: 'Lavender',
-    gradient: 'from-purple-50/80 via-white to-indigo-50/80',
-  },
-};
-
-// Font presets
-export const FONT_PRESETS: Record<
-  FontPreset,
-  { name: string; className: string }
-> = {
-  system: { name: 'Sans', className: 'font-sans' },
-  serif: { name: 'Serif', className: 'font-serif' },
-  mono: { name: 'Mono', className: 'font-mono' },
-  rounded: { name: 'Rounded', className: 'font-sans' }, // Would need custom font
-};
-
-export const MOODS: {
-  value: Mood;
-  label: string;
-  emoji: string;
-  color: string;
-}[] = [
-  { value: 'great', label: 'Great', emoji: '😄', color: 'bg-green-500' },
-  { value: 'good', label: 'Good', emoji: '🙂', color: 'bg-lime-500' },
-  { value: 'neutral', label: 'Neutral', emoji: '😐', color: 'bg-yellow-500' },
-  { value: 'bad', label: 'Bad', emoji: '😔', color: 'bg-orange-500' },
-  { value: 'terrible', label: 'Terrible', emoji: '😢', color: 'bg-red-500' },
-];
-
-export const getMoodInfo = (mood: Mood) => {
-  return MOODS.find((m) => m.value === mood) || MOODS[2];
-};
-
-// Block options definitions
-export const WEATHER_OPTIONS = [
-  { value: 'sunny', label: 'sunny', icon: '☀️' },
-  { value: 'partly-cloudy', label: 'partly cloudy', icon: '⛅' },
-  { value: 'cloudy', label: 'cloudy', icon: '☁️' },
-  { value: 'rainy', label: 'rainy', icon: '🌧️' },
-  { value: 'stormy', label: 'stormy', icon: '⛈️' },
-  { value: 'snowy', label: 'snowy', icon: '❄️' },
-  { value: 'foggy', label: 'foggy', icon: '🌫️' },
-  { value: 'windy', label: 'windy', icon: '💨' },
-];
-
-export const MEAL_OPTIONS = [
-  { value: 'breakfast', label: 'breakfast', icon: '🍳' },
-  { value: 'lunch', label: 'lunch', icon: '🥗' },
-  { value: 'dinner', label: 'dinner', icon: '🍽️' },
-  { value: 'night-snack', label: 'night snack', icon: '🍪' },
-];
-
-export const SELFCARE_OPTIONS = [
-  { value: 'shower', label: 'shower', icon: '🚿' },
-  { value: 'brush-teeth', label: 'brush teeth', icon: '🪥' },
-  { value: 'wash-face', label: 'wash face', icon: '🧼' },
-  { value: 'drink-water', label: 'drink water', icon: '💧' },
-];
-
-export const HEALTH_OPTIONS = [
-  { value: 'sick', label: 'sick', icon: '🤢' },
-  { value: 'hospital', label: 'hospital', icon: '🏥' },
-  { value: 'checkup', label: 'checkup', icon: '🩺' },
-  { value: 'medicine', label: 'medicine', icon: '💊' },
-];
-
-export const EXERCISE_OPTIONS = [
-  { value: 'running', label: 'running', icon: '🏃' },
-  { value: 'walking', label: 'walking', icon: '🚶' },
-  { value: 'cycling', label: 'cycling', icon: '🚴' },
-  { value: 'swimming', label: 'swimming', icon: '🏊' },
-  { value: 'gym', label: 'gym', icon: '🏋️' },
-  { value: 'yoga', label: 'yoga', icon: '🧘' },
-  { value: 'stretching', label: 'stretching', icon: '🤸' },
-  { value: 'hiking', label: 'hiking', icon: '🥾' },
-  { value: 'dancing', label: 'dancing', icon: '💃' },
-  { value: 'sports', label: 'sports', icon: '⚽' },
-];

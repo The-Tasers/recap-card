@@ -2,14 +2,17 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  motion,
-  AnimatePresence,
-  useMotionValue,
-  useTransform,
-  PanInfo,
-} from 'framer-motion';
-import { Trash2, Undo2, Moon, X, ZoomIn } from 'lucide-react';
+  Trash2,
+  Undo2,
+  Moon,
+  X,
+  ZoomIn,
+  Pencil,
+  ChevronUp,
+  MoreVertical,
+} from 'lucide-react';
 import {
   MOOD_ICONS,
   WEATHER_ICONS,
@@ -68,158 +71,13 @@ function formatSleepDuration(totalMinutes: number): string {
   return `${hours}h ${mins}m`;
 }
 
-// Tooltip component with mobile tap support - renders tooltip in portal to avoid overflow clipping
-function BlockTooltip({
-  icon: Icon,
-  label,
-  onInteraction,
-}: {
-  icon: LucideIcon;
-  label: string;
-  onInteraction: (e: React.MouseEvent | React.TouchEvent) => void;
-}) {
-  const [tooltipState, setTooltipState] = useState<{
-    show: boolean;
-    top: number;
-    left: number;
-    align: 'center' | 'left' | 'right';
-  }>({ show: false, top: 0, left: 0, align: 'center' });
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Close tooltip on click outside and auto-hide
-  useEffect(() => {
-    if (!tooltipState.show) return;
-
-    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      const target = e.target as Node;
-      if (buttonRef.current && !buttonRef.current.contains(target)) {
-        setTooltipState((prev) => ({ ...prev, show: false }));
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
-
-    // Auto-hide after 2 seconds
-    timeoutRef.current = setTimeout(
-      () => setTooltipState((prev) => ({ ...prev, show: false })),
-      2000
-    );
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, [tooltipState.show]);
-
-  const showTooltipAtPosition = () => {
-    if (buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      const screenWidth = window.innerWidth;
-      const tooltipWidth = 120; // Approximate max tooltip width
-      const centerX = rect.left + rect.width / 2;
-      const padding = 8;
-
-      // Determine alignment based on position
-      let align: 'center' | 'left' | 'right' = 'center';
-      let left = centerX;
-
-      if (centerX - tooltipWidth / 2 < padding) {
-        // Too close to left edge - align left
-        align = 'left';
-        left = rect.left;
-      } else if (centerX + tooltipWidth / 2 > screenWidth - padding) {
-        // Too close to right edge - align right
-        align = 'right';
-        left = rect.right;
-      }
-
-      setTooltipState({
-        show: true,
-        top: rect.top - 8,
-        left,
-        align,
-      });
-    }
-  };
-
-  const handleClick = (e: React.MouseEvent | React.TouchEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    onInteraction(e);
-    if (tooltipState.show) {
-      setTooltipState((prev) => ({ ...prev, show: false }));
-    } else {
-      showTooltipAtPosition();
-    }
-  };
-
-  // Check if we're on client side for portal
-  const isClient = typeof window !== 'undefined';
-
-  return (
-    <>
-      <button
-        ref={buttonRef}
-        type="button"
-        onClick={handleClick}
-        onMouseEnter={showTooltipAtPosition}
-        onMouseLeave={() =>
-          setTooltipState((prev) => ({ ...prev, show: false }))
-        }
-        className="p-1.5 rounded-md bg-primary/10 hover:bg-primary/20 transition-colors"
-        aria-label={label}
-      >
-        <Icon className="h-3.5 w-3.5 text-primary/70" />
-      </button>
-      {isClient &&
-        tooltipState.show &&
-        createPortal(
-          <div
-            style={{
-              position: 'fixed',
-              top: tooltipState.top,
-              left: tooltipState.left,
-              transform:
-                tooltipState.align === 'center'
-                  ? 'translate(-50%, -100%)'
-                  : tooltipState.align === 'left'
-                  ? 'translate(0, -100%)'
-                  : 'translate(-100%, -100%)',
-            }}
-            className="px-2 py-1 text-xs font-medium bg-foreground text-background rounded-md whitespace-nowrap z-[100] shadow-lg pointer-events-none"
-          >
-            {label}
-            <div
-              className="absolute top-full border-4 border-transparent border-t-foreground"
-              style={{
-                left:
-                  tooltipState.align === 'center'
-                    ? '50%'
-                    : tooltipState.align === 'left'
-                    ? '12px'
-                    : 'auto',
-                right: tooltipState.align === 'right' ? '12px' : 'auto',
-                transform:
-                  tooltipState.align === 'center' ? 'translateX(-50%)' : 'none',
-              }}
-            />
-          </div>,
-          document.body
-        )}
-    </>
-  );
-}
-
-// Subtle mood accent - just enough to give warmth without overwhelming
+// Mood icon colors - matching the app's mood color palette
 const MOOD_ACCENTS: Record<string, string> = {
-  great: 'text-emerald-600 dark:text-emerald-400',
-  good: 'text-green-600 dark:text-green-400',
-  neutral: 'text-amber-600 dark:text-amber-400',
-  bad: 'text-orange-600 dark:text-orange-400',
-  terrible: 'text-red-600 dark:text-red-400',
+  great: 'text-[#22c55e]',
+  good: 'text-[#84cc16]',
+  okay: 'text-[#eab308]',
+  low: 'text-[#f97316]',
+  rough: 'text-[#ef4444]',
 };
 
 // Warm delete messages
@@ -247,15 +105,19 @@ function formatNaturalDate(date: Date): string {
   if (diffDays === 0) return 'Today';
   if (diffDays === 1) return 'Yesterday';
   if (diffDays < 7) {
-    return date.toLocaleDateString('en-US', { weekday: 'long' });
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    });
   }
 
   // For older entries, use a gentle format
   const sameYear = date.getFullYear() === now.getFullYear();
   if (sameYear) {
     return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
+      weekday: 'long',
+      month: 'long',
       day: 'numeric',
     });
   }
@@ -265,20 +127,6 @@ function formatNaturalDate(date: Date): string {
     day: 'numeric',
     year: 'numeric',
   });
-}
-
-// Detect mobile by screen width
-function useIsMobile(breakpoint = 768) {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < breakpoint);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, [breakpoint]);
-
-  return isMobile;
 }
 
 interface TimelineEntryProps {
@@ -301,10 +149,12 @@ export function TimelineEntry({
   isPendingDelete: externalPendingDelete = false,
 }: TimelineEntryProps) {
   const [isExpanded, setIsExpanded] = useState(isToday);
-  const [pendingDelete, setPendingDelete] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState('');
-  const [isSwipedOpen, setIsSwipedOpen] = useState(false);
+  const [showCardMenu, setShowCardMenu] = useState(false);
   const [showPhotoViewer, setShowPhotoViewer] = useState(false);
+  const [blocksExpanded, setBlocksExpanded] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Check if we're on client side for photo viewer portal
   const isClient = typeof window !== 'undefined';
@@ -337,29 +187,42 @@ export function TimelineEntry({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [showPhotoViewer]);
 
-  const deleteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const entryRef = useRef<HTMLDivElement>(null);
   const MoodIcon = MOOD_ICONS[card.mood];
   const cardDate = new Date(card.createdAt);
-  const isMobile = useIsMobile();
 
-  // Swipe gesture state
-  const x = useMotionValue(0);
-  const deleteButtonOpacity = useTransform(x, [-60, -30, 0], [1, 0.5, 0]);
-  const deleteButtonScale = useTransform(x, [-60, -30, 0], [1, 0.9, 0.8]);
-
-  // Clear pending delete after timeout
+  // Close card menu on click outside or escape
   useEffect(() => {
-    if (pendingDelete) {
-      deleteTimeoutRef.current = setTimeout(() => {
-        setPendingDelete(false);
-      }, 3000);
-    }
-    return () => {
-      if (deleteTimeoutRef.current) {
-        clearTimeout(deleteTimeoutRef.current);
+    if (!showCardMenu) return;
+
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(target) &&
+        menuButtonRef.current &&
+        !menuButtonRef.current.contains(target)
+      ) {
+        setShowCardMenu(false);
       }
     };
-  }, [pendingDelete]);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowCardMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showCardMenu]);
 
   // Handle delete with animation - now shows longer state with undo option
   const handleDelete = () => {
@@ -373,54 +236,8 @@ export function TimelineEntry({
     if (onUndo) {
       onUndo();
       setDeleteMessage('');
-      setPendingDelete(false);
     }
   };
-
-  // Handle delete with confirmation (keyboard)
-  const handleDeleteRequest = () => {
-    if (pendingDelete) {
-      handleDelete();
-    } else {
-      setPendingDelete(true);
-    }
-  };
-
-  // Handle swipe end - snap open or closed, don't auto-delete
-  const handleDragEnd = (_: unknown, info: PanInfo) => {
-    if (info.offset.x < -50 && isMobile) {
-      // Snap to open position to reveal delete button
-      setIsSwipedOpen(true);
-    } else {
-      // Snap back closed
-      setIsSwipedOpen(false);
-    }
-  };
-
-  // Close swipe when clicking elsewhere or after timeout
-  useEffect(() => {
-    if (isSwipedOpen) {
-      const timer = setTimeout(() => setIsSwipedOpen(false), 5000);
-
-      // Close on click outside
-      const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-        const target = e.target as HTMLElement;
-        // Check if click is outside this card entry
-        if (!target.closest(`[data-card-id="${card.id}"]`)) {
-          setIsSwipedOpen(false);
-        }
-      };
-
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
-
-      return () => {
-        clearTimeout(timer);
-        document.removeEventListener('mousedown', handleClickOutside);
-        document.removeEventListener('touchstart', handleClickOutside);
-      };
-    }
-  }, [isSwipedOpen, card.id]);
 
   // Collapse expanded card when clicking outside (for non-today cards)
   useEffect(() => {
@@ -458,66 +275,33 @@ export function TimelineEntry({
 
   return (
     <>
-      <AnimatePresence mode="popLayout">
-        {!isDeleting ? (
-          <motion.div
-            key={card.id}
-            data-card-id={card.id}
-            layout
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{
-              opacity: 0,
-              scale: 0.8,
-              x: -100,
-              filter: 'blur(8px)',
-              transition: { duration: 0.3, ease: 'easeOut' },
-            }}
-            transition={{
-              type: 'spring',
-              stiffness: 500,
-              damping: 30,
-              opacity: { duration: 0.2 },
-            }}
-            className={cn('group relative', isToday && 'pb-2')}
-          >
-            {/* Swipe delete button (mobile only) */}
-            {isMobile && (
-              <motion.div
-                className="absolute top-0 bottom-0 right-0 w-12 rounded-r-xl flex items-center justify-end pr-1"
-                style={{ marginBottom: isToday ? '8px' : 0 }}
-              >
-                <motion.button
-                  className="h-8 w-8 rounded-full bg-destructive/10 flex items-center justify-center hover:bg-destructive/20 transition-colors"
-                  style={{
-                    opacity: deleteButtonOpacity,
-                    scale: deleteButtonScale,
-                  }}
-                  animate={{
-                    opacity: isSwipedOpen ? 1 : 0,
-                    scale: isSwipedOpen ? 1 : 0.8,
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete();
-                  }}
-                >
-                  <Trash2 className="h-3.5 w-3.5 text-destructive/70" />
-                </motion.button>
-              </motion.div>
-            )}
-
-            {/* Entry content - draggable on mobile */}
+      <div ref={entryRef}>
+        <AnimatePresence mode="popLayout">
+          {!isDeleting ? (
+            <motion.div
+              key={card.id}
+              data-card-id={card.id}
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{
+                opacity: 0,
+                scale: 0.8,
+                x: -100,
+                filter: 'blur(8px)',
+                transition: { duration: 0.3, ease: 'easeOut' },
+              }}
+              transition={{
+                type: 'spring',
+                stiffness: 500,
+                damping: 30,
+                opacity: { duration: 0.2 },
+              }}
+              className={cn('group relative', isToday && 'pb-2')}
+            >
+            {/* Entry content */}
             <motion.div
               role="button"
               tabIndex={0}
-              drag={isMobile ? 'x' : false}
-              dragConstraints={{ left: -80, right: 0 }}
-              dragElastic={{ left: 0.2, right: 0 }}
-              dragDirectionLock
-              onDragEnd={handleDragEnd}
-              style={{ x, touchAction: isMobile ? 'pan-y' : 'auto' }}
-              animate={{ x: isSwipedOpen ? -60 : 0 }}
               className={cn(
                 'relative cursor-pointer transition-colors duration-200 rounded-xl -mx-3 px-3 py-3',
                 'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
@@ -525,112 +309,94 @@ export function TimelineEntry({
                 'border border-transparent dark:border-transparent',
                 isToday
                   ? 'bg-muted/50 hover:bg-muted/60 border-border/30'
-                  : 'bg-muted/20 hover:bg-muted/40 border-border/20 hover:border-border/30',
-                pendingDelete && 'bg-destructive/5 border-destructive/20'
+                  : 'bg-muted/20 hover:bg-muted/40 border-border/20 hover:border-border/30'
               )}
               onClick={() => {
-                // Close swipe if open
-                if (isSwipedOpen) {
-                  setIsSwipedOpen(false);
-                  return;
-                }
-                if (pendingDelete) return;
-
-                // For cards with more content: click to expand first, then click again to open
-                if (hasMoreContent && !isToday && !isExpanded) {
-                  setIsExpanded(true);
-                } else {
-                  onEdit();
+                // Click to expand/collapse cards with more content
+                if (hasMoreContent && !isToday) {
+                  setIsExpanded(!isExpanded);
                 }
               }}
               onKeyDown={(e) => {
-                // Escape - cancel pending delete
-                if (e.key === 'Escape' && pendingDelete) {
-                  e.preventDefault();
-                  setPendingDelete(false);
-                  return;
-                }
-                // Enter/Space - open for editing (or confirm delete if pending)
+                // Enter/Space - expand/collapse cards with more content
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  if (pendingDelete) {
-                    handleDelete();
-                  } else {
-                    onEdit();
+                  if (hasMoreContent && !isToday) {
+                    setIsExpanded(!isExpanded);
                   }
-                }
-                // Delete/Backspace - delete card (with confirmation)
-                if (e.key === 'Delete' || e.key === 'Backspace') {
-                  e.preventDefault();
-                  handleDeleteRequest();
                 }
               }}
             >
               {/* Date and mood row */}
               <div className="flex items-center gap-3">
-                <motion.div
-                  animate={pendingDelete ? { scale: [1, 1.2, 1] } : {}}
-                  transition={{
-                    repeat: pendingDelete ? Infinity : 0,
-                    duration: 1,
-                  }}
-                >
-                  <MoodIcon
-                    className={cn('h-5 w-5', MOOD_ACCENTS[card.mood])}
-                  />
-                </motion.div>
+                <MoodIcon
+                  className={cn('h-5 w-5', MOOD_ACCENTS[card.mood])}
+                />
                 <span className="text-sm text-muted-foreground">
                   {formatNaturalDate(cardDate)}
                 </span>
-                {/* Hover delete button or confirmation (desktop only) */}
-                {!isMobile && (
-                  <div className="ml-auto flex items-center justify-end min-w-[90px] h-7">
-                    <AnimatePresence mode="wait">
-                      {pendingDelete ? (
-                        <motion.div
-                          key="delete-confirm"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          className="flex items-center gap-2 h-7"
-                        >
+                {/* 3-dot menu button - always visible on mobile, hover on desktop */}
+                <div className="ml-auto relative">
+                  <button
+                    ref={menuButtonRef}
+                    className={cn(
+                      'h-7 w-7 rounded-full flex items-center justify-center text-muted-foreground/50 hover:bg-muted hover:text-muted-foreground transition-all duration-200 z-10',
+                      // Always visible on mobile, show on hover on desktop
+                      'md:opacity-0 md:group-hover:opacity-100'
+                    )}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowCardMenu(!showCardMenu);
+                    }}
+                    aria-label="Card menu"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </button>
+
+                  {/* Popover menu */}
+                  <AnimatePresence>
+                    {showCardMenu && (
+                      <motion.div
+                        ref={menuRef}
+                        initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute top-full right-0 mt-1 bg-popover border border-border rounded-xl shadow-lg overflow-hidden min-w-32 z-50"
+                      >
+                        <div className="py-1">
+                          {/* Edit option */}
                           <button
-                            className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+                            type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setPendingDelete(false);
+                              setShowCardMenu(false);
+                              onEdit();
                             }}
-                            aria-label="Cancel delete"
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted/50 transition-colors"
                           >
-                            Cancel
+                            <Pencil className="h-4 w-4 text-muted-foreground" />
+                            Edit
                           </button>
+
+                          {/* Delete option */}
                           <button
-                            className="text-xs text-destructive/70 hover:text-destructive font-medium transition-colors"
+                            type="button"
                             onClick={(e) => {
                               e.stopPropagation();
+                              setShowCardMenu(false);
                               handleDelete();
                             }}
-                            aria-label="Confirm delete"
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
                           >
+                            <Trash2 className="h-4 w-4" />
                             Delete
                           </button>
-                        </motion.div>
-                      ) : (
-                        <button
-                          key="delete-button"
-                          className="h-7 w-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 text-muted-foreground/50 hover:bg-destructive/10 hover:text-destructive/70 transition-all duration-200 z-10"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteRequest();
-                          }}
-                          aria-label="Delete entry"
-                        >
-                          <Trash2 className="h-3.5 w-3.5 transition-colors" />
-                        </button>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
 
               {/* Text content */}
@@ -692,66 +458,113 @@ export function TimelineEntry({
                       </motion.div>
                     )}
 
-                    {/* Blocks - shown as icons with tooltips */}
+                    {/* Blocks - shown as text chips with expand/collapse */}
                     {hasBlocks && (
-                      <motion.div
-                        className="mt-3 flex flex-wrap gap-1.5"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.15 }}
-                      >
-                        {card.blocks?.flatMap((block, blockIndex) => {
-                          // Handle sleep block specially
-                          if (
-                            block.blockId === 'sleep' &&
-                            typeof block.value === 'number' &&
-                            block.value > 0
-                          ) {
-                            return (
-                              <motion.div
-                                key={`sleep-${blockIndex}`}
-                                initial={{ scale: 0.8, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                transition={{ delay: 0.1 + blockIndex * 0.03 }}
-                              >
-                                <BlockTooltip
-                                  icon={Moon}
-                                  label={`${formatSleepDuration(
-                                    block.value
-                                  )} sleep`}
-                                  onInteraction={(e) => e.stopPropagation()}
-                                />
-                              </motion.div>
-                            );
-                          }
-                          // Handle multiselect blocks
-                          if (Array.isArray(block.value)) {
-                            return block.value.map((value, valueIndex) => {
-                              const Icon = getBlockIcon(block.blockId, value);
-                              const label = getBlockLabel(block.blockId, value);
-                              if (!Icon) return null;
-                              return (
-                                <motion.div
-                                  key={`${block.blockId}-${value}-${valueIndex}`}
-                                  initial={{ scale: 0.8, opacity: 0 }}
-                                  animate={{ scale: 1, opacity: 1 }}
-                                  transition={{
-                                    delay:
-                                      0.1 + (blockIndex + valueIndex) * 0.03,
-                                  }}
-                                >
-                                  <BlockTooltip
-                                    icon={Icon}
-                                    label={label}
-                                    onInteraction={(e) => e.stopPropagation()}
-                                  />
-                                </motion.div>
-                              );
-                            });
-                          }
-                          return null;
-                        })}
-                      </motion.div>
+                      <div className="mt-3 space-y-2">
+                        {(() => {
+                          // Collect all block items (excluding sleep)
+                          type BlockItem = {
+                            icon: LucideIcon;
+                            label: string;
+                            key: string;
+                          };
+                          const allItems: BlockItem[] = [];
+                          let sleepLabel: string | null = null;
+
+                          card.blocks?.forEach((block) => {
+                            // Handle sleep block specially - save for later
+                            if (
+                              block.blockId === 'sleep' &&
+                              typeof block.value === 'number' &&
+                              block.value > 0
+                            ) {
+                              sleepLabel = formatSleepDuration(block.value);
+                            }
+                            // Handle multiselect blocks
+                            if (Array.isArray(block.value)) {
+                              block.value.forEach((value, valueIndex) => {
+                                const Icon = getBlockIcon(block.blockId, value);
+                                const label = getBlockLabel(
+                                  block.blockId,
+                                  value
+                                );
+                                if (Icon) {
+                                  allItems.push({
+                                    icon: Icon,
+                                    label,
+                                    key: `${block.blockId}-${value}-${valueIndex}`,
+                                  });
+                                }
+                              });
+                            }
+                          });
+
+                          // Calculate visible items (roughly 2 rows worth - about 6 items)
+                          const maxVisible = 6;
+                          const hasMore = allItems.length > maxVisible;
+                          const visibleItems = blocksExpanded
+                            ? allItems
+                            : allItems.slice(0, maxVisible);
+                          const hiddenCount = allItems.length - maxVisible;
+
+                          return (
+                            <>
+                              {allItems.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5">
+                                  {visibleItems.map((item) => {
+                                    const Icon = item.icon;
+                                    return (
+                                      <span
+                                        key={item.key}
+                                        className="inline-flex items-center gap-1 px-2 py-1 rounded-sm bg-muted text-xs text-muted-foreground"
+                                      >
+                                        <Icon className="h-3 w-3" />
+                                        <span>{item.label}</span>
+                                      </span>
+                                    );
+                                  })}
+                                  {/* Show +N more button when collapsed and has more items */}
+                                  {hasMore && !blocksExpanded && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setBlocksExpanded(true);
+                                      }}
+                                      className="inline-flex items-center px-2 py-1 rounded-sm bg-primary/10 text-xs text-primary font-medium hover:bg-primary/20 transition-colors"
+                                    >
+                                      +{hiddenCount} more
+                                    </button>
+                                  )}
+                                  {/* Show "less" button when expanded */}
+                                  {blocksExpanded && hasMore && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setBlocksExpanded(false);
+                                      }}
+                                      className="inline-flex items-center gap-0.5 px-2 py-1 rounded-sm bg-primary/10 text-xs text-primary font-medium hover:bg-primary/20 transition-colors"
+                                    >
+                                      <ChevronUp className="h-3 w-3" />
+                                      Less
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                              {/* Sleep chip - shown at bottom with primary styling like +N more */}
+                              {sleepLabel && (
+                                <div className="flex flex-wrap gap-1.5">
+                                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-sm bg-primary/10 text-xs text-primary font-medium">
+                                    <Moon className="h-3 w-3" />
+                                    <span>{sleepLabel}</span>
+                                  </span>
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </div>
                     )}
                   </motion.div>
                 )}
@@ -803,7 +616,8 @@ export function TimelineEntry({
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+        </AnimatePresence>
+      </div>
 
       {/* Photo viewer - fullscreen lightbox (separate from card AnimatePresence) */}
       {isClient &&
@@ -840,6 +654,7 @@ export function TimelineEntry({
           </AnimatePresence>,
           document.body
         )}
+
     </>
   );
 }

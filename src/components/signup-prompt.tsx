@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Cloud, Sparkles } from 'lucide-react';
+import { X, Cloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/auth-provider';
 import { useCardStore } from '@/lib/store';
@@ -13,41 +13,42 @@ import { cn } from '@/lib/utils';
 const PROMPT_THRESHOLD = 3; // Show after 3 entries
 const STORAGE_KEY = 'signup-prompt-dismissed';
 
-// Mood-specific button colors
+// Mood-specific button colors using new palette
 const MOOD_BUTTON_CLASSES: Record<Mood, string> = {
-  great: 'bg-emerald-500 hover:bg-emerald-600',
-  good: 'bg-green-500 hover:bg-green-600',
-  neutral: 'bg-amber-500 hover:bg-amber-600',
-  bad: 'bg-orange-500 hover:bg-orange-600',
-  terrible: 'bg-red-500 hover:bg-red-600',
+  great: 'bg-[#22c55e] hover:bg-[#16a34a]',
+  good: 'bg-[#84cc16] hover:bg-[#65a30d]',
+  okay: 'bg-[#eab308] hover:bg-[#ca8a04]',
+  low: 'bg-[#f97316] hover:bg-[#ea580c]',
+  rough: 'bg-[#ef4444] hover:bg-[#dc2626]',
 };
 
 // Mood-specific prompt background colors
 const MOOD_BG_CLASSES: Record<Mood, string> = {
-  great: 'from-emerald-50 to-teal-50 dark:from-emerald-950 dark:to-teal-950 border-emerald-200/50 dark:border-emerald-800/50',
-  good: 'from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200/50 dark:border-green-800/50',
-  neutral: 'from-amber-50 to-orange-50 dark:from-amber-950 dark:to-orange-950 border-amber-200/50 dark:border-amber-800/50',
-  bad: 'from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950 border-orange-200/50 dark:border-orange-800/50',
-  terrible: 'from-red-50 to-rose-50 dark:from-red-950 dark:to-rose-950 border-red-200/50 dark:border-red-800/50',
+  great: 'from-[#22c55e]/10 to-[#22c55e]/5 dark:from-[#22c55e]/20 dark:to-[#22c55e]/10 border-[#22c55e]/30',
+  good: 'from-[#84cc16]/10 to-[#84cc16]/5 dark:from-[#84cc16]/20 dark:to-[#84cc16]/10 border-[#84cc16]/30',
+  okay: 'from-[#eab308]/10 to-[#eab308]/5 dark:from-[#eab308]/20 dark:to-[#eab308]/10 border-[#eab308]/30',
+  low: 'from-[#f97316]/10 to-[#f97316]/5 dark:from-[#f97316]/20 dark:to-[#f97316]/10 border-[#f97316]/30',
+  rough: 'from-[#ef4444]/10 to-[#ef4444]/5 dark:from-[#ef4444]/20 dark:to-[#ef4444]/10 border-[#ef4444]/30',
 };
 
 // Mood-specific icon colors
 const MOOD_ICON_CLASSES: Record<Mood, { bg: string; text: string }> = {
-  great: { bg: 'bg-emerald-100 dark:bg-emerald-900/50', text: 'text-emerald-600 dark:text-emerald-400' },
-  good: { bg: 'bg-green-100 dark:bg-green-900/50', text: 'text-green-600 dark:text-green-400' },
-  neutral: { bg: 'bg-amber-100 dark:bg-amber-900/50', text: 'text-amber-600 dark:text-amber-400' },
-  bad: { bg: 'bg-orange-100 dark:bg-orange-900/50', text: 'text-orange-600 dark:text-orange-400' },
-  terrible: { bg: 'bg-red-100 dark:bg-red-900/50', text: 'text-red-600 dark:text-red-400' },
+  great: { bg: 'bg-[#22c55e]/20', text: 'text-[#22c55e]' },
+  good: { bg: 'bg-[#84cc16]/20', text: 'text-[#84cc16]' },
+  okay: { bg: 'bg-[#eab308]/20', text: 'text-[#eab308]' },
+  low: { bg: 'bg-[#f97316]/20', text: 'text-[#f97316]' },
+  rough: { bg: 'bg-[#ef4444]/20', text: 'text-[#ef4444]' },
 };
 
 export function SignupPrompt() {
+  const router = useRouter();
   const { user, loading } = useAuth();
   const { cards, hydrated } = useCardStore();
   const [show, setShow] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
   // Get the most recent card's mood for theming
-  const latestMood: Mood = cards.length > 0 ? cards[0].mood : 'neutral';
+  const latestMood: Mood = cards.length > 0 ? cards[0].mood : 'okay';
 
   useEffect(() => {
     // Check if user previously dismissed
@@ -87,6 +88,11 @@ export function SignupPrompt() {
     localStorage.setItem(STORAGE_KEY, 'true');
   };
 
+  const handleSignUp = () => {
+    handleDismiss();
+    router.push('/signup');
+  };
+
   return (
     <AnimatePresence>
       {show && (
@@ -123,7 +129,7 @@ export function SignupPrompt() {
                 </h3>
                 <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
                   You've captured {cards.length} {cards.length === 1 ? 'moment' : 'moments'}!
-                  Sign up to sync across devices and never lose them.
+                  Sign in to sync across devices and never lose them.
                 </p>
 
                 <div className="flex gap-2">
@@ -138,12 +144,9 @@ export function SignupPrompt() {
                   <Button
                     size="sm"
                     className={cn('flex-1 text-white', MOOD_BUTTON_CLASSES[latestMood])}
-                    asChild
+                    onClick={handleSignUp}
                   >
-                    <Link href="/signup">
-                      <Sparkles className="h-4 w-4 mr-1.5" />
-                      Sign up free
-                    </Link>
+                    Sign up
                   </Button>
                 </div>
               </div>

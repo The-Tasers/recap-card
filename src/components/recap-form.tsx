@@ -1,8 +1,10 @@
 'use client';
 
 import { RefObject, useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { Check, Loader2 } from 'lucide-react';
 import { QuickAdditions } from '@/components/blocks/quick-additions';
+import { MoodSelector } from '@/components/mood-selector';
 import { PhotoData } from '@/components/photo-uploader';
 import { CardBlock, BlockId, Mood } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -18,10 +20,12 @@ interface RecapFormProps {
   photoData: PhotoData | undefined;
   setPhotoData: (data: PhotoData | undefined) => void;
   mood: Mood | undefined;
+  onMoodChange: (mood: Mood) => void;
   textareaRef: RefObject<HTMLTextAreaElement | null>;
   isSubmitting?: boolean;
   onSave?: () => void;
   saveStatus?: SaveStatus;
+  isDirty?: boolean;
 }
 
 const MAX_TEXT_LENGTH = 1000;
@@ -35,10 +39,12 @@ export function RecapForm({
   photoData,
   setPhotoData,
   mood,
+  onMoodChange,
   textareaRef,
   isSubmitting,
   onSave,
   saveStatus = 'idle',
+  isDirty = false,
 }: RecapFormProps) {
   const [isFlashing, setIsFlashing] = useState(false);
 
@@ -109,6 +115,16 @@ export function RecapForm({
       transition={{ duration: 0.2 }}
       className="flex-1 flex flex-col pt-4 pb-4 min-h-0"
     >
+      {/* Mood selector row */}
+      <div className="shrink-0 pb-4">
+        <MoodSelector
+          value={mood}
+          onChange={onMoodChange}
+          size="lg"
+          fullWidth
+        />
+      </div>
+
       {/* Writing area - scrollable */}
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden relative">
         <textarea
@@ -125,59 +141,35 @@ export function RecapForm({
       </div>
 
       {/* Bottom section - fixed at bottom, doesn't scroll */}
-      <div className="shrink-0 pt-4 space-y-3">
-        {/* Quick additions - always visible */}
+      <div className="shrink-0 pt-4">
+        {/* Quick additions with save button */}
         <QuickAdditions
           blocks={blocks}
           onBlocksChange={setBlocks}
           photoData={photoData}
           onPhotoChange={setPhotoData}
+          saveButton={
+            isDirty && mood ? (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.15 }}
+                onClick={onSave}
+                disabled={saveStatus === 'saving'}
+                className="shrink-0 flex items-center gap-1 p-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer rounded-full disabled:opacity-30 disabled:cursor-not-allowed"
+                whileTap={{ scale: 0.95 }}
+                aria-label="Save"
+              >
+                {saveStatus === 'saving' ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Check className="h-5 w-5" />
+                )}
+              </motion.button>
+            ) : null
+          }
         />
-
-        {/* Save button (create mode) or auto-save status (edit mode) */}
-        {onSave ? (
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground/40">⌘ + Enter</span>
-            <motion.button
-              initial={{ opacity: 0.6 }}
-              whileHover={{ opacity: 1 }}
-              onClick={onSave}
-              disabled={isSubmitting || !mood}
-              className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-            >
-              {isSubmitting ? 'Saving...' : 'Save'}
-            </motion.button>
-          </div>
-        ) : (
-          mode === 'edit' && (
-            <div className="flex items-center justify-end h-6">
-              <AnimatePresence mode="wait">
-                {saveStatus === 'saving' && (
-                  <motion.span
-                    key="saving"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="text-xs text-muted-foreground/60"
-                  >
-                    Saving...
-                  </motion.span>
-                )}
-                {saveStatus === 'saved' && (
-                  <motion.span
-                    key="saved"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="text-xs text-muted-foreground/60"
-                  >
-                    Saved
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </div>
-          )
-        )}
       </div>
     </motion.div>
   );

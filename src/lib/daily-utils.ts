@@ -133,7 +133,7 @@ export function getLast7DaysMoodData(cards: DailyCard[]): (number | null)[] {
 // Get mood data for a specific date range (used for GitHub-style grid)
 export interface MoodDayData {
   date: Date;
-  mood: 'great' | 'good' | 'neutral' | 'bad' | 'terrible' | null;
+  mood: 'great' | 'good' | 'okay' | 'low' | 'rough' | null;
   hasRecap: boolean;
   cardId?: string;
 }

@@ -11,7 +11,6 @@ import { RecapForm } from '@/components/recap-form';
 import { MoodSelectView } from '@/components/mood-select-view';
 import { TodayView } from '@/components/today-view';
 import { FormHeader } from '@/components/form-header';
-import { SettingsButton } from '@/components/settings-button';
 import { uploadImage, compressImageToDataUrl } from '@/lib/supabase/storage';
 import { useAuth } from '@/components/auth-provider';
 import {
@@ -21,10 +20,9 @@ import {
   BlockId,
   BLOCK_DEFINITIONS,
 } from '@/lib/types';
-import { Laugh, Smile, Meh, Frown, Angry } from 'lucide-react';
+import { Activity } from 'lucide-react';
 import { generateId } from '@/lib/export';
 import { useSyncContext } from '@/components/sync-provider';
-import { useDebouncedCallback } from '@/hooks/useDebounce';
 import { deleteImage, isSupabaseStorageUrl } from '@/lib/supabase/storage';
 
 type SaveStatus = 'idle' | 'saving' | 'saved';
@@ -60,6 +58,9 @@ export default function Canvas() {
       'selfcare',
       'health',
       'exercise',
+      'social',
+      'productivity',
+      'hobbies',
     ];
     const initialBlocks: Record<BlockId, CardBlock> = {} as Record<
       BlockId,
@@ -83,16 +84,25 @@ export default function Canvas() {
 
   // Edit state
   const [editingCard, setEditingCard] = useState<DailyCard | null>(null);
+  const [isCreating, setIsCreating] = useState(false); // True when creating new card (not yet saved)
   const [editMood, setEditMood] = useState<Mood | undefined>();
   const [editText, setEditText] = useState('');
   const [editBlocks, setEditBlocks] =
     useState<Record<BlockId, CardBlock>>(initializeBlocks);
   const [editPhotoData, setEditPhotoData] = useState<PhotoData | undefined>();
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [isDirty, setIsDirty] = useState(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isSavingRef = useRef(false);
+  // Store original values to detect changes
+  const originalValuesRef = useRef<{
+    text: string;
+    mood: Mood | undefined;
+    blocks: CardBlock[];
+    photoUrl: string | undefined;
+  } | null>(null);
 
   // Today's entry (including pending deletes to show undo state)
   const todayEntry = useMemo(() => {
@@ -142,27 +152,9 @@ export default function Canvas() {
     [pastEntries]
   );
 
-  // Global keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Escape - exit current mode
-      if (e.key === 'Escape') {
-        // If editing, exit edit mode
-        if (editingCard) {
-          e.preventDefault();
-          cancelEdit();
-          return;
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [editingCard]);
-
-  // Auto-save function for edit mode (handles text, mood, blocks, and photos)
-  const performAutoSave = useCallback(async () => {
-    if (!editingCard || !editMood) return;
+  // Save function for edit/create mode (handles text, mood, blocks, and photos)
+  const saveCard = useCallback(async () => {
+    if (!editMood) return;
     if (isSavingRef.current) return; // Prevent re-entry during save
 
     isSavingRef.current = true;
@@ -185,7 +177,7 @@ export default function Canvas() {
 
       // Handle photo changes
       let photoUrl: string | undefined;
-      const originalPhotoUrl = editingCard.photoUrl;
+      const originalPhotoUrl = editingCard?.photoUrl;
       const photoWasRemoved = editPhotoData?.markedForDeletion === true;
       const hasNewPhoto = !!editPhotoData?.file;
 
@@ -232,81 +224,148 @@ export default function Canvas() {
         photoUrl = editPhotoData?.existingUrl || originalPhotoUrl;
       }
 
-      const updates = {
-        text: editText.trim(),
-        mood: editMood,
-        photoUrl,
-        blocks: nonEmptyBlocks.length > 0 ? nonEmptyBlocks : undefined,
-      };
+      if (isCreating) {
+        // Creating a new card
+        const newCard: DailyCard = {
+          id: generateId(),
+          mood: editMood,
+          text: editText.trim(),
+          photoUrl,
+          createdAt: new Date().toISOString(),
+          blocks: nonEmptyBlocks.length > 0 ? nonEmptyBlocks : undefined,
+        };
 
-      updateCard(editingCard.id, updates);
+        addCard(newCard);
+        clearDraft();
+        setIsCreating(false);
+        setEditingCard(newCard);
 
-      if (isAuthenticated) {
-        const updatedCard: DailyCard = { ...editingCard, ...updates };
-        await saveRecapToCloud(updatedCard);
-      } else {
-        // Save to IndexedDB for anonymous users
-        const updatedCards = useCardStore.getState().cards;
-        saveLocalCards(updatedCards);
-      }
+        // Sync to cloud or save locally
+        if (isAuthenticated) {
+          await saveRecapToCloud(newCard);
+        } else {
+          const updatedCards = useCardStore.getState().cards;
+          saveLocalCards(updatedCards);
+        }
 
-      // Update editingCard reference with new photoUrl
-      if (photoUrl !== editingCard.photoUrl) {
-        setEditingCard({ ...editingCard, ...updates });
+        // Update original values after successful save
+        originalValuesRef.current = {
+          text: editText.trim(),
+          mood: editMood,
+          blocks: nonEmptyBlocks,
+          photoUrl,
+        };
+      } else if (editingCard) {
+        // Updating existing card
+        const updates = {
+          text: editText.trim(),
+          mood: editMood,
+          photoUrl,
+          blocks: nonEmptyBlocks.length > 0 ? nonEmptyBlocks : undefined,
+        };
+
+        updateCard(editingCard.id, updates);
+
+        if (isAuthenticated) {
+          const updatedCard: DailyCard = { ...editingCard, ...updates };
+          await saveRecapToCloud(updatedCard);
+        } else {
+          // Save to IndexedDB for anonymous users
+          const updatedCards = useCardStore.getState().cards;
+          saveLocalCards(updatedCards);
+        }
+
+        // Update editingCard reference with new photoUrl
+        if (photoUrl !== editingCard.photoUrl) {
+          setEditingCard({ ...editingCard, ...updates });
+        }
+
+        // Update original values after successful save
+        originalValuesRef.current = {
+          text: editText.trim(),
+          mood: editMood,
+          blocks: nonEmptyBlocks,
+          photoUrl,
+        };
       }
 
       setSaveStatus('saved');
+      setIsDirty(false);
 
-      // Clear "saved" status after a delay
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
-      }
-      autoSaveTimeoutRef.current = setTimeout(() => {
-        setSaveStatus('idle');
-      }, 2000);
+      // Exit form after successful save
+      setEditingCard(null);
+      setIsCreating(false);
+      setSaveStatus('idle');
     } catch (err) {
-      console.error('Auto-save failed', err);
+      console.error('Save failed', err);
       setSaveStatus('idle');
     } finally {
       isSavingRef.current = false;
     }
   }, [
     editingCard,
+    isCreating,
     editMood,
     editText,
     editBlocks,
     editPhotoData,
+    addCard,
     updateCard,
+    clearDraft,
     isAuthenticated,
     saveRecapToCloud,
+    showNotification,
     user?.id,
   ]);
 
-  // Debounced auto-save for text changes (1 second delay)
-  const debouncedAutoSave = useDebouncedCallback(performAutoSave, 1000);
-
-  // Trigger auto-save when edit fields change (including photo)
+  // Track dirty state when edit fields change
   useEffect(() => {
-    if (editingCard && editMood) {
-      debouncedAutoSave();
+    // In create mode, always dirty if we have a mood
+    if (isCreating) {
+      setIsDirty(!!editMood);
+      return;
     }
-  }, [
-    editText,
-    editMood,
-    editBlocks,
-    editPhotoData,
-    editingCard,
-    debouncedAutoSave,
-  ]);
 
-  // Cleanup auto-save timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
+    if (!editingCard || !originalValuesRef.current) return;
+
+    const original = originalValuesRef.current;
+    const currentBlocks = Object.values(editBlocks).filter((block) => {
+      if (block.type === 'number') {
+        return (
+          block.value !== null && block.value !== undefined && block.value !== 0
+        );
+      } else if (block.type === 'multiselect') {
+        return Array.isArray(block.value) && block.value.length > 0;
       }
-    };
-  }, []);
+      return false;
+    });
+
+    // Get current photo URL
+    const currentPhotoUrl = editPhotoData?.markedForDeletion
+      ? undefined
+      : editPhotoData?.file
+      ? 'new-file'
+      : editPhotoData?.existingUrl;
+    const originalPhotoUrl = original.photoUrl;
+
+    // Compare values
+    const textChanged = editText.trim() !== original.text;
+    const moodChanged = editMood !== original.mood;
+    const photoChanged =
+      currentPhotoUrl !== originalPhotoUrl &&
+      !(currentPhotoUrl === undefined && originalPhotoUrl === undefined);
+
+    // Simple blocks comparison
+    const blocksChanged =
+      JSON.stringify(
+        currentBlocks.map((b) => ({ blockId: b.blockId, value: b.value }))
+      ) !==
+      JSON.stringify(
+        original.blocks.map((b) => ({ blockId: b.blockId, value: b.value }))
+      );
+
+    setIsDirty(textChanged || moodChanged || photoChanged || blocksChanged);
+  }, [editText, editMood, editBlocks, editPhotoData, editingCard, isCreating]);
 
   // Start editing a card
   const startEdit = (card: DailyCard) => {
@@ -326,23 +385,62 @@ export default function Canvas() {
       });
     }
     setEditBlocks(existingBlocks);
+
+    // Store original values for dirty tracking
+    originalValuesRef.current = {
+      text: card.text,
+      mood: card.mood,
+      blocks: card.blocks || [],
+      photoUrl: card.photoUrl,
+    };
+    setIsDirty(false);
   };
 
-  // Cancel editing
-  const cancelEdit = () => {
+  // Cancel editing (discard changes)
+  const cancelEdit = useCallback(() => {
     setEditingCard(null);
+    setIsCreating(false);
     setEditMood(undefined);
     setEditText('');
     setEditBlocks(initializeBlocks());
     setEditPhotoData(undefined);
-  };
+    setIsDirty(false);
+    setShowDiscardConfirm(false);
+    originalValuesRef.current = null;
+  }, []);
 
-  // Done editing - save immediately then exit
-  const handleDone = useCallback(async () => {
-    // Force immediate save before exiting
-    await performAutoSave();
-    cancelEdit();
-  }, [performAutoSave]);
+  // Attempt to go back - shows confirm if dirty
+  const handleBack = useCallback(() => {
+    if (isDirty) {
+      setShowDiscardConfirm(true);
+    } else {
+      cancelEdit();
+    }
+  }, [isDirty, cancelEdit]);
+
+  // Global keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Escape - exit current mode (with confirm if dirty)
+      if (e.key === 'Escape') {
+        if (showDiscardConfirm) {
+          // If confirm dialog is open, close it
+          e.preventDefault();
+          setShowDiscardConfirm(false);
+          return;
+        }
+        // If editing, attempt to exit (will show confirm if dirty)
+        if (editingCard) {
+          e.preventDefault();
+          handleBack();
+          return;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [editingCard, showDiscardConfirm, handleBack]);
 
   // Handle soft delete - moves card to pending deletes with undo window
   const handleDelete = async (cardId: string) => {
@@ -411,10 +509,10 @@ export default function Canvas() {
     }
   };
 
-  // Handle mood change - creates card immediately when selecting mood for new entry
+  // Handle mood change - opens form for creating/editing
   const handleMoodChange = async (newMood: Mood) => {
-    if (editingCard) {
-      // Just update mood for existing card being edited
+    if (editingCard || isCreating) {
+      // Just update mood for existing card being edited or new card being created
       setEditMood(newMood);
       setTimeout(() => {
         textareaRef.current?.focus();
@@ -422,58 +520,32 @@ export default function Canvas() {
       return;
     }
 
-    // Create a new card immediately when mood is selected
-    const newCard: DailyCard = {
-      id: generateId(),
-      mood: newMood,
-      text: '',
-      createdAt: new Date().toISOString(),
-    };
-
-    addCard(newCard);
-    clearDraft();
-    // Immediately start editing the new card
-    startEdit(newCard);
-
-    // Sync to cloud or save locally
-    if (isAuthenticated) {
-      saveRecapToCloud(newCard).catch(console.error);
-    } else {
-      // Save to IndexedDB for anonymous users
-      const updatedCards = useCardStore.getState().cards;
-      saveLocalCards(updatedCards);
-    }
+    // Start creating a new card (not saved until user clicks Done)
+    setIsCreating(true);
+    setEditMood(newMood);
+    setEditText('');
+    setEditBlocks(initializeBlocks());
+    setEditPhotoData(undefined);
+    originalValuesRef.current = null;
   };
 
   // Loading state
   if (!hydrated) {
-    const moodIcons = [
-      { Icon: Laugh, color: 'text-emerald-500' },
-      { Icon: Smile, color: 'text-green-500' },
-      { Icon: Meh, color: 'text-amber-500' },
-      { Icon: Frown, color: 'text-orange-500' },
-      { Icon: Angry, color: 'text-red-500' },
-    ];
-
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
-        <div className="flex items-center gap-1">
-          {moodIcons.map(({ Icon, color }, i) => (
-            <Icon
-              key={i}
-              className={`w-7 h-7 animate-bounce ${color}`}
-              style={{
-                animationDelay: `${i * 80}ms`,
-                animationDuration: '0.8s',
-              }}
-            />
-          ))}
-        </div>
+        <span className="text-2xl font-bold tracking-wide uppercase flex items-center">
+          <span className="text-[#22c55e]">R</span>
+          <span className="text-[#84cc16]">E</span>
+          <span className="text-[#eab308]">C</span>
+          <span className="text-[#f97316]">A</span>
+          <span className="text-[#ef4444]">P</span>
+          <Activity className="h-6 w-6 text-primary" strokeWidth={3} />
+        </span>
       </div>
     );
   }
 
-  const isInFormMode = !!editingCard;
+  const isInFormMode = !!editingCard || isCreating;
 
   return (
     <div className="h-screen-dynamic flex flex-col bg-background">
@@ -481,18 +553,18 @@ export default function Canvas() {
       <FormHeader
         isVisible={isInFormMode}
         editingCard={editingCard}
-        mood={undefined}
-        editMood={editMood}
-        onBack={handleDone}
-        onMoodChange={handleMoodChange}
+        onBack={handleBack}
+        onDiscard={cancelEdit}
+        showDiscardConfirm={showDiscardConfirm}
+        onCancelDiscard={() => setShowDiscardConfirm(false)}
       />
 
-      {/* Edit mode */}
-      {editingCard && (
+      {/* Edit/Create mode */}
+      {(editingCard || isCreating) && (
         <div className="max-w-lg w-full mx-auto h-full px-6 relative flex flex-col overflow-hidden">
           <AnimatePresence>
             <RecapForm
-              mode="edit"
+              mode={isCreating ? 'create' : 'edit'}
               text={editText}
               setText={setEditText}
               blocks={editBlocks}
@@ -500,17 +572,19 @@ export default function Canvas() {
               photoData={editPhotoData}
               setPhotoData={setEditPhotoData}
               mood={editMood}
+              onMoodChange={handleMoodChange}
               textareaRef={textareaRef}
+              onSave={saveCard}
               saveStatus={saveStatus}
+              isDirty={isDirty}
             />
           </AnimatePresence>
         </div>
       )}
 
-      {/* Mood selection - show when no today entry and not editing */}
-      {!editingCard && !todayEntry && (
+      {/* Mood selection - show when no today entry and not editing/creating */}
+      {!editingCard && !isCreating && !todayEntry && (
         <div className="max-w-lg w-full mx-auto h-full relative flex flex-col overflow-hidden">
-          <SettingsButton isVisible={true} isAuthenticated={!!user} />
           <AnimatePresence>
             <MoodSelectView
               mood={undefined}
@@ -530,9 +604,8 @@ export default function Canvas() {
       )}
 
       {/* Today view - wider container on desktop */}
-      {!editingCard && todayEntry && (
+      {!editingCard && !isCreating && todayEntry && (
         <div className="max-w-lg w-full mx-auto h-full relative flex flex-col overflow-y-auto overflow-x-hidden">
-          <SettingsButton isVisible={true} isAuthenticated={!!user} />
           <AnimatePresence>
             <TodayView
               todayEntry={todayEntry}

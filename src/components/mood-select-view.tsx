@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { MoodSelector } from '@/components/mood-selector';
-import { AppFooter } from '@/components/app-footer';
+import { AppFooter, AppLogo } from '@/components/app-footer';
+import { SettingsButton } from '@/components/settings-button';
 import { SyncStatusIndicator } from '@/components/sync-status-indicator';
 import { TimelineEntry } from '@/components/timeline-entry';
 import { DailyCard, Mood, MOODS } from '@/lib/types';
 import { formatDate } from '@/lib/date-utils';
 import { type SyncNotification } from '@/components/sync-provider';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, History } from 'lucide-react';
 
 interface CardGroup {
   label: string;
@@ -149,6 +150,13 @@ export function MoodSelectView({
       transition={{ duration: 0.15 }}
       className="flex-1 flex flex-col h-full"
     >
+      {/* Header with logo and settings */}
+      <div className="shrink-0 pt-6 px-6 flex items-center justify-between">
+        <div className="w-11" /> {/* Spacer for centering */}
+        <AppLogo size="lg" />
+        <SettingsButton isAuthenticated={isAuthenticated} />
+      </div>
+
       {/* Centered content area */}
       <div className="flex-1 flex flex-col items-center justify-center">
         <div className="flex items-center justify-center gap-3 mb-8">
@@ -184,7 +192,7 @@ export function MoodSelectView({
             onClick={() => setShowPastEntries(true)}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mt-8"
           >
-            <ChevronDown className="h-4 w-4" />
+            <History className="h-4 w-4" />
             View {allPastEntries.length} past{' '}
             {allPastEntries.length === 1 ? 'recap' : 'recaps'}
           </button>
@@ -192,7 +200,7 @@ export function MoodSelectView({
       </div>
 
       {/* Footer */}
-      <AppFooter />
+      <AppFooter showLogo={false} />
     </motion.div>
   );
 }

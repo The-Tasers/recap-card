@@ -3,18 +3,14 @@
 import {
   createContext,
   useContext,
-  useState,
   useEffect,
   useCallback,
   useRef,
+  useState,
 } from 'react';
 import { useAuth } from '@/components/auth-provider';
 import { useCardStore, loadLocalCards, clearLocalCards } from '@/lib/store';
 import { createClient } from '@/lib/supabase/client';
-import {
-  SyncConflictDialog,
-  type SyncResolution,
-} from '@/components/sync-conflict-dialog';
 import type { DailyCard } from '@/lib/types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -24,12 +20,6 @@ type AnySupabase = SupabaseClient<any, any, any>;
 // Helper for pluralization
 const pluralize = (count: number, singular: string, plural: string) =>
   count === 1 ? `${count} ${singular}` : `${count} ${plural}`;
-
-export interface SyncConflict {
-  localCards: DailyCard[];
-  cloudCards: DailyCard[];
-  conflictCount: number;
-}
 
 export type SyncNotification = {
   type: 'success' | 'error';
@@ -64,9 +54,6 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   // Track if initial sync has been done for this session
   const hasSyncedRef = useRef(false);
   const previousUserIdRef = useRef<string | null>(null);
-
-  // Conflict state
-  const [syncConflict, setSyncConflict] = useState<SyncConflict | null>(null);
 
   // Sync notification state
   const [syncNotification, setSyncNotification] =
@@ -121,228 +108,84 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user, supabase, showSyncNotification]);
 
-  // Resolve sync conflict based on user choice
-  const resolveSyncConflict = useCallback(
-    async (resolution: SyncResolution) => {
-      if (!user || !syncConflict) return;
-
-      const { localCards, cloudCards } = syncConflict;
+  // Full sync: cloud is source of truth, merge local cards for missing dates
+  // Flow:
+  // 1. Load cloud recaps
+  // 2. Check local - if have recaps for dates not in cloud, upload them
+  // 3. Load again from cloud and show final list
+  const performFullSync = useCallback(
+    async (localCards: DailyCard[]) => {
+      if (!user) return;
 
       const getDateStr = (card: DailyCard) =>
         new Date(card.createdAt).toISOString().split('T')[0];
 
-      // Build maps by date
-      const localByDate = new Map<string, DailyCard>();
-      localCards.forEach((card) => localByDate.set(getDateStr(card), card));
-
-      const cloudByDate = new Map<string, DailyCard>();
-      cloudCards.forEach((card) => cloudByDate.set(getDateStr(card), card));
-
-      // Find all unique dates
-      const allDates = new Set([...localByDate.keys(), ...cloudByDate.keys()]);
-
       try {
-        // Merge recaps by date based on resolution
-        const mergedByDate = new Map<string, DailyCard>();
-        const toUpsertToCloud: DailyCard[] = [];
-        const toDeleteFromCloud: string[] = [];
+        // 1. Load cloud recaps (source of truth)
+        const cloudRecaps = await fetchRecapsFromCloud();
 
-        allDates.forEach((date) => {
-          const localCard = localByDate.get(date);
-          const cloudCard = cloudByDate.get(date);
+        // 2. Build set of dates that exist in cloud
+        const cloudDates = new Set<string>();
+        cloudRecaps.forEach((card) => cloudDates.add(getDateStr(card)));
 
-          if (localCard && cloudCard) {
-            // Conflict: same date exists in both - use chosen source
-            if (resolution === 'cloud') {
-              mergedByDate.set(date, cloudCard);
-            } else {
-              mergedByDate.set(date, localCard);
-              // Need to update cloud with local version
-              toUpsertToCloud.push(localCard);
-              if (cloudCard.id !== localCard.id) {
-                toDeleteFromCloud.push(cloudCard.id);
-              }
-            }
-          } else if (localCard) {
-            // Only in local - keep it and upload to cloud
-            mergedByDate.set(date, localCard);
-            toUpsertToCloud.push(localCard);
-          } else if (cloudCard) {
-            // Only in cloud - keep it
-            mergedByDate.set(date, cloudCard);
-          }
-        });
-
-        // Delete cloud cards that are being replaced
-        if (toDeleteFromCloud.length > 0) {
-          const { error: deleteError } = await supabase
-            .from('recaps')
-            .update({ deleted_at: new Date().toISOString() })
-            .in('id', toDeleteFromCloud);
-
-          if (deleteError) {
-            console.error('[Sync] Delete error:', deleteError);
-          }
-        }
-
-        // Upsert local cards to cloud
-        if (toUpsertToCloud.length > 0) {
-          const { error: upsertError } = await supabase
-            .from('recaps')
-            .upsert(
-              toUpsertToCloud.map((card) => ({
-                id: card.id,
-                user_id: user.id,
-                text: card.text,
-                mood: card.mood,
-                photo_url: card.photoUrl,
-                blocks: card.blocks,
-                created_at: card.createdAt,
-                deleted_at: null,
-              })),
-              { onConflict: 'id' }
-            );
-
-          if (upsertError) {
-            console.error('[Sync] Upsert error:', upsertError);
-            throw upsertError;
-          }
-        }
-
-        // Sort merged recaps by date descending
-        const mergedRecaps = Array.from(mergedByDate.values()).sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        // 3. Find local recaps for dates that don't exist in cloud
+        const localOnlyCards = localCards.filter(
+          (card) => !cloudDates.has(getDateStr(card))
         );
 
-        // Clear local IndexedDB - cloud is now source of truth
+        // 4. Upload local-only recaps to cloud
+        if (localOnlyCards.length > 0) {
+          const { error } = await supabase.from('recaps').upsert(
+            localOnlyCards.map((card) => ({
+              id: card.id,
+              user_id: user.id,
+              text: card.text,
+              mood: card.mood,
+              photo_url: card.photoUrl,
+              blocks: card.blocks,
+              created_at: card.createdAt,
+            })),
+            { onConflict: 'id' }
+          );
+
+          if (error) {
+            console.error('Error uploading local recaps:', error);
+            showSyncNotification('error', 'Failed to upload');
+          }
+        }
+
+        // 5. Load final list from cloud (to ensure consistency)
+        const finalRecaps =
+          localOnlyCards.length > 0
+            ? await fetchRecapsFromCloud()
+            : cloudRecaps;
+
+        // 6. Clear local IndexedDB - cloud is now source of truth
         await clearLocalCards();
 
-        // Update memory store
-        setCards(mergedRecaps);
+        // 7. Update memory store with final cloud data
+        setCards(finalRecaps);
 
-        showSyncNotification(
-          'success',
-          `Synced ${pluralize(mergedRecaps.length, 'recap', 'recaps')}`
-        );
+        // 8. Show notification if we synced anything
+        if (localOnlyCards.length > 0) {
+          showSyncNotification(
+            'success',
+            `Synced ${pluralize(finalRecaps.length, 'recap', 'recaps')}`
+          );
+        }
 
-        // Clear conflict state
-        setSyncConflict(null);
+        return {
+          uploaded: localOnlyCards.length,
+          total: finalRecaps.length,
+        };
       } catch (error) {
-        console.error('Error resolving sync conflict:', error);
+        console.error('Error during full sync:', error);
         showSyncNotification('error', 'Sync failed');
+        return { uploaded: 0, total: 0 };
       }
     },
-    [user, syncConflict, setCards, supabase, showSyncNotification]
+    [user, fetchRecapsFromCloud, setCards, supabase, showSyncNotification]
   );
-
-  // Full sync: auto-merge local and cloud recaps by date
-  const performFullSync = useCallback(async (localCards: DailyCard[]) => {
-    if (!user) return;
-
-    const getDateStr = (card: DailyCard) =>
-      new Date(card.createdAt).toISOString().split('T')[0];
-
-    try {
-      // 1. Get cloud recaps (excluding soft-deleted ones)
-      const cloudRecaps = await fetchRecapsFromCloud();
-
-      // 2. Build maps by date
-      const cloudByDate = new Map<string, DailyCard>();
-      cloudRecaps.forEach((card) => cloudByDate.set(getDateStr(card), card));
-
-      const localByDate = new Map<string, DailyCard>();
-      localCards.forEach((card) => localByDate.set(getDateStr(card), card));
-
-      // 3. Detect conflicts: same date with different IDs
-      let conflictCount = 0;
-      for (const localCard of localCards) {
-        const localDate = getDateStr(localCard);
-        const cloudCard = cloudByDate.get(localDate);
-
-        // Conflict: same date, different IDs (both have active recaps)
-        if (cloudCard && cloudCard.id !== localCard.id) {
-          conflictCount++;
-        }
-      }
-
-      // 4. If there are conflicts, show dialog
-      if (conflictCount > 0) {
-        setSyncConflict({ localCards, cloudCards: cloudRecaps, conflictCount });
-        return { conflict: true };
-      }
-
-      // 5. No conflicts - auto-merge
-      // Cloud is source of truth, only upload local cards for dates cloud doesn't have
-      const mergedByDate = new Map<string, DailyCard>();
-
-      // Start with cloud recaps
-      cloudRecaps.forEach((card) => mergedByDate.set(getDateStr(card), card));
-
-      // Add local recaps only for dates not in cloud
-      const localOnlyCards: DailyCard[] = [];
-      localCards.forEach((card) => {
-        const date = getDateStr(card);
-        if (!cloudByDate.has(date)) {
-          mergedByDate.set(date, card);
-          localOnlyCards.push(card);
-        }
-      });
-
-      // 6. Upload local-only recaps to cloud
-      if (localOnlyCards.length > 0) {
-        const { error } = await supabase.from('recaps').upsert(
-          localOnlyCards.map((card) => ({
-            id: card.id,
-            user_id: user.id,
-            text: card.text,
-            mood: card.mood,
-            photo_url: card.photoUrl,
-            blocks: card.blocks,
-            created_at: card.createdAt,
-          })),
-          { onConflict: 'id' }
-        );
-
-        if (error) {
-          console.error('Error uploading local recaps:', error);
-          showSyncNotification('error', 'Failed to upload');
-        }
-      }
-
-      // 7. Sort merged recaps by date descending
-      const mergedRecaps = Array.from(mergedByDate.values()).sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-
-      // 8. Clear local IndexedDB - cloud is now source of truth
-      await clearLocalCards();
-
-      // 9. Update memory store
-      setCards(mergedRecaps);
-
-      const cloudOnlyCount = cloudRecaps.filter(
-        (c) => !localByDate.has(getDateStr(c))
-      ).length;
-
-      if (localOnlyCards.length > 0 || cloudOnlyCount > 0) {
-        showSyncNotification(
-          'success',
-          `Synced ${pluralize(mergedRecaps.length, 'recap', 'recaps')}`
-        );
-      }
-
-      return {
-        uploaded: localOnlyCards.length,
-        downloaded: cloudOnlyCount,
-      };
-    } catch (error) {
-      console.error('Error during full sync:', error);
-      showSyncNotification('error', 'Sync failed');
-      return { uploaded: 0, downloaded: 0 };
-    }
-  }, [user, fetchRecapsFromCloud, setCards, supabase, showSyncNotification]);
 
   // Save a single recap to cloud
   const saveRecapToCloud = useCallback(
@@ -498,11 +341,6 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   return (
     <SyncContext.Provider value={contextValue}>
       {children}
-      <SyncConflictDialog
-        open={!!syncConflict}
-        conflictCount={syncConflict?.conflictCount ?? 0}
-        onResolve={resolveSyncConflict}
-      />
     </SyncContext.Provider>
   );
 }

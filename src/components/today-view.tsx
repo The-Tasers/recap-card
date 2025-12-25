@@ -2,7 +2,8 @@
 
 import { motion } from 'framer-motion';
 import { TimelineEntry } from '@/components/timeline-entry';
-import { AppFooter } from '@/components/app-footer';
+import { AppFooter, AppLogo } from '@/components/app-footer';
+import { SettingsButton } from '@/components/settings-button';
 import { SyncStatusIndicator } from '@/components/sync-status-indicator';
 import { DailyCard } from '@/lib/types';
 import { type SyncNotification } from '@/components/sync-provider';
@@ -54,14 +55,29 @@ export function TodayView({
         right: 0,
       }}
       transition={{ duration: 0.15 }}
-      className="pt-8 md:pt-12 h-full flex flex-col"
+      className="pt-6 h-full flex flex-col"
     >
-      {/* Sync status - fixed */}
-      <SyncStatusIndicator
-        isAuthenticated={isAuthenticated}
-        syncNotification={syncNotification}
-        className="justify-center mb-4 shrink-0 px-6"
-      />
+      {/* Header with logo and settings */}
+      <div className="shrink-0 px-6 flex items-center justify-between">
+        <div className="w-11" /> {/* Spacer for centering */}
+        <AppLogo size="lg" />
+        <SettingsButton isAuthenticated={isAuthenticated} />
+      </div>
+
+      {/* Date and sync status */}
+      <div className="flex items-center justify-center gap-2 mt-4 mb-1.5 shrink-0 px-6">
+        <span className="text-base text-muted-foreground">
+          {new Date().toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+          })}
+        </span>
+        <SyncStatusIndicator
+          isAuthenticated={isAuthenticated}
+          syncNotification={syncNotification}
+        />
+      </div>
 
       {/* Scrollable content area */}
       <div className="flex-1 min-h-0 px-6 overflow-y-auto overflow-x-hidden py-2">
@@ -97,7 +113,7 @@ export function TodayView({
       </div>
 
       {/* Footer - fixed at bottom */}
-      <AppFooter className="px-6" />
+      <AppFooter className="px-6" showLogo={false} />
     </motion.div>
   );
 }

@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import {
   User,
   Cloud,
@@ -13,6 +13,9 @@ import {
   Loader2,
   Check,
   Download,
+  Lock,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AnimatePresence } from 'framer-motion';
@@ -23,11 +26,11 @@ import { applyColorTheme } from '@/components/theme-provider';
 import { useAuth } from '@/components/auth-provider';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
-import { AppFooter } from '@/components/app-footer';
+import { AppFooter, AppLogo } from '@/components/app-footer';
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user, signOut, loading: authLoading } = useAuth();
+  const { user, signOut, updatePassword, loading: authLoading } = useAuth();
   const { cards } = useCardStore();
   const { colorTheme, setColorTheme } = useSettingsStore();
 
@@ -36,11 +39,50 @@ export default function SettingsPage() {
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
-  const [signOutStatus, setSignOutStatus] = useState<'idle' | 'signing-out' | 'signed-out'>('idle');
+  const [signOutStatus, setSignOutStatus] = useState<
+    'idle' | 'signing-out' | 'signed-out'
+  >('idle');
+
+  // Change password state
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const handleThemeChange = (theme: ColorTheme) => {
     setColorTheme(theme);
     applyColorTheme(theme);
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError(null);
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
+      return;
+    }
+
+    setIsChangingPassword(true);
+    const { error } = await updatePassword(newPassword);
+
+    if (error) {
+      setPasswordError(error);
+      setIsChangingPassword(false);
+    } else {
+      toast.success('Password updated');
+      setShowChangePassword(false);
+      setNewPassword('');
+      setConfirmNewPassword('');
+      setIsChangingPassword(false);
+    }
   };
 
   const handleSignOut = async () => {
@@ -87,10 +129,20 @@ export default function SettingsPage() {
     }
 
     // CSV header
-    const headers = ['Date', 'Mood', 'Text', 'Sleep', 'Weather', 'Meals', 'Self-care', 'Health', 'Exercise'];
+    const headers = [
+      'Date',
+      'Mood',
+      'Text',
+      'Sleep',
+      'Weather',
+      'Meals',
+      'Self-care',
+      'Health',
+      'Exercise',
+    ];
 
     // Convert cards to CSV rows
-    const rows = cards.map(card => {
+    const rows = cards.map((card) => {
       const date = new Date(card.createdAt).toLocaleDateString('en-US', {
         year: 'numeric',
         month: '2-digit',
@@ -99,11 +151,15 @@ export default function SettingsPage() {
 
       // Get block values
       const getBlockValue = (blockId: string) => {
-        const block = card.blocks?.find(b => b.blockId === blockId);
+        const block = card.blocks?.find((b) => b.blockId === blockId);
         if (!block) return '';
         if (Array.isArray(block.value)) return block.value.join('; ');
         // Format sleep as hours and minutes
-        if (blockId === 'sleep' && typeof block.value === 'number' && block.value > 0) {
+        if (
+          blockId === 'sleep' &&
+          typeof block.value === 'number' &&
+          block.value > 0
+        ) {
           const hours = Math.floor(block.value / 60);
           const mins = block.value % 60;
           if (mins === 0) return `${hours}h`;
@@ -114,7 +170,11 @@ export default function SettingsPage() {
 
       // Escape CSV field (handle commas, quotes, newlines)
       const escapeCSV = (field: string) => {
-        if (field.includes(',') || field.includes('"') || field.includes('\n')) {
+        if (
+          field.includes(',') ||
+          field.includes('"') ||
+          field.includes('\n')
+        ) {
           return `"${field.replace(/"/g, '""')}"`;
         }
         return field;
@@ -181,11 +241,12 @@ export default function SettingsPage() {
 
   return (
     <div className="h-screen-dynamic bg-background overflow-hidden">
-      <div className="max-w-lg mx-auto h-full px-6 pt-8 flex flex-col">
+      <div className="max-w-lg mx-auto h-full px-6 pt-6 flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between">
           <motion.button
-            onClick={() => router.back()}
+            type="button"
+            onClick={() => router.push('/')}
             className="p-2 text-muted-foreground/50 hover:text-foreground transition-colors cursor-pointer rounded-md hover:bg-muted/30"
             whileTap={{ scale: 0.95 }}
             aria-label="Go back"
@@ -200,18 +261,14 @@ export default function SettingsPage() {
         </div>
 
         {/* Content */}
-        <div className="flex flex-col flex-1 gap-6 overflow-y-auto">
+        <div className="flex flex-col flex-1 gap-6 overflow-y-auto mt-6">
           {/* Account Section */}
           <section className="space-y-3">
             <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Account
             </h2>
 
-            {authLoading ? (
-              <div className="flex items-center justify-center py-6">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/50" />
-              </div>
-            ) : user ? (
+            {user ? (
               <div className="space-y-2">
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30">
                   <div
@@ -229,15 +286,18 @@ export default function SettingsPage() {
                       <User
                         className="h-4 w-4"
                         style={{
-                          color: COLOR_THEMES.find((t) => t.value === colorTheme)
-                            ?.preview.accent,
+                          color: COLOR_THEMES.find(
+                            (t) => t.value === colorTheme
+                          )?.preview.accent,
                         }}
                       />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">
-                      {signOutStatus === 'signed-out' ? 'Signed out' : user.email}
+                      {signOutStatus === 'signed-out'
+                        ? 'Signed out'
+                        : user.email}
                     </p>
                     {signOutStatus === 'idle' && (
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -258,6 +318,98 @@ export default function SettingsPage() {
                     )}
                   </button>
                 </div>
+
+                {/* Change password section */}
+                <AnimatePresence mode="wait">
+                  {!showChangePassword ? (
+                    <motion.button
+                      key="change-password-trigger"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => setShowChangePassword(true)}
+                      className="w-full py-2 text-sm text-muted-foreground/50 cursor-pointer hover:text-foreground transition-colors"
+                    >
+                      Change password
+                    </motion.button>
+                  ) : (
+                    <motion.form
+                      key="change-password-form"
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      onSubmit={handleChangePassword}
+                      className="space-y-3 p-3 rounded-xl bg-muted/30"
+                    >
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="New password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          required
+                          className="w-full h-10 pl-10 pr-10 rounded-lg bg-background border border-border/50 focus:border-primary focus:outline-none transition-colors text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-foreground transition-colors"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="Confirm new password"
+                          value={confirmNewPassword}
+                          onChange={(e) =>
+                            setConfirmNewPassword(e.target.value)
+                          }
+                          required
+                          className="w-full h-10 pl-10 pr-4 rounded-lg bg-background border border-border/50 focus:border-primary focus:outline-none transition-colors text-sm"
+                        />
+                      </div>
+                      {passwordError && (
+                        <p className="text-xs text-destructive text-center">
+                          {passwordError}
+                        </p>
+                      )}
+                      <div className="flex justify-end gap-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowChangePassword(false);
+                            setNewPassword('');
+                            setConfirmNewPassword('');
+                            setPasswordError(null);
+                          }}
+                          disabled={isChangingPassword}
+                          className="text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors disabled:opacity-50"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={
+                            isChangingPassword ||
+                            !newPassword ||
+                            !confirmNewPassword
+                          }
+                          className="text-sm text-primary cursor-pointer hover:text-primary/80 font-medium transition-colors disabled:opacity-50"
+                        >
+                          {isChangingPassword ? 'Saving...' : 'Save'}
+                        </button>
+                      </div>
+                    </motion.form>
+                  )}
+                </AnimatePresence>
 
                 <AnimatePresence mode="wait">
                   {!showDeleteAccountDialog ? (
@@ -303,19 +455,19 @@ export default function SettingsPage() {
                 </AnimatePresence>
               </div>
             ) : (
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30">
+              <div className="p-4 rounded-xl bg-muted/50 space-y-4">
+                <div className="flex items-center gap-3">
                   <CloudOff className="h-4 w-4 text-muted-foreground/50" />
                   <p className="text-sm text-muted-foreground">
                     Sign in to sync across devices
                   </p>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1 h-10" asChild>
-                    <Link href="/login">Sign In</Link>
+                <div className="flex gap-3">
+                  <Button className="flex-1 h-10" variant="outline" asChild>
+                    <Link href="/login">Sign in</Link>
                   </Button>
                   <Button className="flex-1 h-10" asChild>
-                    <Link href="/signup">Sign Up</Link>
+                    <Link href="/signup">Sign up</Link>
                   </Button>
                 </div>
               </div>
@@ -328,7 +480,7 @@ export default function SettingsPage() {
               Appearance
             </h2>
 
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-3 py-1 px-1">
+            <div className="grid grid-cols-3 gap-3 py-1 px-1">
               {COLOR_THEMES.map((theme) => (
                 <button
                   key={theme.value}
@@ -391,7 +543,7 @@ export default function SettingsPage() {
               Data
             </h2>
 
-            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50">
               <p className="text-sm text-muted-foreground">
                 {cards.length} {cards.length === 1 ? 'recap' : 'recaps'} saved
                 {user ? ' locally and in the cloud' : ' locally'}
