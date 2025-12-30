@@ -14,10 +14,9 @@ export const translations = {
     'meta.description': 'A quiet place for your days',
 
     // Onboarding
-    'onboarding.title': 'A quiet place for your days',
-    'onboarding.description':
-      'Each day leaves a trace. Capture what stood out, and watch your story unfold over time.',
-    'onboarding.button': 'Begin today',
+    'onboarding.title': 'Reflect, not track',
+    'onboarding.description': 'Capture moments as they happen. Over time, they reveal your patterns — without judgment.',
+    'onboarding.button': 'Get started',
 
     // Mood select view
     'mood.title': 'How was today?',
@@ -79,6 +78,10 @@ export const translations = {
     'settings.passwordMismatch': 'Passwords do not match',
     'settings.passwordTooShort': 'Password must be at least 6 characters',
     'settings.passwordUpdated': 'Password updated',
+    'settings.cloudSync': 'Cloud sync',
+    'settings.cloudSyncDesc': 'Data synced across devices',
+    'settings.localOnly': 'Local only',
+    'settings.localOnlyDesc': 'Data stored on this device',
     'settings.daysCaptured':
       '{count} {count, plural, one {day} other {days}} captured',
     'settings.clearData': 'Clear all data',
@@ -154,15 +157,16 @@ export const translations = {
     'signupPrompt.signUp': 'Sign up',
 
     // Feedback modal
-    'feedback.title': 'Leave feedback',
-    'feedback.description': 'Will you keep using Recapz?',
-    'feedback.rating.1': 'Nope',
-    'feedback.rating.2': 'Unlikely',
-    'feedback.rating.3': 'Maybe',
-    'feedback.rating.4': 'Probably',
-    'feedback.rating.5': 'For sure!',
-    'feedback.messagePlaceholder': 'Any suggestions? (optional)',
-    'feedback.submit': 'Send',
+    'feedback.title': 'Quick feedback',
+    'feedback.description': 'How is your experience?',
+    'feedback.question': 'How has Recapz felt so far?',
+    'feedback.rating.5': 'Love it, feels right',
+    'feedback.rating.4': 'Good, it helps',
+    'feedback.rating.3': "It's okay",
+    'feedback.rating.2': 'Not quite for me',
+    'feedback.rating.1': 'Not helpful',
+    'feedback.messagePlaceholder': 'What would make it better? (optional)',
+    'feedback.submit': 'Send feedback',
     'feedback.thanks': 'Thank you for your feedback!',
     'feedback.error': 'Failed to send feedback',
 
@@ -386,6 +390,158 @@ export const translations = {
     'db.error.serverError': 'Server error. Please try again later',
     'db.error.networkError': 'Network error. Check your connection',
     'db.error.unknown': 'Something went wrong',
+
+    // ============================================================================
+    // CHECK-IN FLOW
+    // ============================================================================
+
+    // Greetings
+    'greeting.morning': 'Good morning',
+    'greeting.afternoon': 'Good afternoon',
+    'greeting.evening': 'Good evening',
+    'greeting.night': 'Good night',
+
+    // Home screen (canvas)
+    'home.today': 'Today',
+    'home.morningCopy': 'How does today feel so far?',
+    'home.afternoonCopy': 'This is how today unfolds',
+    'home.eveningCopy': 'Your day, moment by moment',
+    'home.nightCopy': 'Today is coming to a close',
+    'home.emptyState': 'Nothing marked yet',
+    'home.emptyHint': 'You can notice moments as they happen',
+    'home.emptyTitle': 'Notice moments',
+    'home.emptyExplanation': 'Catch how you feel as the day unfolds',
+    'home.seeReflection': 'See day recap',
+    'home.addMoreMoments': 'Tap the sun to add more moments throughout your day',
+    'home.emptyPast': 'A quiet day',
+    'home.insightsTeaser': 'Patterns emerge over time',
+
+    // Check-in home
+    'checkin.add': 'How are you?',
+    'checkin.addAnother': 'Another moment',
+    'checkin.hint': "Add moments as they happen. You'll see a recap later.",
+    'checkin.viewRecap': 'View day recap',
+    'checkin.count': '{count} check-in{count, plural, one {} other {s}} today',
+    'checkin.title': 'Check-in',
+    // Check-in flow microcopy
+    'checkin.stateQuestion': 'What stands out?',
+    'checkin.stateHint': 'Your mood, energy or focus right now',
+    'checkin.contextQuestion': 'Where are you?',
+    'checkin.contextHint': 'Activity or place',
+    'checkin.personQuestion': 'With anyone?',
+    'checkin.personHint': 'Optional',
+    'checkin.detailsTitle': 'Add details',
+    'checkin.tapToChange': 'Tap to change',
+    'checkin.save': 'Save moment',
+    'checkin.momentSaved': 'Moment captured',
+    'checkin.discardTitle': 'Discard moment?',
+    'checkin.discardMessage':
+      "You haven't saved this moment yet. Are you sure you want to discard it?",
+    'checkin.discardInline': 'Discard unsaved moment?',
+    'checkin.keepEditing': 'Keep editing',
+    'checkin.discard': 'Discard',
+
+    // Morning expectation
+    'morning.question': 'How does today feel right now?',
+    'morning.hint': 'Set an expectation for the day ahead',
+    'morning.skip': 'Skip for now',
+
+    // Expectation tones
+    'tone.calm': 'Calm',
+    'tone.excited': 'Excited',
+    'tone.anxious': 'Anxious',
+    'tone.uncertain': 'Uncertain',
+    'tone.energized': 'Energized',
+    'tone.heavy': 'Heavy',
+
+    // State selection
+    'state.neutral': 'Neutral',
+    'state.energy': 'Energy',
+    'state.emotion': 'Feeling',
+    'state.tension': 'Focus',
+    'state.more': 'More',
+    // Energy states
+    'state.energized': 'Energized',
+    'state.calm': 'Calm',
+    'state.tired': 'Tired',
+    'state.drained': 'Drained',
+    // Emotion states
+    'state.content': 'Content',
+    'state.anxious': 'Anxious',
+    'state.frustrated': 'Frustrated',
+    'state.grateful': 'Grateful',
+    'state.uncertain': 'Uncertain',
+    // Tension states
+    'state.focused': 'Focused',
+    'state.scattered': 'Scattered',
+    'state.present': 'Present',
+    'state.distracted': 'Distracted',
+
+    // Context selection
+    'context.addCustom': 'Add',
+    // Default contexts
+    'context.work': 'Work',
+    'context.home': 'Home',
+    'context.commute': 'Commute',
+    'context.social': 'Social',
+    'context.alone': 'Alone time',
+    'context.exercise': 'Exercise',
+    'context.errands': 'Errands',
+    'context.rest': 'Rest',
+
+    // Person selection (step 3)
+    'person.title': 'People',
+    'person.subtitle': 'Optional',
+    'person.skip': 'No one',
+    'person.addNew': 'Add',
+    // Default people
+    'person.partner': 'Partner',
+    'person.family': 'Family',
+    'person.friends': 'Friends',
+    'person.colleagues': 'Colleagues',
+
+    // Login prompt for custom items
+    'customItem.loginRequired': 'Sign in to add your own',
+    'customItem.loginPrompt': 'to add your own items',
+
+    // Day recap
+    'recap.title': 'Your day',
+    'recap.noCheckins': 'No check-ins recorded today.',
+    'recap.singleCheckin': 'One moment captured: feeling {state}.',
+    'recap.multipleCheckins': '{count} moments today. Mostly {state}.',
+    'recap.contexts': 'Where you were',
+    'recap.people': 'Who you saw',
+    'recap.contextSingle': 'Spent time {context}',
+    'recap.contextMultiple': 'Mostly {first}, also {second}',
+    'recap.peopleSingle': 'Time with {person}',
+    'recap.peopleMultiple': 'Time with {people}',
+    'recap.timeline': 'Moments',
+    'recap.timeWith': 'Time with {names}.',
+    'recap.betterThanExpected':
+      'Morning felt {expectation}. The day turned out {state}.',
+    'recap.differentThanExpected': 'Expected {expectation}. Ended up {state}.',
+    'recap.asExpected': 'Morning: {expectation}. Day: {state}.',
+    'recap.closing.1': 'Every day leaves a trace.',
+    'recap.closing.2': 'Small moments, gently recorded.',
+    'recap.closing.3': 'Tomorrow begins fresh.',
+
+    // Energy trends
+    'recap.energyRising': 'Energy rose through the day',
+    'recap.energyFalling': 'Energy shifted lower',
+    'recap.energyStable': 'Energy stayed steady',
+    'recap.energyMixed': 'Energy varied throughout',
+
+    // Form
+    'form.back': 'Back',
+    'form.next': 'Next',
+    'form.add': 'Add',
+    'form.cancel': 'Cancel',
+
+    // Upgrade prompts (soft, non-blocking)
+    'upgrade.customContextLimit':
+      'You can add more custom contexts with a paid plan',
+    'upgrade.customPersonLimit': 'You can add more people with a paid plan',
+    'upgrade.learnMore': 'Learn more',
   },
 
   ru: {
@@ -394,9 +550,8 @@ export const translations = {
     'meta.description': 'Тихое место для твоих дней',
 
     // Onboarding
-    'onboarding.title': 'Тихое место для твоих дней',
-    'onboarding.description':
-      'Каждый день что-то значит. Фиксируй главное - и смотри, как складывается картина.',
+    'onboarding.title': 'Осознавай, а не отслеживай',
+    'onboarding.description': 'Отмечай моменты по ходу дня. Со временем они покажут твои паттерны — без оценок.',
     'onboarding.button': 'Начать',
 
     // Mood select view
@@ -459,6 +614,10 @@ export const translations = {
     'settings.passwordMismatch': 'Пароли не совпадают',
     'settings.passwordTooShort': 'Минимум 6 символов',
     'settings.passwordUpdated': 'Пароль изменён',
+    'settings.cloudSync': 'Облако',
+    'settings.cloudSyncDesc': 'Данные синхронизируются',
+    'settings.localOnly': 'Локально',
+    'settings.localOnlyDesc': 'Данные на этом устройстве',
     'settings.daysCaptured':
       '{count} {count, plural, one {день} few {дня} other {дней}}',
     'settings.clearData': 'Удалить все данные',
@@ -529,14 +688,15 @@ export const translations = {
     'signupPrompt.signUp': 'Создать аккаунт',
 
     // Feedback modal
-    'feedback.title': 'Оставить отзыв',
-    'feedback.description': 'Будешь пользоваться Recapz?',
-    'feedback.rating.1': 'Нет',
-    'feedback.rating.2': 'Вряд ли',
-    'feedback.rating.3': 'Может',
-    'feedback.rating.4': 'Скорее да',
-    'feedback.rating.5': 'Точно!',
-    'feedback.messagePlaceholder': 'Есть пожелания? (необязательно)',
+    'feedback.title': 'Быстрый отзыв',
+    'feedback.description': 'Как впечатления?',
+    'feedback.question': 'Как тебе Recapz?',
+    'feedback.rating.5': 'Класс, то что нужно',
+    'feedback.rating.4': 'Хорошо, помогает',
+    'feedback.rating.3': 'Нормально',
+    'feedback.rating.2': 'Не совсем моё',
+    'feedback.rating.1': 'Не помогает',
+    'feedback.messagePlaceholder': 'Что улучшить? (необязательно)',
     'feedback.submit': 'Отправить',
     'feedback.thanks': 'Спасибо за отзыв!',
     'feedback.error': 'Не удалось отправить',
@@ -761,5 +921,157 @@ export const translations = {
     'db.error.serverError': 'Ошибка сервера. Попробуй позже',
     'db.error.networkError': 'Ошибка сети. Проверь подключение',
     'db.error.unknown': 'Что-то пошло не так',
+
+    // ============================================================================
+    // CHECK-IN FLOW
+    // ============================================================================
+
+    // Greetings
+    'greeting.morning': 'Доброе утро',
+    'greeting.afternoon': 'Добрый день',
+    'greeting.evening': 'Добрый вечер',
+    'greeting.night': 'Доброй ночи',
+
+    // Home screen (canvas)
+    'home.today': 'Сегодня',
+    'home.morningCopy': 'Как ощущается утро?',
+    'home.afternoonCopy': 'Так разворачивается день',
+    'home.eveningCopy': 'Твой день, момент за моментом',
+    'home.nightCopy': 'День подходит к концу',
+    'home.emptyState': 'Пока ничего',
+    'home.emptyHint': 'Можешь отмечать моменты по ходу дня',
+    'home.emptyTitle': 'Замечай моменты',
+    'home.emptyExplanation': 'Лови ощущения по ходу дня',
+    'home.seeReflection': 'Итоги дня',
+    'home.addMoreMoments': 'Нажми на солнце, чтобы добавить ещё моменты',
+    'home.emptyPast': 'Тихий день',
+    'home.insightsTeaser': 'Паттерны проявляются со временем',
+
+    // Check-in home
+    'checkin.add': 'Как дела?',
+    'checkin.addAnother': 'Ещё момент',
+    'checkin.hint': 'Добавляй моменты по ходу дня. Итоги увидишь позже.',
+    'checkin.viewRecap': 'Итоги дня',
+    'checkin.count':
+      '{count} {count, plural, one {момент} few {момента} other {моментов}}',
+    'checkin.title': 'Отметка',
+    // Check-in flow microcopy
+    'checkin.stateQuestion': 'Что заметно?',
+    'checkin.stateHint': 'Настроение, энергия или фокус сейчас',
+    'checkin.contextQuestion': 'Где ты?',
+    'checkin.contextHint': 'Занятие или место',
+    'checkin.personQuestion': 'С кем?',
+    'checkin.personHint': 'Пропусти если один',
+    'checkin.detailsTitle': 'Детали',
+    'checkin.tapToChange': 'Нажми чтобы изменить',
+    'checkin.save': 'Сохранить момент',
+    'checkin.momentSaved': 'Момент сохранён',
+    'checkin.discardTitle': 'Удалить момент?',
+    'checkin.discardMessage': 'Момент ещё не сохранён. Точно удалить?',
+    'checkin.discardInline': 'Удалить несохранённый момент?',
+    'checkin.keepEditing': 'Продолжить',
+    'checkin.discard': 'Удалить',
+
+    // Morning expectation
+    'morning.question': 'Как ощущается сегодня?',
+    'morning.hint': 'Задай ожидание на день',
+    'morning.skip': 'Пропустить',
+
+    // Expectation tones
+    'tone.calm': 'Спокойно',
+    'tone.excited': 'Воодушевлённо',
+    'tone.anxious': 'Тревожно',
+    'tone.uncertain': 'Неясно',
+    'tone.energized': 'Энергично',
+    'tone.heavy': 'Тяжело',
+
+    // State selection
+    'state.neutral': 'Нейтрально',
+    'state.energy': 'Энергия',
+    'state.emotion': 'Эмоции',
+    'state.tension': 'Фокус',
+    'state.more': 'Ещё',
+    // Energy states
+    'state.energized': 'Энергия',
+    'state.calm': 'Спокойствие',
+    'state.tired': 'Усталость',
+    'state.drained': 'Истощение',
+    // Emotion states
+    'state.content': 'Довольство',
+    'state.anxious': 'Тревога',
+    'state.frustrated': 'Раздражение',
+    'state.grateful': 'Благодарность',
+    'state.uncertain': 'Неясность',
+    // Tension states
+    'state.focused': 'Фокус',
+    'state.scattered': 'Рассеянность',
+    'state.present': 'В моменте',
+    'state.distracted': 'Отвлечение',
+
+    // Context selection
+    'context.addCustom': 'Добавить',
+    // Default contexts
+    'context.work': 'Работа',
+    'context.home': 'Дом',
+    'context.commute': 'В пути',
+    'context.social': 'Общение',
+    'context.alone': 'Наедине',
+    'context.exercise': 'Спорт',
+    'context.errands': 'Дела',
+    'context.rest': 'Отдых',
+
+    // Person selection (step 3)
+    'person.title': 'Люди',
+    'person.subtitle': 'Необязательно',
+    'person.skip': 'Никого',
+    'person.addNew': 'Добавить',
+    // Default people
+    'person.partner': 'Партнёр',
+    'person.family': 'Семья',
+    'person.friends': 'Друзья',
+    'person.colleagues': 'Коллеги',
+
+    // Login prompt for custom items
+    'customItem.loginRequired': 'Войди, чтобы добавлять свои',
+    'customItem.loginPrompt': 'чтобы добавлять свои',
+
+    // Day recap
+    'recap.title': 'День',
+    'recap.noCheckins': 'Нет записей за сегодня.',
+    'recap.singleCheckin': 'Один момент: {state}.',
+    'recap.multipleCheckins': '{count} моментов. В основном {state}.',
+    'recap.contexts': 'Где',
+    'recap.people': 'С кем',
+    'recap.contextSingle': 'Время {context}',
+    'recap.contextMultiple': 'В основном {first}, также {second}',
+    'recap.peopleSingle': 'Время с {person}',
+    'recap.peopleMultiple': 'Время с {people}',
+    'recap.timeline': 'Моменты',
+    'recap.timeWith': 'Время с {names}.',
+    'recap.betterThanExpected':
+      'Утром казалось {expectation}. День оказался {state}.',
+    'recap.differentThanExpected':
+      'Ожидалось {expectation}. Получилось {state}.',
+    'recap.asExpected': 'Утро: {expectation}. День: {state}.',
+    'recap.closing.1': 'Каждый день оставляет след.',
+    'recap.closing.2': 'Маленькие моменты, тихо записаны.',
+    'recap.closing.3': 'Завтра начинается заново.',
+
+    // Energy trends
+    'recap.energyRising': 'Энергия росла в течение дня',
+    'recap.energyFalling': 'Энергия снижалась',
+    'recap.energyStable': 'Энергия была стабильной',
+    'recap.energyMixed': 'Энергия менялась',
+
+    // Form
+    'form.back': 'Назад',
+    'form.next': 'Далее',
+    'form.add': 'Добавить',
+    'form.cancel': 'Отмена',
+
+    // Upgrade prompts (soft, non-blocking)
+    'upgrade.customContextLimit': 'Больше контекстов доступно с платным планом',
+    'upgrade.customPersonLimit': 'Больше людей доступно с платным планом',
+    'upgrade.learnMore': 'Подробнее',
   },
 } as const;

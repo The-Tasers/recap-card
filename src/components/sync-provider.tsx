@@ -9,17 +9,10 @@ import {
   useState,
 } from 'react';
 import { useAuth } from '@/components/auth-provider';
-import { useCardStore, loadLocalCards, clearLocalCards } from '@/lib/store';
+import { useCheckInStore, hydrateCheckInStore } from '@/lib/checkin-store';
 import { createClient } from '@/lib/supabase/client';
-import type { DailyCard, Mood } from '@/lib/types';
-import { MAX_RECAPS } from '@/lib/types';
-import { uploadDataUrlImage, isDataUrl } from '@/lib/supabase/storage';
+import type { Day, CheckIn, Person, Context } from '@/lib/types';
 import { useI18n, type TranslationKey } from '@/lib/i18n';
-
-// Valid mood values for database constraint
-const VALID_MOODS: Mood[] = ['great', 'good', 'okay', 'low', 'rough'];
-const isValidMood = (mood: unknown): mood is Mood =>
-  typeof mood === 'string' && VALID_MOODS.includes(mood as Mood);
 import type { SupabaseClient, PostgrestError } from '@supabase/supabase-js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -53,21 +46,14 @@ function getDbErrorCode(error: PostgrestError | Error | unknown): DbErrorCode {
     const message = (pgError.message || '').toLowerCase();
 
     // PostgreSQL error codes (SQLSTATE)
-    // Class 08 - Connection Exception
     if (code.startsWith('08')) return 'connectionFailed';
-    // 23505 - unique_violation
     if (code === '23505') return 'uniqueViolation';
-    // 23503 - foreign_key_violation
     if (code === '23503') return 'foreignKeyViolation';
-    // 23502 - not_null_violation
     if (code === '23502') return 'notNullViolation';
-    // 23514 - check_violation
     if (code === '23514') return 'checkViolation';
-    // 57014 - query_canceled (timeout)
     if (code === '57014') return 'timeout';
-    // PGRST codes (PostgREST)
     if (code === 'PGRST301') return 'timeout';
-    if (code === '42501') return 'forbidden'; // insufficient_privilege
+    if (code === '42501') return 'forbidden';
 
     // HTTP status codes in message or code
     if (message.includes('401') || code === '401') return 'unauthorized';
@@ -97,13 +83,11 @@ export type SyncNotification = {
 } | null;
 
 interface SyncContextValue {
-  saveRecapToCloud: (card: DailyCard) => Promise<boolean>;
-  deleteRecapFromCloud: (cardId: string) => Promise<boolean>;
-  restoreRecapInCloud: (cardId: string) => Promise<boolean>;
-  permanentlyDeleteRecapFromCloud: (cardId: string) => Promise<boolean>;
   isAuthenticated: boolean;
+  isSyncing: boolean;
   syncNotification: SyncNotification;
   showNotification: (type: 'success' | 'error', message: string) => void;
+  syncNow: () => Promise<void>;
 }
 
 const SyncContext = createContext<SyncContextValue | null>(null);
@@ -118,17 +102,23 @@ export function useSyncContext() {
 
 export function SyncProvider({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
-  const { setCards, setHydrated } = useCardStore();
   const { t } = useI18n();
   const supabase = createClient() as AnySupabase;
+
+  // Get store state and actions
+  const days = useCheckInStore((s) => s.days);
+  const checkIns = useCheckInStore((s) => s.checkIns);
+  const people = useCheckInStore((s) => s.people);
+  const customContexts = useCheckInStore((s) => s.customContexts);
+  const setHydrated = useCheckInStore((s) => s.setHydrated);
 
   // Track if initial sync has been done for this session
   const hasSyncedRef = useRef(false);
   const previousUserIdRef = useRef<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Sync notification state
-  const [syncNotification, setSyncNotification] =
-    useState<SyncNotification>(null);
+  const [syncNotification, setSyncNotification] = useState<SyncNotification>(null);
   const notificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Show a sync notification that auto-dismisses
@@ -145,291 +135,198 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
-  // Fetch recaps from cloud (excluding soft-deleted)
-  const fetchRecapsFromCloud = useCallback(async (): Promise<DailyCard[]> => {
-    if (!user) return [];
+  // Full sync: merge local and cloud data
+  const performFullSync = useCallback(async () => {
+    if (!user) return;
+    setIsSyncing(true);
 
     try {
-      const { data: cloudRecaps, error } = await supabase
-        .from('recaps')
-        .select('*')
-        .eq('user_id', user.id)
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false });
+      // 1. Fetch all cloud data
+      const [cloudDays, cloudCheckIns, cloudPeople, cloudContexts] = await Promise.all([
+        supabase.from('days').select('*').eq('user_id', user.id),
+        supabase.from('checkins').select('*').eq('user_id', user.id),
+        supabase.from('people').select('*').eq('user_id', user.id),
+        supabase.from('contexts').select('*').or(`user_id.eq.${user.id},is_default.eq.true`),
+      ]);
 
-      if (error) {
-        console.error('Error fetching recaps:', error);
-        const errorCode = getDbErrorCode(error);
-        showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
-        return [];
+      // Check for errors
+      if (cloudDays.error) throw cloudDays.error;
+      if (cloudCheckIns.error) throw cloudCheckIns.error;
+      if (cloudPeople.error) throw cloudPeople.error;
+      if (cloudContexts.error) throw cloudContexts.error;
+
+      // 2. Get current local data
+      const localDays = days;
+      const localCheckIns = checkIns;
+      const localPeople = people;
+      const localCustomContexts = customContexts;
+
+      // 3. Merge data (cloud is source of truth, but keep local-only items)
+      // Build sets of cloud IDs
+      const cloudDayIds = new Set((cloudDays.data || []).map((d: { id: string }) => d.id));
+      const cloudCheckInIds = new Set((cloudCheckIns.data || []).map((c: { id: string }) => c.id));
+      const cloudPeopleIds = new Set((cloudPeople.data || []).map((p: { id: string }) => p.id));
+      const cloudContextIds = new Set((cloudContexts.data || []).map((c: { id: string }) => c.id));
+
+      // Find local-only items (not in cloud)
+      const localOnlyDays = localDays.filter((d) => !cloudDayIds.has(d.id));
+      const localOnlyCheckIns = localCheckIns.filter((c) => !cloudCheckInIds.has(c.id));
+      const localOnlyPeople = localPeople.filter((p) => !cloudPeopleIds.has(p.id));
+      const localOnlyContexts = localCustomContexts.filter((c) => !cloudContextIds.has(c.id));
+
+      // 4. Upload local-only items to cloud
+      if (localOnlyDays.length > 0) {
+        const { error } = await supabase.from('days').upsert(
+          localOnlyDays.map((d) => ({
+            id: d.id,
+            user_id: user.id,
+            date: d.date,
+            morning_expectation_tone: d.morningExpectationTone,
+            created_at: d.createdAt,
+          })),
+          { onConflict: 'id' }
+        );
+        if (error) console.error('Error uploading days:', error);
       }
 
-      return (cloudRecaps || []).map(
-        (recap): DailyCard => ({
-          id: recap.id,
-          text: recap.text,
-          mood: recap.mood,
-          photoUrl: recap.photo_url ?? undefined,
-          blocks: recap.blocks as DailyCard['blocks'],
-          createdAt: recap.created_at,
-        })
-      );
+      if (localOnlyPeople.length > 0) {
+        const { error } = await supabase.from('people').upsert(
+          localOnlyPeople.map((p) => ({
+            id: p.id,
+            user_id: user.id,
+            label: p.label,
+          })),
+          { onConflict: 'id' }
+        );
+        if (error) console.error('Error uploading people:', error);
+      }
+
+      if (localOnlyContexts.length > 0) {
+        const { error } = await supabase.from('contexts').upsert(
+          localOnlyContexts.map((c) => ({
+            id: c.id,
+            user_id: user.id,
+            label: c.label,
+            is_default: false,
+          })),
+          { onConflict: 'id' }
+        );
+        if (error) console.error('Error uploading contexts:', error);
+      }
+
+      if (localOnlyCheckIns.length > 0) {
+        const { error } = await supabase.from('checkins').upsert(
+          localOnlyCheckIns.map((c) => ({
+            id: c.id,
+            user_id: user.id,
+            day_id: c.dayId,
+            timestamp: c.timestamp,
+            state_id: c.stateId,
+            context_id: c.contextId,
+            person_id: c.personId || null,
+          })),
+          { onConflict: 'id' }
+        );
+        if (error) console.error('Error uploading check-ins:', error);
+      }
+
+      // 5. Fetch final cloud data (includes newly uploaded)
+      const [finalDays, finalCheckIns, finalPeople, finalContexts] = await Promise.all([
+        supabase.from('days').select('*').eq('user_id', user.id).order('date', { ascending: false }),
+        supabase.from('checkins').select('*').eq('user_id', user.id).order('timestamp', { ascending: false }),
+        supabase.from('people').select('*').eq('user_id', user.id),
+        supabase.from('contexts').select('*').or(`user_id.eq.${user.id},is_default.eq.true`),
+      ]);
+
+      // 6. Transform and update local store
+      const mergedDays: Day[] = (finalDays.data || []).map((d: {
+        id: string;
+        user_id: string;
+        date: string;
+        morning_expectation_tone: string | null;
+        created_at: string;
+      }) => ({
+        id: d.id,
+        userId: d.user_id,
+        date: d.date,
+        morningExpectationTone: d.morning_expectation_tone as Day['morningExpectationTone'],
+        createdAt: d.created_at,
+      }));
+
+      const mergedCheckIns: CheckIn[] = (finalCheckIns.data || []).map((c: {
+        id: string;
+        day_id: string;
+        timestamp: string;
+        state_id: string;
+        context_id: string;
+        person_id: string | null;
+        note: string | null;
+      }) => ({
+        id: c.id,
+        dayId: c.day_id,
+        timestamp: c.timestamp,
+        stateId: c.state_id,
+        contextId: c.context_id,
+        personId: c.person_id || undefined,
+      }));
+
+      const mergedPeople: Person[] = (finalPeople.data || []).map((p: {
+        id: string;
+        user_id: string | null;
+        label: string;
+        is_default: boolean;
+      }) => ({
+        id: p.id,
+        userId: p.user_id || undefined,
+        label: p.label,
+        isDefault: p.is_default,
+      }));
+
+      const mergedCustomContexts: Context[] = (finalContexts.data || [])
+        .filter((c: { is_default: boolean }) => !c.is_default)
+        .map((c: {
+          id: string;
+          label: string;
+          is_default: boolean;
+          user_id: string | null;
+        }) => ({
+          id: c.id,
+          label: c.label,
+          isDefault: false,
+          userId: c.user_id || undefined,
+        }));
+
+      // Update store
+      useCheckInStore.setState({
+        days: mergedDays,
+        checkIns: mergedCheckIns,
+        people: mergedPeople,
+        customContexts: mergedCustomContexts,
+        hydrated: true,
+      });
+
+      // Show success if we uploaded anything
+      const uploadedCount = localOnlyDays.length + localOnlyCheckIns.length + localOnlyPeople.length + localOnlyContexts.length;
+      if (uploadedCount > 0) {
+        showSyncNotification('success', t('sync.synced', { count: uploadedCount }));
+      }
     } catch (error) {
-      console.error('Error fetching recaps:', error);
+      console.error('Error during sync:', error);
       const errorCode = getDbErrorCode(error);
       showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
-      return [];
+    } finally {
+      setIsSyncing(false);
     }
-  }, [user, supabase, showSyncNotification, t]);
+  }, [user, supabase, days, checkIns, people, customContexts, showSyncNotification, t]);
 
-  // Full sync: cloud is source of truth, merge local cards for missing dates
-  // Flow:
-  // 1. Load cloud recaps
-  // 2. Check local - if have recaps for dates not in cloud, upload them
-  // 3. Load again from cloud and show final list
-  const performFullSync = useCallback(
-    async (localCards: DailyCard[]) => {
-      if (!user) return;
+  // Manual sync trigger
+  const syncNow = useCallback(async () => {
+    if (user && !isSyncing) {
+      await performFullSync();
+    }
+  }, [user, isSyncing, performFullSync]);
 
-      const getDateStr = (card: DailyCard) =>
-        new Date(card.createdAt).toISOString().split('T')[0];
-
-      try {
-        // 1. Load cloud recaps (source of truth)
-        const cloudRecaps = await fetchRecapsFromCloud();
-
-        // 2. Build set of dates that exist in cloud
-        const cloudDates = new Set<string>();
-        cloudRecaps.forEach((card) => cloudDates.add(getDateStr(card)));
-
-        // 3. Find local recaps for dates that don't exist in cloud
-        // Also filter out cards with invalid mood values
-        const localOnlyCards = localCards.filter(
-          (card) => !cloudDates.has(getDateStr(card)) && isValidMood(card.mood)
-        );
-
-        // 4. Upload local-only recaps to cloud (including their images)
-        if (localOnlyCards.length > 0) {
-          // First, upload any local data URL images to cloud storage
-          const cardsWithUploadedImages = await Promise.all(
-            localOnlyCards.map(async (card) => {
-              if (card.photoUrl && isDataUrl(card.photoUrl)) {
-                // Upload the data URL image to Supabase storage
-                const { url, errorCode } = await uploadDataUrlImage(
-                  card.photoUrl,
-                  user.id
-                );
-                if (errorCode) {
-                  console.error('Error uploading image for card:', card.id, errorCode);
-                  // Keep the data URL if upload fails (will be lost but recap is saved)
-                  return { ...card, photoUrl: undefined };
-                }
-                return { ...card, photoUrl: url ?? undefined };
-              }
-              return card;
-            })
-          );
-
-          const { error } = await supabase.from('recaps').upsert(
-            cardsWithUploadedImages.map((card) => ({
-              id: card.id,
-              user_id: user.id,
-              text: card.text,
-              mood: card.mood,
-              photo_url: card.photoUrl,
-              blocks: card.blocks,
-              created_at: card.createdAt,
-            })),
-            { onConflict: 'id' }
-          );
-
-          if (error) {
-            console.error('Error uploading local recaps:', error);
-            const errorCode = getDbErrorCode(error);
-            showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
-          }
-        }
-
-        // 5. Load final list from cloud (to ensure consistency)
-        const finalRecaps =
-          localOnlyCards.length > 0
-            ? await fetchRecapsFromCloud()
-            : cloudRecaps;
-
-        // 6. Clear local IndexedDB - cloud is now source of truth
-        await clearLocalCards();
-
-        // 7. Update memory store with final cloud data
-        setCards(finalRecaps);
-
-        // 8. Show notification if we synced anything
-        if (localOnlyCards.length > 0) {
-          showSyncNotification(
-            'success',
-            t('sync.synced', { count: finalRecaps.length })
-          );
-        }
-
-        return {
-          uploaded: localOnlyCards.length,
-          total: finalRecaps.length,
-        };
-      } catch (error) {
-        console.error('Error during full sync:', error);
-        const errorCode = getDbErrorCode(error);
-        showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
-        return { uploaded: 0, total: 0 };
-      }
-    },
-    [user, fetchRecapsFromCloud, setCards, supabase, showSyncNotification, t]
-  );
-
-  // Save a single recap to cloud (with limit check for new recaps)
-  const saveRecapToCloud = useCallback(
-    async (card: DailyCard) => {
-      if (!user) return false;
-
-      try {
-        // Check if this is a new recap (not an update)
-        const { data: existing } = await supabase
-          .from('recaps')
-          .select('id')
-          .eq('id', card.id)
-          .single();
-
-        // If it's a new recap, check the limit
-        if (!existing) {
-          const { count } = await supabase
-            .from('recaps')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-            .is('deleted_at', null);
-
-          if (count !== null && count >= MAX_RECAPS) {
-            showSyncNotification('error', t('sync.limitReached'));
-            return false;
-          }
-        }
-
-        const { error } = await supabase.from('recaps').upsert({
-          id: card.id,
-          user_id: user.id,
-          text: card.text,
-          mood: card.mood,
-          photo_url: card.photoUrl,
-          blocks: card.blocks,
-          created_at: card.createdAt,
-        });
-
-        if (error) {
-          console.error('Error saving recap:', error);
-          const errorCode = getDbErrorCode(error);
-          showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
-          return false;
-        }
-
-        return true;
-      } catch (error) {
-        console.error('Error saving recap:', error);
-        const errorCode = getDbErrorCode(error);
-        showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
-        return false;
-      }
-    },
-    [user, supabase, showSyncNotification, t]
-  );
-
-  // Soft delete a recap from cloud
-  const deleteRecapFromCloud = useCallback(
-    async (cardId: string) => {
-      if (!user) return false;
-
-      try {
-        const { error } = await supabase
-          .from('recaps')
-          .update({ deleted_at: new Date().toISOString() })
-          .eq('id', cardId)
-          .eq('user_id', user.id);
-
-        if (error) {
-          console.error('Error deleting recap:', error);
-          const errorCode = getDbErrorCode(error);
-          showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
-          return false;
-        }
-
-        return true;
-      } catch (error) {
-        console.error('Error deleting recap:', error);
-        const errorCode = getDbErrorCode(error);
-        showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
-        return false;
-      }
-    },
-    [user, supabase, showSyncNotification, t]
-  );
-
-  // Restore a soft-deleted recap
-  const restoreRecapInCloud = useCallback(
-    async (cardId: string) => {
-      if (!user) return false;
-
-      try {
-        const { error } = await supabase
-          .from('recaps')
-          .update({ deleted_at: null })
-          .eq('id', cardId)
-          .eq('user_id', user.id);
-
-        if (error) {
-          console.error('Error restoring recap:', error);
-          const errorCode = getDbErrorCode(error);
-          showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
-          return false;
-        }
-
-        return true;
-      } catch (error) {
-        console.error('Error restoring recap:', error);
-        const errorCode = getDbErrorCode(error);
-        showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
-        return false;
-      }
-    },
-    [user, supabase, showSyncNotification, t]
-  );
-
-  // Permanently delete a recap from cloud
-  const permanentlyDeleteRecapFromCloud = useCallback(
-    async (cardId: string) => {
-      if (!user) return false;
-
-      try {
-        const { error } = await supabase
-          .from('recaps')
-          .delete()
-          .eq('id', cardId)
-          .eq('user_id', user.id);
-
-        if (error) {
-          console.error('Error permanently deleting recap:', error);
-          const errorCode = getDbErrorCode(error);
-          showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
-          return false;
-        }
-
-        return true;
-      } catch (error) {
-        console.error('Error permanently deleting recap:', error);
-        const errorCode = getDbErrorCode(error);
-        showSyncNotification('error', t(`db.error.${errorCode}` as TranslationKey));
-        return false;
-      }
-    },
-    [user, supabase, showSyncNotification, t]
-  );
-
-  // Initialize: Load local cards and sync with cloud if authenticated
+  // Initialize: Load local data and sync with cloud if authenticated
   useEffect(() => {
     // Wait for auth to finish loading
     if (authLoading) return;
@@ -441,35 +338,30 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     }
 
     const initialize = async () => {
-      // Load local cards from IndexedDB
-      const localCards = await loadLocalCards();
+      // First, hydrate from IndexedDB
+      await hydrateCheckInStore();
 
       if (user) {
         // User is authenticated - sync with cloud
         if (!hasSyncedRef.current) {
           hasSyncedRef.current = true;
-          await performFullSync(localCards);
+          await performFullSync();
         }
       } else {
-        // User is not authenticated - use local cards
-        setCards(localCards);
+        // User is not authenticated - just use local data (already hydrated)
+        setHydrated(true);
       }
-
-      // Mark as hydrated
-      setHydrated(true);
     };
 
     initialize();
-  }, [user, authLoading, setCards, setHydrated, performFullSync]);
+  }, [user, authLoading, setHydrated, performFullSync]);
 
   const contextValue: SyncContextValue = {
-    saveRecapToCloud,
-    deleteRecapFromCloud,
-    restoreRecapInCloud,
-    permanentlyDeleteRecapFromCloud,
     isAuthenticated: !!user,
+    isSyncing,
     syncNotification,
     showNotification: showSyncNotification,
+    syncNow,
   };
 
   return (

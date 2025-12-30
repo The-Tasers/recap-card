@@ -24,7 +24,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { AnimatePresence } from 'framer-motion';
 import { ColorTheme, COLOR_THEMES, ALL_COLOR_THEMES } from '@/lib/types';
-import { useCardStore, useSettingsStore, clearIndexedDB } from '@/lib/store';
+import { useSettingsStore, clearIndexedDB } from '@/lib/store';
+import { useCheckInStore } from '@/lib/checkin-store';
 import { applyColorTheme } from '@/components/theme-provider';
 import { useAuth } from '@/components/auth-provider';
 import { createClient } from '@/lib/supabase/client';
@@ -39,7 +40,7 @@ const CONTACT_EMAIL = 'support@recapz.app';
 export default function SettingsPage() {
   const router = useRouter();
   const { user, signOut, updatePassword } = useAuth();
-  const { cards } = useCardStore();
+  const { checkIns, days, clearAllData } = useCheckInStore();
   const { colorTheme, setColorTheme } = useSettingsStore();
   const { t, language, setLanguage } = useI18n();
 
@@ -106,19 +107,17 @@ export default function SettingsPage() {
     try {
       if (user) {
         const supabase = createClient();
-        const { error } = await supabase
-          .from('recaps')
-          .delete()
-          .eq('user_id', user.id);
-
-        if (error) {
-          console.error('Error deleting cloud recaps:', error);
-          toast.error(t('toast.failedToDeleteCloudData'));
-          setIsClearing(false);
-          return;
-        }
+        // Delete check-in related data from cloud
+        await Promise.all([
+          supabase.from('checkins').delete().eq('user_id', user.id),
+          supabase.from('days').delete().eq('user_id', user.id),
+          supabase.from('people').delete().eq('user_id', user.id),
+          supabase.from('contexts').delete().eq('user_id', user.id).eq('is_default', false),
+        ]);
       }
 
+      // Clear local data
+      clearAllData();
       await clearIndexedDB();
       toast.success(t('toast.allDataCleared'));
       setShowClearConfirm(false);
@@ -469,30 +468,11 @@ export default function SettingsPage() {
 
             <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
               <p className="text-sm text-muted-foreground">
-                {t('settings.daysCaptured', { count: cards.length })}
+                {t('settings.daysCaptured', { count: days.length })}
               </p>
-              {/* {cards.length > 0 && (
-                <button
-                  onClick={handleExportCSV}
-                  disabled={exportSuccess}
-                  className={cn(
-                    'p-2 cursor-pointer transition-colors rounded-md',
-                    exportSuccess
-                      ? 'text-emerald-500'
-                      : 'text-muted-foreground/50 hover:text-foreground hover:bg-muted/50'
-                  )}
-                  aria-label="Export data as CSV"
-                >
-                  {exportSuccess ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    <Download className="h-4 w-4" />
-                  )}
-                </button>
-              )} */}
             </div>
 
-            {cards.length > 0 && (
+            {checkIns.length > 0 && (
               <AnimatePresence mode="wait">
                 {!showClearConfirm ? (
                   <motion.button
@@ -514,7 +494,7 @@ export default function SettingsPage() {
                     className="space-y-3"
                   >
                     <p className="text-sm text-destructive/70 text-center">
-                      {t('settings.clearDataConfirm', { count: cards.length })}
+                      {t('settings.clearDataConfirm', { count: checkIns.length })}
                     </p>
                     <div className="flex justify-center gap-4">
                       <button

@@ -3,7 +3,8 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
-import { useCardStore, clearLocalCards } from '@/lib/store';
+import { clearIndexedDB } from '@/lib/store';
+import { useCheckInStore } from '@/lib/checkin-store';
 
 // Map Supabase error codes to translation keys
 function getAuthErrorCode(error: AuthError): string {
@@ -131,10 +132,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    // 1. Clear local IndexedDB cards
-    await clearLocalCards();
-    // 2. Clear memory store
-    useCardStore.getState().clearAllCards();
+    // 1. Clear local IndexedDB
+    await clearIndexedDB();
+    // 2. Clear check-in store
+    useCheckInStore.getState().clearAllData();
     // 3. Sign out from Supabase
     await supabase.auth.signOut();
   };

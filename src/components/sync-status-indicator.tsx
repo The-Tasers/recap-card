@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Cloud, Smartphone, Check, AlertCircle } from 'lucide-react';
+import { Cloud, Smartphone, Check, AlertCircle, CloudOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type SyncNotification } from '@/components/sync-provider';
 import { useI18n } from '@/lib/i18n';
@@ -63,7 +63,7 @@ export function SyncStatusIndicator({
               </>
             ) : (
               <>
-                <Smartphone className="h-3.5 w-3.5" />
+                <CloudOff className="h-3.5 w-3.5" />
                 <span className="text-xs">{t('sync.localStatus')}</span>
               </>
             )}

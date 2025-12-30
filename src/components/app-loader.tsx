@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useCardStore } from '@/lib/store';
+import { useCheckInStore } from '@/lib/checkin-store';
 import { AppLogo } from '@/components/app-footer';
 
 interface AppLoaderProps {
@@ -9,7 +9,7 @@ interface AppLoaderProps {
 }
 
 export function AppLoader({ children }: AppLoaderProps) {
-  const { hydrated } = useCardStore();
+  const { hydrated } = useCheckInStore();
   const [showLoader, setShowLoader] = useState(true);
   const [isVisible, setIsVisible] = useState(true);
 
@@ -30,7 +30,7 @@ export function AppLoader({ children }: AppLoaderProps) {
       {/* Loading overlay */}
       {showLoader && (
         <div
-          className={`fixed inset-0 z-[100] flex items-center justify-center bg-background transition-opacity duration-300 ${
+          className={`fixed inset-0 z-100 flex items-center justify-center bg-background transition-opacity duration-300 ${
             isVisible ? 'opacity-100' : 'opacity-0'
           }`}
         >

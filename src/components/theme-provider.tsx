@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useCardStore, useSettingsStore } from '@/lib/store';
+import { useSettingsStore } from '@/lib/store';
+import { useCheckInStore } from '@/lib/checkin-store';
 import { ColorTheme, COLOR_THEMES } from '@/lib/types';
 
 interface ThemeProviderProps {
@@ -24,7 +25,7 @@ export function applyColorTheme(theme: ColorTheme): void {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const { hydrated } = useCardStore();
+  const { hydrated } = useCheckInStore();
   const { colorTheme } = useSettingsStore();
 
   useEffect(() => {

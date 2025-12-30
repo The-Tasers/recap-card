@@ -1,4 +1,3 @@
-import { DailyCard } from '@/lib/types';
 import { Language } from '@/lib/i18n/translations';
 
 const LOCALES: Record<Language, string> = {
@@ -38,6 +37,14 @@ export function formatDate(date: Date, language: Language = 'en'): string {
   });
 }
 
+// Format short date (e.g., "Dec 31" or "31 дек")
+export function formatShortDate(date: Date, language: Language = 'en'): string {
+  return date.toLocaleDateString(LOCALES[language], {
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
 // Format relative date for stream
 export function formatRelativeDate(date: Date, language: Language = 'en'): string {
   const now = new Date();
@@ -66,56 +73,3 @@ export function formatRelativeDate(date: Date, language: Language = 'en'): strin
   return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
 }
 
-// Group cards by week
-export function groupCardsByWeek(
-  cards: DailyCard[],
-  language: Language = 'en'
-): { label: string; cards: DailyCard[] }[] {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-  const groups: { label: string; cards: DailyCard[] }[] = [];
-  let currentGroup: { label: string; cards: DailyCard[] } | null = null;
-
-  const labels = DATE_LABELS[language];
-  const locale = LOCALES[language];
-
-  // Sort cards by date descending
-  const sortedCards = [...cards].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
-
-  sortedCards.forEach((card) => {
-    const cardDate = new Date(card.createdAt);
-    const diffDays = Math.floor(
-      (today.getTime() -
-        new Date(
-          cardDate.getFullYear(),
-          cardDate.getMonth(),
-          cardDate.getDate()
-        ).getTime()) /
-        (1000 * 60 * 60 * 24)
-    );
-
-    let label: string;
-    if (diffDays < 7) {
-      label = labels.thisWeek;
-    } else if (diffDays < 14) {
-      label = labels.lastWeek;
-    } else {
-      // Group by month
-      label = cardDate.toLocaleDateString(locale, {
-        month: 'long',
-        year: 'numeric',
-      });
-    }
-
-    if (!currentGroup || currentGroup.label !== label) {
-      currentGroup = { label, cards: [] };
-      groups.push(currentGroup);
-    }
-    currentGroup.cards.push(card);
-  });
-
-  return groups;
-}

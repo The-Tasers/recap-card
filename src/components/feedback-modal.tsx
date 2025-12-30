@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Loader2, Angry, Frown, Meh, Smile, Laugh } from 'lucide-react';
+import { X, Loader2, ThumbsDown, Meh, ThumbsUp, Heart, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n';
 import { createClient } from '@/lib/supabase/client';
@@ -16,7 +16,7 @@ interface FeedbackModalProps {
   onClose: () => void;
 }
 
-// Rating options with mood icons and colors (matching app's mood palette)
+// Rating options - focused on likelihood to recommend/continue using
 const RATING_OPTIONS: {
   value: number;
   icon: LucideIcon;
@@ -27,42 +27,42 @@ const RATING_OPTIONS: {
 }[] = [
   {
     value: 5,
-    icon: Laugh,
+    icon: Sparkles,
     key: 'feedback.rating.5',
     color: 'text-[#22c55e]',
-    bgColor: 'bg-[#22c55e]/10 border-[#22c55e]/30 hover:bg-[#22c55e]/20',
+    bgColor: 'bg-[#22c55e]/10 border border-[#22c55e]/30 hover:bg-[#22c55e]/20',
     selectedBg: 'bg-[#22c55e] border-[#22c55e]',
   },
   {
     value: 4,
-    icon: Smile,
+    icon: Heart,
     key: 'feedback.rating.4',
     color: 'text-[#84cc16]',
-    bgColor: 'bg-[#84cc16]/10 border-[#84cc16]/30 hover:bg-[#84cc16]/20',
+    bgColor: 'bg-[#84cc16]/10 border border-[#84cc16]/30 hover:bg-[#84cc16]/20',
     selectedBg: 'bg-[#84cc16] border-[#84cc16]',
   },
   {
     value: 3,
-    icon: Meh,
+    icon: ThumbsUp,
     key: 'feedback.rating.3',
     color: 'text-[#eab308]',
-    bgColor: 'bg-[#eab308]/10 border-[#eab308]/30 hover:bg-[#eab308]/20',
+    bgColor: 'bg-[#eab308]/10 border border-[#eab308]/30 hover:bg-[#eab308]/20',
     selectedBg: 'bg-[#eab308] border-[#eab308]',
   },
   {
     value: 2,
-    icon: Frown,
+    icon: Meh,
     key: 'feedback.rating.2',
     color: 'text-[#f97316]',
-    bgColor: 'bg-[#f97316]/10 border-[#f97316]/30 hover:bg-[#f97316]/20',
+    bgColor: 'bg-[#f97316]/10 border border-[#f97316]/30 hover:bg-[#f97316]/20',
     selectedBg: 'bg-[#f97316] border-[#f97316]',
   },
   {
     value: 1,
-    icon: Angry,
+    icon: ThumbsDown,
     key: 'feedback.rating.1',
     color: 'text-[#ef4444]',
-    bgColor: 'bg-[#ef4444]/10 border-[#ef4444]/30 hover:bg-[#ef4444]/20',
+    bgColor: 'bg-[#ef4444]/10 border border-[#ef4444]/30 hover:bg-[#ef4444]/20',
     selectedBg: 'bg-[#ef4444] border-[#ef4444]',
   },
 ];
@@ -91,6 +91,8 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
         console.error('Error submitting feedback:', error);
         toast.error(t('feedback.error'));
       } else {
+        // Mark feedback as given in localStorage
+        localStorage.setItem('recapz_feedback_given', 'true');
         toast.success(t('feedback.thanks'));
         handleClose();
       }
@@ -123,9 +125,9 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
 
           {/* Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.2 }}
             className="fixed left-4 right-4 top-1/2 -translate-y-1/2 max-w-sm mx-auto bg-background rounded-2xl shadow-xl z-50 overflow-hidden"
           >
@@ -141,52 +143,61 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
             </div>
 
             {/* Content */}
-            <div className="p-4 space-y-4">
-              <p className="text-sm text-muted-foreground text-center">
-                {t('feedback.description')}
+            <div className="p-5 space-y-5">
+              <p className="text-base text-foreground text-center font-medium">
+                {t('feedback.question')}
               </p>
 
-              {/* Rating options as chips */}
-              <div className="flex flex-wrap justify-center gap-2">
+              {/* Rating options as vertical list for clearer feedback */}
+              <div className="space-y-2">
                 {RATING_OPTIONS.map((option) => {
                   const Icon = option.icon;
                   const isSelected = rating === option.value;
                   return (
-                    <button
+                    <motion.button
                       key={option.value}
                       type="button"
                       onClick={() => setRating(option.value)}
                       className={cn(
-                        'flex items-center gap-1.5 px-3 py-2 rounded-full transition-all cursor-pointer text-sm',
+                        'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer',
                         isSelected
                           ? `${option.selectedBg} text-white`
                           : option.bgColor
                       )}
+                      whileTap={{ scale: 0.98 }}
                     >
                       <Icon
                         className={cn(
-                          'h-4 w-4',
+                          'h-5 w-5 shrink-0',
                           isSelected ? 'text-white' : option.color
                         )}
                       />
-                      <span className={cn(isSelected ? 'text-white' : '')}>
+                      <span className={cn('text-sm font-medium', isSelected ? 'text-white' : 'text-foreground')}>
                         {t(option.key as Parameters<typeof t>[0])}
                       </span>
-                    </button>
+                    </motion.button>
                   );
                 })}
               </div>
 
-              {/* Optional message */}
-              <div>
-                <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder={t('feedback.messagePlaceholder')}
-                  rows={3}
-                  className="w-full px-3 py-2 rounded-xl bg-muted/30 border border-border/50 focus:border-primary focus:outline-none transition-colors text-sm resize-none"
-                />
-              </div>
+              {/* Optional message - only show when rating is selected */}
+              <AnimatePresence>
+                {rating > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                  >
+                    <textarea
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder={t('feedback.messagePlaceholder')}
+                      rows={3}
+                      className="w-full px-3 py-2 rounded-xl bg-muted/30 border border-border/50 focus:border-primary focus:outline-none transition-colors text-sm resize-none"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Submit button */}
               <Button

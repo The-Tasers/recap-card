@@ -1,18 +1,10 @@
-export type Mood = 'great' | 'good' | 'okay' | 'low' | 'rough';
-
-// Demo limits
-export const MAX_RECAPS = 7;
+// ============================================================================
+// APP CONFIGURATION
+// ============================================================================
 
 // App color themes
-export type ColorTheme =
-  | 'midnight'
-  | 'ocean'
-  | 'ember'
-  | 'linen'
-  | 'sage'
-  | 'rose';
+export type ColorTheme = 'midnight' | 'ocean' | 'ember' | 'linen' | 'sage' | 'rose';
 
-// All available themes (kept for future use)
 export const ALL_COLOR_THEMES: {
   value: ColorTheme;
   label: string;
@@ -43,9 +35,9 @@ export const ALL_COLOR_THEMES: {
   },
   {
     value: 'linen',
-    label: 'Linen',
-    description: 'Warm, creamy light',
-    preview: { bg: '#f7f5f0', card: '#fdfcfa', accent: '#c4a484' },
+    label: 'Paper',
+    description: 'Calm sage light',
+    preview: { bg: '#f5f7f5', card: '#fcfdfc', accent: '#5a9a7a' },
     isDark: false,
   },
   {
@@ -69,183 +61,153 @@ export const COLOR_THEMES = ALL_COLOR_THEMES.filter(
   (theme) => theme.value === 'midnight' || theme.value === 'linen'
 );
 
-// Block types for modular card content
-export type BlockType = 'text' | 'number' | 'multiselect';
+// ============================================================================
+// FREE PLAN LIMITS
+// ============================================================================
 
-export type BlockId =
-  | 'sleep'
-  | 'weather'
-  | 'meals'
-  | 'selfcare'
-  | 'health'
-  | 'exercise'
-  | 'social'
-  | 'productivity'
-  | 'hobbies';
+export const FREE_PLAN_LIMITS = {
+  maxCustomContexts: 1,
+  maxCustomPeople: 1,
+};
 
-export interface CardBlock {
+// ============================================================================
+// CHECK-IN & REFLECTION SYSTEM - CORE TYPES
+// ============================================================================
+
+/**
+ * State categories for check-ins
+ * These are fixed categories that organize states in the UI
+ */
+export type StateCategory = 'energy' | 'emotion' | 'tension' | 'neutral';
+
+/**
+ * State represents a feeling/mood option in the check-in flow
+ * Loaded from database (states table)
+ */
+export interface State {
   id: string;
-  type: BlockType;
-  blockId: BlockId;
   label: string;
-  value: string | number | string[]; // string[] for multiselect
-  order: number;
-  icon?: string;
+  category: StateCategory;
+  isDefault: boolean;
 }
 
-export interface DailyCard {
+/**
+ * Context represents where/what activity the user is doing
+ * Loaded from database (contexts table)
+ */
+export interface Context {
   id: string;
-  text: string;
-  mood: Mood;
-  photoUrl?: string;
+  label: string;
+  isDefault: boolean;
+  userId?: string; // null for defaults, set for user-created
+}
+
+/**
+ * Person represents who was involved in the check-in
+ * Loaded from database (people table)
+ */
+export interface Person {
+  id: string;
+  label: string;
+  isDefault: boolean;
+  userId?: string; // null for defaults, set for user-created
+}
+
+/**
+ * Morning expectation tone options
+ */
+export type ExpectationTone =
+  | 'calm'
+  | 'excited'
+  | 'anxious'
+  | 'uncertain'
+  | 'energized'
+  | 'heavy';
+
+/**
+ * Day entity - one per calendar day per user
+ */
+export interface Day {
+  id: string;
+  userId?: string; // null for anonymous/local
+  date: string; // YYYY-MM-DD format
+  morningExpectationTone?: ExpectationTone;
   createdAt: string;
-  blocks?: CardBlock[];
 }
 
-// Predefined block definitions
-export const BLOCK_DEFINITIONS: Record<
-  BlockId,
-  { type: BlockType; label: string }
-> = {
-  sleep: {
-    type: 'number',
-    label: 'Hours slept',
-  },
-  weather: {
-    type: 'multiselect',
-    label: 'Weather outside',
-  },
-  meals: {
-    type: 'multiselect',
-    label: 'Meals eaten',
-  },
-  selfcare: {
-    type: 'multiselect',
-    label: 'Daily hygiene',
-  },
-  health: {
-    type: 'multiselect',
-    label: 'Health events',
-  },
-  exercise: {
-    type: 'multiselect',
-    label: 'Workout done',
-  },
-  social: {
-    type: 'multiselect',
-    label: 'Social time',
-  },
-  productivity: {
-    type: 'multiselect',
-    label: 'Productive tasks',
-  },
-  hobbies: {
-    type: 'multiselect',
-    label: 'Hobbies enjoyed',
-  },
-};
+/**
+ * CheckIn entity - multiple per day, the core data unit
+ */
+export interface CheckIn {
+  id: string;
+  dayId: string;
+  timestamp: string;
+  stateId: string;
+  contextId: string;
+  personId?: string;
+}
 
-// Block options definitions
-export const WEATHER_OPTIONS = [
-  { value: 'sunny', label: 'sunny' },
-  { value: 'partly-cloudy', label: 'partly cloudy' },
-  { value: 'cloudy', label: 'cloudy' },
-  { value: 'rainy', label: 'rainy' },
-  { value: 'stormy', label: 'stormy' },
-  { value: 'snowy', label: 'snowy' },
-  { value: 'foggy', label: 'foggy' },
-  { value: 'windy', label: 'windy' },
-];
+// ============================================================================
+// EXPECTATION TONES (UI configuration - not database-driven)
+// ============================================================================
 
-export const MEAL_OPTIONS = [
-  { value: 'breakfast', label: 'breakfast' },
-  { value: 'lunch', label: 'lunch' },
-  { value: 'dinner', label: 'dinner' },
-  { value: 'night-snack', label: 'night snack' },
-];
-
-export const SELFCARE_OPTIONS = [
-  { value: 'shower', label: 'shower' },
-  { value: 'brush-teeth', label: 'brush teeth' },
-  { value: 'wash-face', label: 'wash face' },
-  { value: 'drink-water', label: 'drink water' },
-];
-
-export const HEALTH_OPTIONS = [
-  { value: 'sick', label: 'sick' },
-  { value: 'hospital', label: 'hospital' },
-  { value: 'checkup', label: 'checkup' },
-  { value: 'medicine', label: 'medicine' },
-];
-
-export const EXERCISE_OPTIONS = [
-  { value: 'running', label: 'running' },
-  { value: 'walking', label: 'walking' },
-  { value: 'cycling', label: 'cycling' },
-  { value: 'swimming', label: 'swimming' },
-  { value: 'gym', label: 'gym' },
-  { value: 'yoga', label: 'yoga' },
-  { value: 'stretching', label: 'stretching' },
-  { value: 'hiking', label: 'hiking' },
-  { value: 'dancing', label: 'dancing' },
-  { value: 'sports', label: 'sports' },
-];
-
-export const SOCIAL_OPTIONS = [
-  { value: 'family', label: 'family time' },
-  { value: 'friends', label: 'friends' },
-  { value: 'date', label: 'date' },
-  { value: 'call', label: 'phone call' },
-  { value: 'texting', label: 'texting' },
-  { value: 'videocall', label: 'video call' },
-  { value: 'party', label: 'party' },
-  { value: 'alone', label: 'alone time' },
-];
-
-export const PRODUCTIVITY_OPTIONS = [
-  { value: 'work', label: 'work' },
-  { value: 'study', label: 'study' },
-  { value: 'writing', label: 'writing' },
-  { value: 'tasks', label: 'tasks done' },
-  { value: 'goals', label: 'goal progress' },
-  { value: 'coding', label: 'coding' },
-  { value: 'meeting', label: 'meetings' },
-  { value: 'focused', label: 'deep focus' },
-];
-
-export const HOBBIES_OPTIONS = [
-  { value: 'gaming', label: 'gaming' },
-  { value: 'art', label: 'art' },
-  { value: 'photography', label: 'photography' },
-  { value: 'music', label: 'music' },
-  { value: 'reading', label: 'reading' },
-  { value: 'movies', label: 'movies/TV' },
-  { value: 'cooking', label: 'cooking' },
-  { value: 'outdoors', label: 'outdoors' },
-];
-
-export const MOODS: {
-  value: Mood;
+export const EXPECTATION_TONES: {
+  value: ExpectationTone;
   label: string;
-  emoji: string;
   color: string;
-  bgColor: string;
 }[] = [
-  { value: 'great', label: 'Great', emoji: '😄', color: '#22c55e', bgColor: '#16593420' },
-  { value: 'good', label: 'Good', emoji: '🙂', color: '#84cc16', bgColor: '#3f621220' },
-  { value: 'okay', label: 'Okay', emoji: '😐', color: '#eab308', bgColor: '#a1620720' },
-  { value: 'low', label: 'Low', emoji: '😔', color: '#f97316', bgColor: '#c2410c20' },
-  { value: 'rough', label: 'Rough', emoji: '😢', color: '#ef4444', bgColor: '#b91c1c20' },
+  { value: 'calm', label: 'Calm', color: '#6b9e8a' },
+  { value: 'excited', label: 'Excited', color: '#eab308' },
+  { value: 'anxious', label: 'Anxious', color: '#f97316' },
+  { value: 'uncertain', label: 'Uncertain', color: '#a1a1aa' },
+  { value: 'energized', label: 'Energized', color: '#22c55e' },
+  { value: 'heavy', label: 'Heavy', color: '#8b7cf5' },
 ];
 
-export const getMoodInfo = (mood: Mood) => {
-  return MOODS.find((m) => m.value === mood) || MOODS[2];
+export const getExpectationToneInfo = (tone: ExpectationTone) => {
+  return EXPECTATION_TONES.find((t) => t.value === tone) || EXPECTATION_TONES[0];
 };
 
-// Question categories
-export type QuestionCategory =
-  | 'reflection'
-  | 'gratitude'
-  | 'work'
-  | 'creativity'
-  | 'random';
+// ============================================================================
+// HELPER FUNCTIONS FOR WORKING WITH LOADED DATA
+// ============================================================================
+
+/**
+ * Find a state by ID from a list of states
+ */
+export const getStateById = (id: string, states: State[]): State | undefined => {
+  return states.find((s) => s.id === id);
+};
+
+/**
+ * Filter states by category
+ */
+export const getStatesByCategory = (category: StateCategory, states: State[]): State[] => {
+  return states.filter((s) => s.category === category);
+};
+
+/**
+ * Find a context by ID from combined list
+ */
+export const getContextById = (id: string, contexts: Context[]): Context | undefined => {
+  return contexts.find((c) => c.id === id);
+};
+
+/**
+ * Find a person by ID from combined list
+ */
+export const getPersonById = (id: string, people: Person[]): Person | undefined => {
+  return people.find((p) => p.id === id);
+};
+
+/**
+ * Separate default and custom items from a combined list
+ */
+export const separateDefaultAndCustom = <T extends { isDefault: boolean }>(
+  items: T[]
+): { defaults: T[]; custom: T[] } => {
+  return {
+    defaults: items.filter((item) => item.isDefault),
+    custom: items.filter((item) => !item.isDefault),
+  };
+};
