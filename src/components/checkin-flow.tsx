@@ -202,33 +202,22 @@ function StateOrb({
     >
       <motion.div
         className={cn(
-          'relative rounded-full flex items-center justify-center text-white shadow-lg transition-shadow',
+          'rounded-full flex items-center justify-center text-white shadow-md transition-shadow',
           colors.bg,
           config.orb
         )}
         animate={{
           scale: isSelected ? 1.1 : 1,
           boxShadow: isSelected
-            ? `0 0 30px ${colors.glow}`
-            : `0 4px 12px rgba(0,0,0,0.15)`,
+            ? `0 0 24px ${colors.glow}`
+            : `0 2px 8px rgba(0,0,0,0.1)`,
         }}
         whileHover={{
-          boxShadow: `0 0 20px ${colors.glow}`,
+          boxShadow: `0 0 16px ${colors.glow}`,
         }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       >
-        {/* Glass highlight */}
-        <div
-          className="absolute rounded-full bg-white/25"
-          style={{
-            width: '45%',
-            height: '35%',
-            left: '12%',
-            top: '10%',
-            filter: 'blur(4px)',
-          }}
-        />
-        <Icon className={cn(config.icon, 'relative z-10')} />
+        <Icon className={config.icon} />
       </motion.div>
       {showLabel && (
         <span
@@ -275,25 +264,14 @@ function SelectedStateDisplay({ stateId, onTap }: SelectedStateDisplayProps) {
       >
         <motion.div
           className={cn(
-            'relative w-16 h-16 rounded-full flex items-center justify-center text-white shadow-sm',
+            'w-16 h-16 rounded-full flex items-center justify-center text-white',
             colors.bg
           )}
           style={{
-            boxShadow: `0 0 30px ${colors.glow}`,
+            boxShadow: `0 0 24px ${colors.glow}`,
           }}
         >
-          {/* Glass highlight */}
-          <div
-            className="absolute rounded-full bg-white/30"
-            style={{
-              width: '45%',
-              height: '35%',
-              left: '12%',
-              top: '10%',
-              filter: 'blur(4px)',
-            }}
-          />
-          <Icon className="w-7 h-7 relative z-10" />
+          <Icon className="w-7 h-7" />
         </motion.div>
       </motion.button>
       <div className="flex flex-col items-center">
@@ -328,23 +306,23 @@ function InlineDiscardMessage({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="flex items-center gap-2"
+          className="flex items-center gap-1.5 sm:gap-2"
         >
           {/* Back button - continue editing */}
           <motion.button
             onClick={onKeepEditing}
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
+            className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
             whileTap={{ scale: 0.95 }}
           >
-            <Undo2 className="h-5 w-5" />
+            <Undo2 className="h-4 w-4 sm:h-5 sm:w-5" />
           </motion.button>
           {/* Exit button - discard and close */}
           <motion.button
             onClick={onDiscard}
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors cursor-pointer"
+            className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors cursor-pointer"
             whileTap={{ scale: 0.95 }}
           >
-            <Trash2 className="h-5 w-5" />
+            <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
           </motion.button>
         </motion.div>
       )}
@@ -544,20 +522,20 @@ export function CheckInFlow({
                 <motion.button
                   key="close"
                   onClick={handleClose}
-                  className="flex items-center justify-center w-10 h-10 rounded-full bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
+                  className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
                   whileTap={{ scale: 0.95 }}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  <X className="h-5 w-5" />
+                  <X className="h-4 w-4 sm:h-5 sm:w-5" />
                 </motion.button>
               )}
             </AnimatePresence>
           </div>
 
-          {/* Title - centered */}
-          <h2 className="text-lg font-semibold">
+          {/* Title - centered with responsive text and padding */}
+          <h2 className="text-base sm:text-lg font-semibold px-12 sm:px-14 text-center leading-tight">
             {t('checkin.stateQuestion')}
           </h2>
 
@@ -566,14 +544,14 @@ export function CheckInFlow({
             onClick={handleDone}
             disabled={!canComplete || isSaving}
             className={cn(
-              'absolute right-0 top-0 flex items-center justify-center w-10 h-10 rounded-full transition-all',
+              'absolute right-0 top-0 flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all',
               canComplete
                 ? 'bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer'
                 : 'bg-muted text-muted-foreground cursor-not-allowed'
             )}
             whileTap={canComplete ? { scale: 0.95 } : undefined}
           >
-            <Check className="h-5 w-5" />
+            <Check className="h-4 w-4 sm:h-5 sm:w-5" />
           </motion.button>
         </div>
       </div>
@@ -960,10 +938,10 @@ export function CheckInFlow({
                   ease: 'easeInOut',
                 }}
               />
-              {/* Main orb */}
+              {/* Main orb - flat design */}
               <motion.div
                 className={cn(
-                  'relative w-24 h-24 rounded-full flex items-center justify-center text-white shadow-2xl',
+                  'w-24 h-24 rounded-full flex items-center justify-center text-white shadow-lg',
                   STATE_ORB_COLORS[stateId]?.bg || DEFAULT_ORB_COLORS.bg
                 )}
                 animate={{ scale: [1, 1.05, 1] }}
@@ -973,23 +951,12 @@ export function CheckInFlow({
                   ease: 'easeInOut',
                 }}
               >
-                {/* Glass highlight */}
-                <div
-                  className="absolute rounded-full bg-white/30"
-                  style={{
-                    width: '45%',
-                    height: '35%',
-                    left: '12%',
-                    top: '10%',
-                    filter: 'blur(4px)',
-                  }}
-                />
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.3, type: 'spring', stiffness: 300 }}
                 >
-                  <Check className="h-10 w-10 relative z-10" />
+                  <Check className="h-10 w-10" />
                 </motion.div>
               </motion.div>
             </motion.div>

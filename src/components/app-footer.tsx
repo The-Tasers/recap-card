@@ -64,7 +64,7 @@ export function AppLogo({
           <Activity
             className={cn(
               iconSize,
-              'rotate-45 text-primary',
+              'text-primary rotate-45',
               muted && 'opacity-50 group-hover:opacity-80 transition-opacity'
             )}
             strokeWidth={3}

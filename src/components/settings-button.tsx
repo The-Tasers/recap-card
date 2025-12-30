@@ -155,7 +155,7 @@ export function SettingsButton({ isAuthenticated }: SettingsButtonProps) {
       >
         {/* Avatar circle - bigger */}
         <div
-          className="h-10 w-10 rounded-full flex items-center justify-center transition-colors"
+          className="h-8 w-8 rounded-full flex items-center justify-center transition-colors"
           style={{
             backgroundColor: isAuthenticated
               ? `${currentTheme?.preview.accent}20`

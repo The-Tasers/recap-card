@@ -6,7 +6,11 @@ import { SignupPrompt } from '@/components/signup-prompt';
 import { Activity } from 'lucide-react';
 
 export default function HomePage() {
-  const { showOnboarding, completeOnboarding, checked: onboardingChecked } = useOnboarding();
+  const {
+    showOnboarding,
+    completeOnboarding,
+    checked: onboardingChecked,
+  } = useOnboarding();
 
   // Loading state
   if (!onboardingChecked) {
@@ -18,7 +22,10 @@ export default function HomePage() {
           <span className="text-[#eab308]">C</span>
           <span className="text-[#84cc16]">A</span>
           <span className="text-[#22c55e]">P</span>
-          <Activity className="h-6 w-6 text-primary" strokeWidth={3} />
+          <Activity
+            className="h-6 w-6 text-primary rotate-45"
+            strokeWidth={3}
+          />
         </span>
       </div>
     );

@@ -319,7 +319,7 @@ function MomentOrb({
   const baseSize = getOrbSize(index, total, isDesktop);
   // Keep normal size always, only expanded orb grows
   const collapsedSize = baseSize;
-  const expandedSize = 160;
+  const expandedSize = 190;
   const iconSize = Math.round(collapsedSize * 0.4);
   const floatAnim = getFloatAnimation(index);
 
@@ -419,18 +419,18 @@ function MomentOrb({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.15 }}
-            className="flex flex-col items-center justify-center text-center px-3 relative z-10"
+            className="flex flex-col items-center justify-center text-center px-5 relative z-10"
           >
-            <Icon className="w-7 h-7 mb-1.5" />
-            <span className="text-base font-semibold leading-tight">
+            <Icon className="w-8 h-8 mb-2" />
+            <span className="text-lg font-semibold leading-tight">
               {stateLabel}
             </span>
             {contextLabel && (
-              <span className="text-sm opacity-80 leading-tight mt-0.5">
+              <span className="text-base opacity-80 leading-tight mt-1">
                 {contextLabel}
               </span>
             )}
-            <span className="text-xs opacity-60 mt-1.5">{time}</span>
+            <span className="text-sm opacity-60 mt-2">{time}</span>
           </motion.div>
         ) : (
           <motion.div

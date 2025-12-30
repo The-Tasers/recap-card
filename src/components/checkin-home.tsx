@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   useCheckInStore,
@@ -105,14 +105,24 @@ function getCheckInArcPosition(timestamp: string): { x: number; y: number } {
 }
 
 // Format date for navigation
-function formatDateNav(date: Date, isToday: boolean, language: 'en' | 'ru'): string {
+function formatDateNav(
+  date: Date,
+  isToday: boolean,
+  language: 'en' | 'ru'
+): string {
   const locale = language === 'ru' ? 'ru-RU' : 'en-US';
   if (isToday) {
-    const monthDay = date.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
+    const monthDay = date.toLocaleDateString(locale, {
+      month: 'short',
+      day: 'numeric',
+    });
     return language === 'ru' ? `Сегодня · ${monthDay}` : `Today · ${monthDay}`;
   }
   const weekday = date.toLocaleDateString(locale, { weekday: 'short' });
-  const monthDay = date.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
+  const monthDay = date.toLocaleDateString(locale, {
+    month: 'short',
+    day: 'numeric',
+  });
   return `${weekday} · ${monthDay}`;
 }
 
@@ -134,7 +144,9 @@ function groupOverlappingCheckIns(checkIns: CheckIn[]): CheckIn[][] {
   let currentGroup: CheckIn[] = [sorted[0]];
 
   for (let i = 1; i < sorted.length; i++) {
-    if (areCheckInsOverlapping(currentGroup[currentGroup.length - 1], sorted[i])) {
+    if (
+      areCheckInsOverlapping(currentGroup[currentGroup.length - 1], sorted[i])
+    ) {
       currentGroup.push(sorted[i]);
     } else {
       groups.push(currentGroup);
@@ -163,6 +175,290 @@ const STATE_COLORS: Record<string, string> = {
   present: '#22c55e',
 };
 
+// Memoized animation constants to prevent recreation on every render
+const FLOAT_ANIMATION: number[] = [0, -3, 0];
+const FLOAT_TRANSITION = {
+  duration: 2.5,
+  repeat: Infinity,
+  ease: 'easeInOut' as const,
+};
+const FLOAT_TRANSITION_STOPPED = {
+  duration: 2.5,
+  repeat: 0,
+  ease: 'easeInOut' as const,
+};
+const SPRING_TRANSITION = {
+  type: 'spring' as const,
+  stiffness: 200,
+  damping: 20,
+};
+const SPRING_TRANSITION_FAST = {
+  type: 'spring' as const,
+  stiffness: 300,
+  damping: 25,
+};
+const SPRING_TRANSITION_SNAPPY = {
+  type: 'spring' as const,
+  stiffness: 400,
+  damping: 30,
+};
+
+// Generate rich mixed gradient for merged orbs
+// opacity suffix adds transparency (e.g., 'e6' = 90%)
+function generateMergedGradient(
+  colors: string[],
+  opacitySuffix: string = ''
+): string {
+  const c = colors.map((color) => `${color}${opacitySuffix}`);
+  if (c.length === 1) {
+    return c[0];
+  }
+  if (c.length === 2) {
+    // Two colors: overlapping radial gradients for rich blend
+    return `
+      radial-gradient(circle at 30% 30%, ${c[0]} 0%, transparent 60%),
+      radial-gradient(circle at 70% 70%, ${c[1]} 0%, transparent 60%),
+      radial-gradient(circle, ${c[0]} 0%, ${c[1]} 100%)
+    `;
+  }
+  if (c.length === 3) {
+    // Three colors: triangle arrangement
+    return `
+      radial-gradient(circle at 30% 25%, ${c[0]} 0%, transparent 50%),
+      radial-gradient(circle at 70% 25%, ${c[1]} 0%, transparent 50%),
+      radial-gradient(circle at 50% 75%, ${c[2]} 0%, transparent 50%),
+      radial-gradient(circle, ${c[0]} 0%, ${c[1]} 50%, ${c[2]} 100%)
+    `;
+  }
+  // 4+ colors: four corners arrangement
+  return `
+    radial-gradient(circle at 25% 25%, ${c[0]} 0%, transparent 45%),
+    radial-gradient(circle at 75% 25%, ${c[1]} 0%, transparent 45%),
+    radial-gradient(circle at 25% 75%, ${c[2] || c[0]} 0%, transparent 45%),
+    radial-gradient(circle at 75% 75%, ${c[3] || c[1]} 0%, transparent 45%),
+    radial-gradient(circle, ${c[0]} 0%, ${c[1]} 33%, ${c[2] || c[0]} 66%, ${
+    c[3] || c[1]
+  } 100%)
+  `;
+}
+
+// Memoized Single Orb component
+interface SingleOrbProps {
+  checkIn: CheckIn;
+  anchorPos: { x: number; y: number };
+  isSelected: boolean;
+  groupIndex: number;
+  onTap: () => void;
+}
+
+const SingleOrb = memo(function SingleOrb({
+  checkIn,
+  anchorPos,
+  isSelected,
+  groupIndex,
+  onTap,
+}: SingleOrbProps) {
+  const color = STATE_COLORS[checkIn.stateId] || '#94a3b8';
+
+  const containerStyle = useMemo(
+    () => ({
+      left: `${(anchorPos.x / 200) * 100}%`,
+      top: `${(anchorPos.y / 120) * 100}%`,
+      zIndex: isSelected ? 5 : 10,
+    }),
+    [anchorPos.x, anchorPos.y, isSelected]
+  );
+
+  // Slight transparency to orbs on arc (e6 = 90% opacity)
+  const orbStyle = useMemo(
+    () => ({
+      background: `${color}e6`,
+    }),
+    [color]
+  );
+
+  const containerTransition = useMemo(
+    () => ({
+      ...SPRING_TRANSITION,
+      delay: 0.4 + groupIndex * 0.1,
+    }),
+    [groupIndex]
+  );
+
+  return (
+    <motion.div
+      key={checkIn.id}
+      className="absolute cursor-pointer"
+      style={containerStyle}
+      initial={{ scale: 0, x: '-50%', y: '-50%' }}
+      animate={{
+        scale: isSelected ? 0.5 : 1,
+        x: '-50%',
+        y: '-50%',
+        opacity: isSelected ? 0.5 : 1,
+      }}
+      transition={containerTransition}
+      onClick={(e) => {
+        e.stopPropagation();
+        onTap();
+      }}
+    >
+      <motion.div
+        className="w-10 h-10 rounded-full"
+        style={orbStyle}
+        animate={{ y: isSelected ? 0 : FLOAT_ANIMATION }}
+        transition={isSelected ? FLOAT_TRANSITION_STOPPED : FLOAT_TRANSITION}
+      />
+    </motion.div>
+  );
+});
+
+// Memoized Merged Orb component
+interface MergedOrbProps {
+  group: CheckIn[];
+  anchorPos: { x: number; y: number };
+  isGroupExpanded: boolean;
+  hasSelectedMoment: boolean;
+  remainingCount: number;
+  groupIndex: number;
+  onTap: (e: React.MouseEvent) => void;
+}
+
+const MergedOrb = memo(function MergedOrb({
+  group,
+  anchorPos,
+  isGroupExpanded,
+  hasSelectedMoment,
+  remainingCount,
+  groupIndex,
+  onTap,
+}: MergedOrbProps) {
+  const groupColors = useMemo(
+    () => group.map((c) => STATE_COLORS[c.stateId] || '#94a3b8'),
+    [group]
+  );
+
+  // Slight transparency (e6 = 90% opacity)
+  const mergedGradient = useMemo(
+    () => generateMergedGradient(groupColors, 'e6'),
+    [groupColors]
+  );
+
+  const containerStyle = useMemo(
+    () => ({
+      left: `${(anchorPos.x / 200) * 100}%`,
+      top: `${(anchorPos.y / 120) * 100}%`,
+      zIndex: isGroupExpanded || hasSelectedMoment ? 5 : 10,
+    }),
+    [anchorPos.x, anchorPos.y, isGroupExpanded, hasSelectedMoment]
+  );
+
+  const containerTransition = useMemo(
+    () => ({
+      ...SPRING_TRANSITION,
+      delay: 0.4 + groupIndex * 0.1,
+    }),
+    [groupIndex]
+  );
+
+  const orbStyle = useMemo(
+    () => ({
+      background: mergedGradient,
+    }),
+    [mergedGradient]
+  );
+
+  return (
+    <motion.div
+      className="absolute cursor-pointer"
+      style={containerStyle}
+      initial={{ scale: 0, x: '-50%', y: '-50%' }}
+      animate={{
+        scale: hasSelectedMoment ? 0.5 : 1,
+        x: '-50%',
+        y: '-50%',
+        opacity: hasSelectedMoment ? 0.5 : 1,
+      }}
+      transition={containerTransition}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (!isGroupExpanded) {
+          onTap(e);
+        }
+      }}
+    >
+      {!isGroupExpanded && (
+        <motion.div
+          className="w-11 h-11 rounded-full relative"
+          style={orbStyle}
+          animate={{ y: hasSelectedMoment ? 0 : FLOAT_ANIMATION }}
+          transition={
+            hasSelectedMoment ? FLOAT_TRANSITION_STOPPED : FLOAT_TRANSITION
+          }
+        >
+          {remainingCount > 0 && (
+            <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
+              {remainingCount}
+            </div>
+          )}
+        </motion.div>
+      )}
+    </motion.div>
+  );
+});
+
+// Memoized Expanded Grid Orb component
+interface ExpandedGridOrbProps {
+  checkIn: CheckIn;
+  index: number;
+  onSelect: (checkIn: CheckIn, e: React.MouseEvent) => void;
+}
+
+const ExpandedGridOrb = memo(function ExpandedGridOrb({
+  checkIn,
+  index,
+  onSelect,
+}: ExpandedGridOrbProps) {
+  const color = STATE_COLORS[checkIn.stateId] || '#94a3b8';
+
+  const orbStyle = useMemo(
+    () => ({
+      background: color,
+    }),
+    [color]
+  );
+
+  const transition = useMemo(
+    () => ({
+      delay: index * 0.05,
+      type: 'spring' as const,
+      stiffness: 300,
+      damping: 20,
+    }),
+    [index]
+  );
+
+  return (
+    <motion.div
+      className="cursor-pointer relative"
+      initial={{ scale: 0, y: 20 }}
+      animate={{ scale: 1, y: 0 }}
+      transition={transition}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect(checkIn, e);
+      }}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+    >
+      <div
+        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full"
+        style={orbStyle}
+      />
+    </motion.div>
+  );
+});
+
 export function CheckInHome() {
   const { t, language } = useI18n();
   const { user } = useAuth();
@@ -181,9 +477,14 @@ export function CheckInHome() {
 
   const [viewMode, setViewMode] = useState<ViewMode>('home');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [expandedGroupIndex, setExpandedGroupIndex] = useState<number | null>(null);
+  const [expandedGroupIndex, setExpandedGroupIndex] = useState<number | null>(
+    null
+  );
   const [selectedMoment, setSelectedMoment] = useState<CheckIn | null>(null);
-  const [selectedMomentOrigin, setSelectedMomentOrigin] = useState<{ x: number; y: number } | null>(null);
+  const [selectedMomentOrigin, setSelectedMomentOrigin] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showRecapPanel, setShowRecapPanel] = useState(false);
   const isMobile = useIsMobile();
@@ -231,7 +532,8 @@ export function CheckInHome() {
   // Check if should show feedback modal
   useEffect(() => {
     if (!hydrated) return;
-    const feedbackGiven = localStorage.getItem('recapz_feedback_given') === 'true';
+    const feedbackGiven =
+      localStorage.getItem('recapz_feedback_given') === 'true';
     if (feedbackGiven) return;
     const lastPrompt = localStorage.getItem('recapz_feedback_last_prompt');
     const today = new Date().toDateString();
@@ -242,7 +544,9 @@ export function CheckInHome() {
     const yesterdayStr = yesterday.toISOString().split('T')[0];
     const yesterdayDay = days.find((d) => d.date === yesterdayStr);
     if (yesterdayDay) {
-      const yesterdayCheckIns = checkIns.filter((c) => c.dayId === yesterdayDay.id);
+      const yesterdayCheckIns = checkIns.filter(
+        (c) => c.dayId === yesterdayDay.id
+      );
       if (yesterdayCheckIns.length >= 2) {
         const timer = setTimeout(() => {
           setShowFeedbackModal(true);
@@ -363,7 +667,10 @@ export function CheckInHome() {
           <span className="text-[#eab308]">C</span>
           <span className="text-[#84cc16]">A</span>
           <span className="text-[#22c55e]">P</span>
-          <Activity className="h-6 w-6 text-primary" strokeWidth={3} />
+          <Activity
+            className="h-6 w-6 text-primary rotate-45"
+            strokeWidth={3}
+          />
         </span>
       </div>
     );
@@ -503,14 +810,26 @@ export function CheckInHome() {
                 transition={{ duration: 0.6, ease: 'easeOut' }}
               />
               <defs>
-                <linearGradient id="dayGradientBg" x1="0%" y1="0%" x2="100%" y2="0%">
+                <linearGradient
+                  id="dayGradientBg"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="0%"
+                >
                   <stop offset="0%" stopColor="#1e3a5f" />
                   <stop offset="25%" stopColor="#f97316" />
                   <stop offset="50%" stopColor="#fbbf24" />
                   <stop offset="75%" stopColor="#c084fc" />
                   <stop offset="100%" stopColor="#1e3a5f" />
                 </linearGradient>
-                <linearGradient id="dayGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <linearGradient
+                  id="dayGradient"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="0%"
+                >
                   <stop offset="0%" stopColor="#1e3a5f" />
                   <stop offset="25%" stopColor="#f97316" />
                   <stop offset="50%" stopColor="#fbbf24" />
@@ -520,140 +839,43 @@ export function CheckInHome() {
               </defs>
             </svg>
 
-            {/* Moment orbs - grouped */}
+            {/* Moment orbs - grouped (using memoized components) */}
             {checkInGroups.map((group, groupIndex) => {
               const isGroupExpanded = expandedGroupIndex === groupIndex;
-              // Use first check-in's position as group anchor
               const anchorPos = getCheckInArcPosition(group[0].timestamp);
 
               if (group.length === 1) {
-                // Single orb
                 const checkIn = group[0];
-                const color = STATE_COLORS[checkIn.stateId] || '#94a3b8';
-                const isSelected = selectedMoment?.id === checkIn.id;
                 return (
-                  <motion.div
+                  <SingleOrb
                     key={checkIn.id}
-                    className="absolute cursor-pointer"
-                    style={{
-                      left: `${(anchorPos.x / 200) * 100}%`,
-                      top: `${(anchorPos.y / 120) * 100}%`,
-                      zIndex: isSelected ? 5 : 10,
-                    }}
-                    initial={{ scale: 0, x: '-50%', y: '-50%' }}
-                    animate={{ scale: isSelected ? 0.5 : 1, x: '-50%', y: '-50%', opacity: isSelected ? 0.5 : 1 }}
-                    transition={{
-                      delay: 0.4 + groupIndex * 0.1,
-                      type: 'spring',
-                      stiffness: 200,
-                      damping: 20,
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleGroupTap(groupIndex);
-                    }}
-                  >
-                    <motion.div
-                      className="w-10 h-10 rounded-full"
-                      style={{
-                        background: `radial-gradient(circle at 35% 35%, ${color}, ${color}cc)`,
-                      }}
-                      animate={{ y: isSelected ? 0 : [0, -3, 0] }}
-                      transition={{
-                        duration: 2.5,
-                        repeat: isSelected ? 0 : Infinity,
-                        ease: 'easeInOut',
-                      }}
-                    >
-                      <div
-                        className="absolute rounded-full bg-white/40"
-                        style={{
-                          width: '35%',
-                          height: '25%',
-                          left: '18%',
-                          top: '15%',
-                          filter: 'blur(2px)',
-                        }}
-                      />
-                    </motion.div>
-                  </motion.div>
+                    checkIn={checkIn}
+                    anchorPos={anchorPos}
+                    isSelected={selectedMoment?.id === checkIn.id}
+                    groupIndex={groupIndex}
+                    onTap={() => handleGroupTap(groupIndex)}
+                  />
                 );
               }
 
-              // Multiple overlapping orbs - show single merged gradient orb
-              // Check if one of the group's moments is currently selected/expanded
-              const hasSelectedMoment = group.some(c => selectedMoment?.id === c.id);
-              const remainingCount = hasSelectedMoment ? group.length - 1 : group.length;
-
-              // Generate gradient from all colors in the group
-              const groupColors = group.map(c => STATE_COLORS[c.stateId] || '#94a3b8');
-              const mergedGradient = groupColors.length === 2
-                ? `radial-gradient(circle at 30% 30%, ${groupColors[0]}dd 0%, transparent 50%), radial-gradient(circle at 70% 70%, ${groupColors[1]}dd 0%, transparent 50%), radial-gradient(circle, ${groupColors[0]}88 0%, ${groupColors[1]}88 100%)`
-                : groupColors.length === 3
-                ? `radial-gradient(circle at 25% 25%, ${groupColors[0]}dd 0%, transparent 45%), radial-gradient(circle at 75% 30%, ${groupColors[1]}dd 0%, transparent 45%), radial-gradient(circle at 50% 75%, ${groupColors[2]}dd 0%, transparent 45%), radial-gradient(circle, ${groupColors[0]}66 0%, ${groupColors[1]}66 50%, ${groupColors[2]}66 100%)`
-                : `radial-gradient(circle at 20% 20%, ${groupColors[0]}dd 0%, transparent 40%), radial-gradient(circle at 80% 25%, ${groupColors[1] || groupColors[0]}dd 0%, transparent 40%), radial-gradient(circle at 25% 80%, ${groupColors[2] || groupColors[0]}dd 0%, transparent 40%), radial-gradient(circle at 75% 75%, ${groupColors[3] || groupColors[1] || groupColors[0]}dd 0%, transparent 40%), radial-gradient(circle, ${groupColors[0]}55 0%, ${groupColors[1] || groupColors[0]}55 50%, ${groupColors[2] || groupColors[0]}55 100%)`;
+              const hasSelectedMoment = group.some(
+                (c) => selectedMoment?.id === c.id
+              );
+              const remainingCount = hasSelectedMoment
+                ? group.length - 1
+                : group.length;
 
               return (
-                <motion.div
+                <MergedOrb
                   key={`group-${groupIndex}`}
-                  className="absolute cursor-pointer"
-                  style={{
-                    left: `${(anchorPos.x / 200) * 100}%`,
-                    top: `${(anchorPos.y / 120) * 100}%`,
-                    zIndex: isGroupExpanded || hasSelectedMoment ? 5 : 10,
-                  }}
-                  initial={{ scale: 0, x: '-50%', y: '-50%' }}
-                  animate={{
-                    scale: hasSelectedMoment ? 0.5 : 1,
-                    x: '-50%',
-                    y: '-50%',
-                    opacity: hasSelectedMoment ? 0.5 : 1,
-                  }}
-                  transition={{
-                    delay: 0.4 + groupIndex * 0.1,
-                    type: 'spring',
-                    stiffness: 200,
-                    damping: 20,
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!isGroupExpanded) {
-                      handleGroupTap(groupIndex, e);
-                    }
-                  }}
-                >
-                  {/* Single merged gradient orb - hide when expanded to grid */}
-                  {!isGroupExpanded && (
-                    <motion.div
-                      className="w-11 h-11 rounded-full relative"
-                      style={{ background: mergedGradient }}
-                      animate={{ y: hasSelectedMoment ? 0 : [0, -3, 0] }}
-                      transition={{
-                        duration: 2.5,
-                        repeat: hasSelectedMoment ? 0 : Infinity,
-                        ease: 'easeInOut',
-                      }}
-                    >
-                      {/* Glass highlight */}
-                      <div
-                        className="absolute rounded-full bg-white/35"
-                        style={{
-                          width: '35%',
-                          height: '25%',
-                          left: '18%',
-                          top: '15%',
-                          filter: 'blur(2px)',
-                        }}
-                      />
-                      {/* Count badge - show remaining count when one is selected */}
-                      {remainingCount > 0 && (
-                        <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
-                          {remainingCount}
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
-                </motion.div>
+                  group={group}
+                  anchorPos={anchorPos}
+                  isGroupExpanded={isGroupExpanded}
+                  hasSelectedMoment={hasSelectedMoment}
+                  remainingCount={remainingCount}
+                  groupIndex={groupIndex}
+                  onTap={(e) => handleGroupTap(groupIndex, e)}
+                />
               );
             })}
 
@@ -679,161 +901,132 @@ export function CheckInHome() {
             )}
 
             {/* Time labels */}
-            <Moon className="absolute left-0 bottom-0 h-4 w-4 text-indigo-400/60" />
+            <Moon className="absolute -left-0.5 -bottom-1 sm:left-0 sm:bottom-0 h-4 w-4 text-indigo-400/60" />
             <Sun className="absolute left-1/2 -translate-x-1/2 top-0 h-4 w-4 text-amber-500/60" />
-            <Moon className="absolute right-0 bottom-0 h-4 w-4 text-indigo-400/60" />
+            <Moon className="absolute -right-0.5 -bottom-1 sm:right-0 sm:bottom-0 h-4 w-4 text-indigo-400/60" />
 
             {/* Expanded group grid - centered inside arc for selection */}
             <AnimatePresence>
-              {expandedGroupIndex !== null && checkInGroups[expandedGroupIndex] && (
-                <motion.div
-                  key="expanded-grid"
-                  className="absolute left-1/2 top-[70%] -translate-x-1/2 -translate-y-1/2 z-20"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                >
-                  <div className="flex items-center gap-4">
-                    {checkInGroups[expandedGroupIndex].map((checkIn, i) => {
-                      const color = STATE_COLORS[checkIn.stateId] || '#94a3b8';
-                      return (
-                        <motion.div
+              {expandedGroupIndex !== null &&
+                checkInGroups[expandedGroupIndex] && (
+                  <motion.div
+                    key="expanded-grid"
+                    className="absolute left-1/2 top-[70%] -translate-x-1/2 -translate-y-1/2 z-20"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={SPRING_TRANSITION_FAST}
+                  >
+                    <div className="flex items-center gap-4">
+                      {checkInGroups[expandedGroupIndex].map((checkIn, i) => (
+                        <ExpandedGridOrb
                           key={checkIn.id}
-                          className="cursor-pointer relative"
-                          initial={{ scale: 0, y: 20 }}
-                          animate={{ scale: 1, y: 0 }}
-                          transition={{
-                            delay: i * 0.05,
-                            type: 'spring',
-                            stiffness: 300,
-                            damping: 20,
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleMomentSelect(checkIn, e);
-                          }}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <div
-                            className="w-12 h-12 rounded-full relative"
-                            style={{
-                              background: `radial-gradient(circle at 35% 35%, ${color}, ${color}cc)`,
-                            }}
-                          >
-                            {/* Glass highlight */}
-                            <div
-                              className="absolute rounded-full bg-white/40"
-                              style={{
-                                width: '35%',
-                                height: '25%',
-                                left: '18%',
-                                top: '15%',
-                                filter: 'blur(2px)',
-                              }}
-                            />
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
+                          checkIn={checkIn}
+                          index={i}
+                          onSelect={handleMomentSelect}
+                        />
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
             </AnimatePresence>
 
             {/* Selected moment - animates from arc position to center */}
             <AnimatePresence mode="wait">
-              {selectedMoment && (() => {
-                const state = states.find((s) => s.id === selectedMoment.stateId);
-                const context = contexts.find((c) => c.id === selectedMoment.contextId);
-                const color = STATE_COLORS[selectedMoment.stateId] || '#94a3b8';
-                const Icon = STATE_ICONS[selectedMoment.stateId] || Meh;
-                const stateLabel = state ? t(`state.${state.id}` as TranslationKey) || state.label : '';
-                const contextLabel = context ? t(`context.${context.id}` as TranslationKey) || context.label : '';
-                const time = new Date(selectedMoment.timestamp).toLocaleTimeString(
-                  language === 'ru' ? 'ru-RU' : 'en-US',
-                  { hour: 'numeric', minute: '2-digit' }
-                );
+              {selectedMoment &&
+                (() => {
+                  const state = states.find(
+                    (s) => s.id === selectedMoment.stateId
+                  );
+                  const context = contexts.find(
+                    (c) => c.id === selectedMoment.contextId
+                  );
+                  const color =
+                    STATE_COLORS[selectedMoment.stateId] || '#94a3b8';
+                  const Icon = STATE_ICONS[selectedMoment.stateId] || Meh;
+                  const stateLabel = state
+                    ? t(`state.${state.id}` as TranslationKey) || state.label
+                    : '';
+                  const contextLabel = context
+                    ? t(`context.${context.id}` as TranslationKey) ||
+                      context.label
+                    : '';
+                  const time = new Date(
+                    selectedMoment.timestamp
+                  ).toLocaleTimeString(language === 'ru' ? 'ru-RU' : 'en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                  });
 
-                // Calculate initial position from origin (arc position) to center
-                const originX = selectedMomentOrigin ? (selectedMomentOrigin.x / 200) * 100 : 50;
-                const originY = selectedMomentOrigin ? (selectedMomentOrigin.y / 120) * 100 : 75;
+                  // Calculate initial position from origin (arc position) to center
+                  const originX = selectedMomentOrigin
+                    ? (selectedMomentOrigin.x / 200) * 100
+                    : 50;
+                  const originY = selectedMomentOrigin
+                    ? (selectedMomentOrigin.y / 120) * 100
+                    : 75;
 
-                return (
-                  <motion.div
-                    key={selectedMoment.id}
-                    className="absolute cursor-pointer"
-                    style={{ zIndex: 30 }}
-                    initial={{
-                      left: `${originX}%`,
-                      top: `${originY}%`,
-                      scale: 0.4,
-                      opacity: 0,
-                      x: '-50%',
-                      y: '-50%',
-                    }}
-                    animate={{
-                      left: '50%',
-                      top: '75%',
-                      scale: 1,
-                      opacity: 1,
-                      x: '-50%',
-                      y: '-50%',
-                    }}
-                    exit={{
-                      left: `${originX}%`,
-                      top: `${originY}%`,
-                      scale: 0.4,
-                      opacity: 0,
-                      x: '-50%',
-                      y: '-50%',
-                    }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedMoment(null);
-                      setSelectedMomentOrigin(null);
-                    }}
-                  >
-                    {/* Subtle glow effect */}
-                    <div
-                      className="absolute inset-0 rounded-full blur-lg opacity-25"
-                      style={{ backgroundColor: color }}
-                    />
-                    {/* Large orb with full info */}
+                  return (
                     <motion.div
-                      className="relative w-28 h-28 md:w-32 md:h-32 rounded-full flex flex-col items-center justify-center text-white"
-                      style={{
-                        background: `radial-gradient(circle at 35% 35%, ${color}, ${color}cc)`,
+                      key={selectedMoment.id}
+                      className="absolute cursor-pointer"
+                      style={{ zIndex: 30 }}
+                      initial={{
+                        left: `${originX}%`,
+                        top: `${originY}%`,
+                        scale: 0.4,
+                        opacity: 0,
+                        x: '-50%',
+                        y: '-50%',
+                      }}
+                      animate={{
+                        left: '50%',
+                        top: '75%',
+                        scale: 1,
+                        opacity: 1,
+                        x: '-50%',
+                        y: '-50%',
+                      }}
+                      exit={{
+                        left: `${originX}%`,
+                        top: `${originY}%`,
+                        scale: 0.4,
+                        opacity: 0,
+                        x: '-50%',
+                        y: '-50%',
+                      }}
+                      transition={SPRING_TRANSITION_SNAPPY}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedMoment(null);
+                        setSelectedMomentOrigin(null);
                       }}
                     >
-                      {/* Glass highlight */}
+                      {/* Subtle glow effect */}
                       <div
-                        className="absolute rounded-full bg-white/30"
-                        style={{
-                          width: '40%',
-                          height: '25%',
-                          left: '15%',
-                          top: '12%',
-                          filter: 'blur(3px)',
-                        }}
+                        className="absolute inset-0 rounded-full blur-lg opacity-25"
+                        style={{ backgroundColor: color }}
                       />
-                      {/* Content */}
-                      <Icon className="w-6 h-6 mb-1" />
-                      <span className="text-sm font-semibold leading-tight text-center px-2">
-                        {stateLabel}
-                      </span>
-                      {contextLabel && (
-                        <span className="text-xs opacity-80 leading-tight mt-0.5">
-                          {contextLabel}
+                      {/* Orb with full info */}
+                      <motion.div
+                        className="relative w-24 h-24 md:w-28 md:h-28 rounded-full flex flex-col items-center justify-center text-white"
+                        style={{ background: color }}
+                      >
+                        {/* Content */}
+                        <Icon className="w-5 h-5 sm:w-6 sm:h-6 mb-1" />
+                        <span className="text-sm font-semibold leading-tight text-center px-2">
+                          {stateLabel}
                         </span>
-                      )}
-                      <span className="text-xs opacity-60 mt-1">{time}</span>
+                        {contextLabel && (
+                          <span className="text-xs opacity-80 leading-tight mt-0.5">
+                            {contextLabel}
+                          </span>
+                        )}
+                        <span className="text-xs opacity-60 mt-1">{time}</span>
+                      </motion.div>
                     </motion.div>
-                  </motion.div>
-                );
-              })()}
+                  );
+                })()}
             </AnimatePresence>
           </div>
         </motion.div>
@@ -875,7 +1068,9 @@ export function CheckInHome() {
               >
                 <div
                   className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full"
-                  style={{ background: generateMoodGradient(selectedDayCheckIns) }}
+                  style={{
+                    background: generateMoodGradient(selectedDayCheckIns),
+                  }}
                 />
                 <span>{t('home.seeReflection') || 'View recap'}</span>
               </motion.button>
@@ -899,7 +1094,8 @@ export function CheckInHome() {
               transition={{ delay: 0.5 }}
               className="text-sm text-muted-foreground text-center max-w-xs"
             >
-              {t('home.emptyExplanation') || 'Catch how you feel as the day unfolds'}
+              {t('home.emptyExplanation') ||
+                'Catch how you feel as the day unfolds'}
             </motion.p>
           )}
         </div>
@@ -919,7 +1115,9 @@ export function CheckInHome() {
             className="inline-flex items-center gap-2 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors cursor-pointer"
           >
             <Sparkles className="h-3 w-3" />
-            <span>{t('home.insightsTeaser') || 'Patterns emerge over time'}</span>
+            <span>
+              {t('home.insightsTeaser') || 'Patterns emerge over time'}
+            </span>
           </button>
         </motion.div>
       </div>
@@ -968,7 +1166,9 @@ export function CheckInHome() {
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 pb-3">
-                  <h2 className="text-lg font-semibold">{t('recap.title') || 'Your day'}</h2>
+                  <h2 className="text-lg font-semibold">
+                    {t('recap.title') || 'Your day'}
+                  </h2>
                   <button
                     onClick={() => setShowRecapPanel(false)}
                     className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
@@ -993,7 +1193,9 @@ export function CheckInHome() {
               >
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-                  <h2 className="text-lg font-semibold">{t('recap.title') || 'Your day'}</h2>
+                  <h2 className="text-lg font-semibold">
+                    {t('recap.title') || 'Your day'}
+                  </h2>
                   <button
                     onClick={() => setShowRecapPanel(false)}
                     className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
