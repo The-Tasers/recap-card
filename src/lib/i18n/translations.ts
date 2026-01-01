@@ -412,7 +412,8 @@ export const translations = {
     'home.emptyHint': 'You can notice moments as they happen',
     'home.emptyTitle': 'Notice moments',
     'home.emptyExplanation': 'Catch how you feel as the day unfolds',
-    'home.seeReflection': 'See day recap',
+    'home.seeReflection': 'Recap so far',
+    'home.seeDayRecap': 'See day recap',
     'home.addMoreMoments':
       'Tap the sun to add more moments throughout your day',
     'home.emptyPast': 'A quiet day',
@@ -421,7 +422,6 @@ export const translations = {
 
     // Insights panel
     'insights.title': 'What you noticed',
-    'insights.subtitle': 'Based on the last 7 days',
     'insights.needMoreData': 'Keep checking in',
     'insights.needMoreDataDesc':
       'After a few days, you will start seeing connections between moments. Even missed days count — they show contrast.',
@@ -484,7 +484,7 @@ export const translations = {
     'state.more': 'More',
     // Energy states
     'state.energized': 'Energized',
-    'state.calm': 'Calm',
+    'state.calm': 'Rested',
     'state.tired': 'Tired',
     'state.drained': 'Drained',
     // Emotion states
@@ -574,6 +574,10 @@ export const translations = {
       'You can add more custom contexts with a paid plan',
     'upgrade.customPersonLimit': 'You can add more people with a paid plan',
     'upgrade.learnMore': 'Learn more',
+
+    // Date picker
+    'datePicker.title': 'Go to date',
+    'datePicker.endOfTimeline': '90 days of history',
   },
 
   ru: {
@@ -975,16 +979,16 @@ export const translations = {
     'home.emptyHint': 'Можешь отмечать моменты по ходу дня',
     'home.emptyTitle': 'Замечай моменты',
     'home.emptyExplanation': 'Лови ощущения по ходу дня',
-    'home.seeReflection': 'Итоги дня',
+    'home.seeReflection': 'Обзор дня',
+    'home.seeDayRecap': 'Итоги дня',
     'home.addMoreMoments': 'Нажми на солнце, чтобы добавить ещё моменты',
     'home.emptyPast': 'Тихий день',
-    'home.insightsTeaser': 'Закономерности проявятся позже',
-    'home.momentContext': 'Один момент среди многих.',
+    'home.insightsTeaser': 'Со временем всё станет яснее',
+    'home.momentContext': 'Один момент из многих.',
 
     // Insights panel
     'insights.title': 'Что было замечено',
-    'insights.subtitle': 'За 7 дней',
-    'insights.needMoreData': 'Пока мало данных',
+    'insights.needMoreData': 'Продолжай замечать моменты',
     'insights.needMoreDataDesc':
       'Через несколько дней начнёшь видеть связи между моментами. Пропущенные дни тоже важны — они показывают контраст.',
     'insights.exampleTitle': 'Что может появиться',
@@ -1045,8 +1049,8 @@ export const translations = {
     'state.tension': 'Фокус',
     'state.more': 'Ещё',
     // Energy states
-    'state.energized': 'Бодро',
-    'state.calm': 'Спокойно',
+    'state.energized': 'Заряжен',
+    'state.calm': 'В норме',
     'state.tired': 'Устал',
     'state.drained': 'Выжат',
     // Emotion states
@@ -1056,10 +1060,10 @@ export const translations = {
     'state.grateful': 'Отлично',
     'state.uncertain': 'Непонятно',
     // Tension states
-    'state.focused': 'Собран',
-    'state.scattered': 'Раскидан',
-    'state.present': 'В моменте',
-    'state.distracted': 'Где-то',
+    'state.focused': 'Сосредоточен',
+    'state.scattered': 'Рассеян',
+    'state.present': 'Вовлечён',
+    'state.distracted': 'Отвлечён',
 
     // Context selection
     'context.addCustom': 'Добавить',
@@ -1134,5 +1138,9 @@ export const translations = {
     'upgrade.customContextLimit': 'Больше контекстов доступно с платным планом',
     'upgrade.customPersonLimit': 'Больше людей доступно с платным планом',
     'upgrade.learnMore': 'Подробнее',
+
+    // Date picker
+    'datePicker.title': 'Перейти к дате',
+    'datePicker.endOfTimeline': '90 дней истории',
   },
 } as const;

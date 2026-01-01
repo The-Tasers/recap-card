@@ -17,10 +17,9 @@ import {
   CloudRain,
   Smile,
   Meh,
-  AlertCircle,
-  ThumbsDown,
-  Sparkles,
-  HelpCircle,
+  Frown,
+  Annoyed,
+  Laugh,
   Target,
   Shuffle,
   Eye,
@@ -40,18 +39,19 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
-// State icons
+// State icons - emotion uses face emoticons from bad to good
 const STATE_ICONS: Record<string, LucideIcon> = {
   neutral: Minus,
   energized: Sun,
   calm: CloudSun,
   tired: Moon,
   drained: CloudRain,
-  content: Smile,
-  anxious: AlertCircle,
-  frustrated: ThumbsDown,
-  grateful: Sparkles,
-  uncertain: HelpCircle,
+  // Emotion: faces from bad to good
+  frustrated: Frown,      // worst
+  anxious: Annoyed,       // bad
+  uncertain: Meh,         // neutral
+  content: Smile,         // good
+  grateful: Laugh,        // best
   focused: Target,
   scattered: Shuffle,
   present: Eye,
@@ -70,7 +70,15 @@ const CONTEXT_ICONS: Record<string, LucideIcon> = {
   rest: Moon,
 };
 
-// State colors for orbs - red→green gradient like onboarding, slightly softened
+// =============================================================================
+// STATE COLOR SYSTEM
+// =============================================================================
+// Three categories, each with distinct visual language:
+// - Emotion: red↔green valence spectrum ("How did it feel?")
+// - Energy: amber/orange family with intensity ("How much energy?")
+// - Tension: blue/indigo family with intensity ("How focused/strained?")
+// =============================================================================
+
 const STATE_ORB_COLORS: Record<
   string,
   { bg: string; glow: string; rgb: string }
@@ -80,73 +88,78 @@ const STATE_ORB_COLORS: Record<
     glow: 'rgba(148, 163, 184, 0.35)',
     rgb: '#94a3b8',
   },
-  // Energy: drained(red) → tired(orange) → calm(lime) → energized(green)
-  drained: {
-    bg: 'bg-red-400',
-    glow: 'rgba(248, 113, 113, 0.4)',
-    rgb: '#f87171',
-  },
-  tired: {
-    bg: 'bg-orange-400',
-    glow: 'rgba(251, 146, 60, 0.4)',
-    rgb: '#fb923c',
-  },
-  calm: {
-    bg: 'bg-lime-400',
-    glow: 'rgba(163, 230, 53, 0.4)',
-    rgb: '#a3e635',
-  },
-  energized: {
-    bg: 'bg-green-400',
-    glow: 'rgba(74, 222, 128, 0.4)',
-    rgb: '#4ade80',
-  },
-  // Emotion: frustrated(red) → anxious(orange) → uncertain(amber) → content(lime) → grateful(green)
+
+  // EMOTION category: red → orange → yellow → lime → green (classic bad→good)
   frustrated: {
-    bg: 'bg-red-400',
-    glow: 'rgba(248, 113, 113, 0.4)',
-    rgb: '#f87171',
+    bg: 'bg-red-500',
+    glow: 'rgba(239, 68, 68, 0.4)',
+    rgb: '#ef4444',
   },
   anxious: {
-    bg: 'bg-orange-400',
-    glow: 'rgba(251, 146, 60, 0.4)',
-    rgb: '#fb923c',
+    bg: 'bg-orange-500',
+    glow: 'rgba(249, 115, 22, 0.4)',
+    rgb: '#f97316',
   },
   uncertain: {
-    bg: 'bg-amber-400',
-    glow: 'rgba(251, 191, 36, 0.4)',
-    rgb: '#fbbf24',
+    bg: 'bg-yellow-500',
+    glow: 'rgba(234, 179, 8, 0.4)',
+    rgb: '#eab308',
   },
   content: {
-    bg: 'bg-lime-400',
-    glow: 'rgba(163, 230, 53, 0.4)',
-    rgb: '#a3e635',
+    bg: 'bg-lime-500',
+    glow: 'rgba(132, 204, 22, 0.4)',
+    rgb: '#84cc16',
   },
   grateful: {
-    bg: 'bg-emerald-400',
-    glow: 'rgba(52, 211, 153, 0.4)',
-    rgb: '#34d399',
+    bg: 'bg-green-500',
+    glow: 'rgba(34, 197, 94, 0.4)',
+    rgb: '#22c55e',
   },
-  // Tension: scattered(red) → distracted(orange) → focused(lime) → present(green)
+
+  // ENERGY category: blue/cyan family (cool energy feel)
+  // drained(dark) → tired → calm → energized(bright)
+  drained: {
+    bg: 'bg-indigo-900',
+    glow: 'rgba(49, 46, 129, 0.4)',
+    rgb: '#312e81',
+  },
+  tired: {
+    bg: 'bg-blue-400',
+    glow: 'rgba(96, 165, 250, 0.4)',
+    rgb: '#60a5fa',
+  },
+  calm: {
+    bg: 'bg-sky-400',
+    glow: 'rgba(56, 189, 248, 0.4)',
+    rgb: '#38bdf8',
+  },
+  energized: {
+    bg: 'bg-cyan-400',
+    glow: 'rgba(34, 211, 238, 0.4)',
+    rgb: '#22d3ee',
+  },
+
+  // TENSION/FOCUS category: purple/violet family (mental clarity)
+  // scattered(chaotic) → distracted → focused → present(clear)
   scattered: {
-    bg: 'bg-red-400',
-    glow: 'rgba(248, 113, 113, 0.4)',
-    rgb: '#f87171',
+    bg: 'bg-purple-700',
+    glow: 'rgba(126, 34, 206, 0.4)',
+    rgb: '#7e22ce',
   },
   distracted: {
-    bg: 'bg-orange-400',
-    glow: 'rgba(251, 146, 60, 0.4)',
-    rgb: '#fb923c',
+    bg: 'bg-purple-500',
+    glow: 'rgba(168, 85, 247, 0.4)',
+    rgb: '#a855f7',
   },
   focused: {
-    bg: 'bg-lime-400',
-    glow: 'rgba(163, 230, 53, 0.4)',
-    rgb: '#a3e635',
+    bg: 'bg-violet-400',
+    glow: 'rgba(167, 139, 250, 0.4)',
+    rgb: '#a78bfa',
   },
   present: {
-    bg: 'bg-green-400',
-    glow: 'rgba(74, 222, 128, 0.4)',
-    rgb: '#4ade80',
+    bg: 'bg-fuchsia-400',
+    glow: 'rgba(232, 121, 249, 0.4)',
+    rgb: '#e879f9',
   },
 };
 
@@ -914,19 +927,23 @@ export function CheckInFlow({
           </motion.div>
         )}
 
-        {/* Save button - shown after context is selected */}
+      </div>
+
+      {/* Save button - sticky at bottom on mobile, shown after context is selected */}
+      <AnimatePresence>
         {stateId && contextId && !showStateSelector && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.2, delay: 0.25 }}
-            className="pt-2"
+            className="shrink-0 pt-3 pb-2 bg-background sticky bottom-0 border-t border-border/50"
           >
             <motion.button
               onClick={handleDone}
               disabled={!canComplete || isSaving}
               className={cn(
-                'w-full py-2.5 rounded-xl font-medium text-sm transition-all',
+                'w-full py-3 rounded-xl font-medium text-base transition-all',
                 canComplete
                   ? 'bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer'
                   : 'bg-muted text-muted-foreground cursor-not-allowed'
@@ -937,7 +954,7 @@ export function CheckInFlow({
             </motion.button>
           </motion.div>
         )}
-      </div>
+      </AnimatePresence>
 
       {/* Success screen overlay */}
       <AnimatePresence>

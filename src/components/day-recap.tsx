@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Day, CheckIn, getStateById } from '@/lib/types';
+import { Day, CheckIn } from '@/lib/types';
 import { useOptionsStore } from '@/lib/options-store';
 import {
   computeDaySummary,
@@ -14,40 +14,34 @@ import { generateMoodGradient } from '@/components/moment-blob';
 import { useI18n } from '@/lib/i18n';
 import { formatDate } from '@/lib/date-utils';
 import {
-  Sun,
   TrendingUp,
   TrendingDown,
   Minus,
   Dot,
-  MapPin,
-  Users,
 } from 'lucide-react';
 
-// State colors - red→green gradient like onboarding, slightly softened
-const STATE_COLORS: Record<string, { bg: string; glow: string }> = {
-  neutral: { bg: 'bg-slate-400/80', glow: 'rgba(148, 163, 184, 0.3)' },
-  // Energy: drained(red) → tired(orange) → calm(lime) → energized(green)
-  drained: { bg: 'bg-red-400', glow: 'rgba(248, 113, 113, 0.35)' },
-  tired: { bg: 'bg-orange-400', glow: 'rgba(251, 146, 60, 0.35)' },
-  calm: { bg: 'bg-lime-400', glow: 'rgba(163, 230, 53, 0.35)' },
-  energized: { bg: 'bg-green-400', glow: 'rgba(74, 222, 128, 0.35)' },
-  // Emotion: frustrated(red) → anxious(orange) → uncertain(amber) → content(lime) → grateful(green)
-  frustrated: { bg: 'bg-red-400', glow: 'rgba(248, 113, 113, 0.35)' },
-  anxious: { bg: 'bg-orange-400', glow: 'rgba(251, 146, 60, 0.35)' },
-  uncertain: { bg: 'bg-amber-400', glow: 'rgba(251, 191, 36, 0.35)' },
-  content: { bg: 'bg-lime-400', glow: 'rgba(163, 230, 53, 0.35)' },
-  grateful: { bg: 'bg-emerald-400', glow: 'rgba(52, 211, 153, 0.35)' },
-  // Tension: scattered(red) → distracted(orange) → focused(lime) → present(green)
-  scattered: { bg: 'bg-red-400', glow: 'rgba(248, 113, 113, 0.35)' },
-  distracted: { bg: 'bg-orange-400', glow: 'rgba(251, 146, 60, 0.35)' },
-  focused: { bg: 'bg-lime-400', glow: 'rgba(163, 230, 53, 0.35)' },
-  present: { bg: 'bg-green-400', glow: 'rgba(74, 222, 128, 0.35)' },
+// State colors for background glow - matches checkin-flow colors
+const STATE_COLORS: Record<string, { glow: string }> = {
+  neutral: { glow: 'rgba(148, 163, 184, 0.3)' },
+  // EMOTION: red → orange → yellow → lime → green
+  frustrated: { glow: 'rgba(239, 68, 68, 0.35)' },
+  anxious: { glow: 'rgba(249, 115, 22, 0.35)' },
+  uncertain: { glow: 'rgba(234, 179, 8, 0.35)' },
+  content: { glow: 'rgba(132, 204, 22, 0.35)' },
+  grateful: { glow: 'rgba(34, 197, 94, 0.35)' },
+  // ENERGY: blue/cyan family
+  drained: { glow: 'rgba(49, 46, 129, 0.35)' },
+  tired: { glow: 'rgba(96, 165, 250, 0.35)' },
+  calm: { glow: 'rgba(56, 189, 248, 0.35)' },
+  energized: { glow: 'rgba(34, 211, 238, 0.35)' },
+  // TENSION/FOCUS: purple/violet family
+  scattered: { glow: 'rgba(126, 34, 206, 0.35)' },
+  distracted: { glow: 'rgba(168, 85, 247, 0.35)' },
+  focused: { glow: 'rgba(167, 139, 250, 0.35)' },
+  present: { glow: 'rgba(232, 121, 249, 0.35)' },
 };
 
-const DEFAULT_COLORS = {
-  bg: 'bg-slate-400/80',
-  glow: 'rgba(148, 163, 184, 0.3)',
-};
+const DEFAULT_COLORS = { glow: 'rgba(148, 163, 184, 0.3)' };
 
 interface DayRecapProps {
   day: Day;
@@ -154,16 +148,6 @@ export function DayRecap({ day, checkIns }: DayRecapProps) {
       `Time with ${names.join(' and ')}`
     );
   };
-
-  // Get sorted check-ins for compact timeline
-  const sortedCheckIns = useMemo(
-    () =>
-      [...checkIns].sort(
-        (a, b) =>
-          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-      ),
-    [checkIns]
-  );
 
   const contextInsight = getContextInsight();
   const peopleInsight = getPeopleInsight();
@@ -307,6 +291,7 @@ export function DayRecap({ day, checkIns }: DayRecapProps) {
           )}
         </motion.div>
       )}
+
 
       {/* Closing observation */}
       {closingText && (

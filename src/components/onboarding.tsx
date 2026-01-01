@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion';
 import { Globe, Palette } from 'lucide-react';
 import { AppLogo } from '@/components/app-footer';
 import { useI18n } from '@/lib/i18n';
@@ -11,24 +11,135 @@ import { COLOR_THEMES, type ColorTheme } from '@/lib/types';
 import { applyColorTheme } from '@/components/theme-provider';
 import { cn } from '@/lib/utils';
 
-// 5 mood orb colors matching the spectrum - scattered organic layout
+// Hook to track cursor/touch proximity and calculate push displacement for orbs
+function useOrbProximity(orbCount: number, proximity = 80, pushStrength = 25) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const orbRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Create spring-animated displacement values for each orb
+  const displacements = useRef(
+    Array.from({ length: orbCount }, () => ({
+      x: useMotionValue(0),
+      y: useMotionValue(0),
+    }))
+  ).current;
+
+  // Create springs for smooth animation
+  const springs = displacements.map((d) => ({
+    x: useSpring(d.x, { stiffness: 300, damping: 25 }),
+    y: useSpring(d.y, { stiffness: 300, damping: 25 }),
+  }));
+
+  const calculatePush = useCallback((clientX: number, clientY: number) => {
+    if (!containerRef.current) return;
+
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const containerCenterX = containerRect.left + containerRect.width / 2;
+    const containerCenterY = containerRect.top + containerRect.height / 2;
+
+    orbRefs.current.forEach((orbEl, index) => {
+      if (!orbEl) return;
+
+      const orbRect = orbEl.getBoundingClientRect();
+      const orbCenterX = orbRect.left + orbRect.width / 2;
+      const orbCenterY = orbRect.top + orbRect.height / 2;
+
+      // Distance from cursor to orb center
+      const dx = clientX - orbCenterX;
+      const dy = clientY - orbCenterY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < proximity && distance > 0) {
+        // Push away from cursor - inverse direction, strength falls off with distance
+        const strength = (1 - distance / proximity) * pushStrength;
+        const pushX = -(dx / distance) * strength;
+        const pushY = -(dy / distance) * strength;
+
+        displacements[index].x.set(pushX);
+        displacements[index].y.set(pushY);
+      } else {
+        // Return to original position
+        displacements[index].x.set(0);
+        displacements[index].y.set(0);
+      }
+    });
+  }, [proximity, pushStrength, displacements]);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    calculatePush(e.clientX, e.clientY);
+  }, [calculatePush]);
+
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (e.touches.length > 0) {
+      calculatePush(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, [calculatePush]);
+
+  const handleTouchStart = useCallback((e: TouchEvent) => {
+    if (e.touches.length > 0) {
+      calculatePush(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, [calculatePush]);
+
+  const handleMouseLeave = useCallback(() => {
+    // Reset all orbs when cursor leaves
+    displacements.forEach((d) => {
+      d.x.set(0);
+      d.y.set(0);
+    });
+  }, [displacements]);
+
+  const handleTouchEnd = useCallback(() => {
+    // Reset all orbs when touch ends
+    displacements.forEach((d) => {
+      d.x.set(0);
+      d.y.set(0);
+    });
+  }, [displacements]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    container.addEventListener('mousemove', handleMouseMove);
+    container.addEventListener('mouseleave', handleMouseLeave);
+    container.addEventListener('touchmove', handleTouchMove, { passive: true });
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      container.removeEventListener('mousemove', handleMouseMove);
+      container.removeEventListener('mouseleave', handleMouseLeave);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [handleMouseMove, handleMouseLeave, handleTouchMove, handleTouchStart, handleTouchEnd]);
+
+  return { containerRef, orbRefs, springs };
+}
+
+// State orb colors from all 3 categories - scattered organic layout
+// Emotion: red→green, Energy: indigo→cyan, Focus: purple→fuchsia
 // Positioned further from center, with angle for edge coloring effect
-// haloIntensity: red/green are stronger (0.9), yellow/orange are subtler (0.4)
 const MOOD_ORBS = [
-  { color: '#ef4444', size: 38, x: -85, y: -30, floatY: [0, 12, 0], floatX: [0, 8, 0], duration: 3.2, angle: 215, haloIntensity: 0.85 },
-  { color: '#f97316', size: 42, x: 80, y: -55, floatY: [0, 10, 0], floatX: [0, -6, 0], duration: 2.8, angle: 315, haloIntensity: 0.35 },
-  { color: '#eab308', size: 36, x: -70, y: 60, floatY: [0, -12, 0], floatX: [0, 6, 0], duration: 3.5, angle: 145, haloIntensity: 0.25 },
-  { color: '#84cc16', size: 44, x: 85, y: 45, floatY: [0, -10, 0], floatX: [0, -8, 0], duration: 3.0, angle: 45, haloIntensity: 0.7 },
-  { color: '#22c55e', size: 40, x: -25, y: -80, floatY: [0, 14, 0], floatX: [0, 5, 0], duration: 2.6, angle: 270, haloIntensity: 0.9 },
+  // Emotion colors (red→green spectrum)
+  { color: '#ef4444', size: 38, x: -85, y: -30, floatY: [0, 12, 0], floatX: [0, 8, 0], duration: 3.2, angle: 215, haloIntensity: 0.85 }, // frustrated - red
+  { color: '#22c55e', size: 40, x: -25, y: -80, floatY: [0, 14, 0], floatX: [0, 5, 0], duration: 2.6, angle: 270, haloIntensity: 0.9 },  // grateful - green
+  // Energy colors (indigo→cyan spectrum)
+  { color: '#38bdf8', size: 42, x: 80, y: -55, floatY: [0, 10, 0], floatX: [0, -6, 0], duration: 2.8, angle: 315, haloIntensity: 0.6 },  // rested - sky
+  { color: '#22d3ee', size: 36, x: -70, y: 60, floatY: [0, -12, 0], floatX: [0, 6, 0], duration: 3.5, angle: 145, haloIntensity: 0.5 },  // energized - cyan
+  // Focus colors (purple→fuchsia spectrum)
+  { color: '#a855f7', size: 44, x: 85, y: 45, floatY: [0, -10, 0], floatX: [0, -8, 0], duration: 3.0, angle: 45, haloIntensity: 0.7 },   // distracted - purple
 ];
 
-// Background floating orbs - larger, more subtle
+// Background floating orbs - larger, more subtle (mix of all categories)
 const BACKGROUND_ORBS = [
-  { color: '#ef444420', size: 180, x: '15%', y: '20%', floatY: [0, -20, 0], duration: 8 },
-  { color: '#f9731620', size: 150, x: '80%', y: '15%', floatY: [0, -15, 0], duration: 10 },
-  { color: '#eab30820', size: 120, x: '10%', y: '70%', floatY: [0, -18, 0], duration: 9 },
-  { color: '#84cc1620', size: 200, x: '75%', y: '75%', floatY: [0, -22, 0], duration: 11 },
-  { color: '#22c55e20', size: 90, x: '50%', y: '85%', floatY: [0, -16, 0], duration: 7 },
+  { color: '#ef444420', size: 180, x: '15%', y: '20%', floatY: [0, -20, 0], duration: 8 },   // emotion - red
+  { color: '#38bdf820', size: 150, x: '80%', y: '15%', floatY: [0, -15, 0], duration: 10 },  // energy - sky
+  { color: '#a855f720', size: 120, x: '10%', y: '70%', floatY: [0, -18, 0], duration: 9 },   // focus - purple
+  { color: '#22d3ee20', size: 200, x: '75%', y: '75%', floatY: [0, -22, 0], duration: 11 },  // energy - cyan
+  { color: '#22c55e20', size: 90, x: '50%', y: '85%', floatY: [0, -16, 0], duration: 7 },    // emotion - green
 ];
 
 export const ONBOARDING_COOKIE = 'onboarding-completed';
@@ -64,6 +175,9 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
   const currentLanguage = LANGUAGES.find((l) => l.value === language);
   const currentTheme = COLOR_THEMES.find((th) => th.value === colorTheme);
+
+  // Orb proximity effect - orbs push away from cursor/touch
+  const { containerRef: orbContainerRef, orbRefs, springs } = useOrbProximity(MOOD_ORBS.length);
 
   // Refs for click-outside handling
   const languageButtonRef = useRef<HTMLButtonElement>(null);
@@ -158,23 +272,25 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       </div>
 
       <div className="max-w-sm w-full flex flex-col items-center justify-center text-center relative z-10">
-        {/* Floating mood orbs - organic scattered layout */}
+        {/* Floating mood orbs - organic scattered layout with cursor proximity effect */}
         <motion.div
+          ref={orbContainerRef}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.6 }}
           className="relative w-48 h-48 md:w-56 md:h-56 mb-6"
         >
-          {/* Central mixed gradient orb - represents a day recap - mixed colors throughout */}
+          {/* Central mixed gradient orb - represents a day recap - colors from all 3 categories */}
           <motion.div
             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 md:w-28 md:h-28 rounded-full"
             style={{
               background: `
-                radial-gradient(circle at 35% 35%, #22c55e 0%, transparent 45%),
-                radial-gradient(circle at 65% 30%, #84cc16 0%, transparent 40%),
-                radial-gradient(circle at 30% 65%, #eab308 0%, transparent 40%),
-                radial-gradient(circle at 70% 70%, #f97316 0%, transparent 45%),
-                radial-gradient(circle at 50% 50%, #ef4444 0%, #f97316 30%, #eab308 50%, #84cc16 70%, #22c55e 100%)
+                radial-gradient(circle at 25% 25%, #ef4444 0%, transparent 40%),
+                radial-gradient(circle at 75% 25%, #22c55e 0%, transparent 40%),
+                radial-gradient(circle at 25% 75%, #38bdf8 0%, transparent 40%),
+                radial-gradient(circle at 75% 75%, #a855f7 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, #22d3ee 0%, transparent 50%),
+                radial-gradient(circle, #ef4444 0%, #22c55e 25%, #38bdf8 50%, #a855f7 75%, #22d3ee 100%)
               `,
             }}
             initial={{ scale: 0 }}
@@ -216,14 +332,17 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             );
           })}
 
-          {/* Scattered mood orbs - animated */}
+          {/* Scattered mood orbs - animated with cursor proximity push effect */}
           {MOOD_ORBS.map((orb, index) => (
             <motion.div
               key={index}
+              ref={(el) => { orbRefs.current[index] = el; }}
               className="absolute left-1/2 top-1/2"
               style={{
                 marginLeft: orb.x - orb.size / 2,
                 marginTop: orb.y - orb.size / 2,
+                x: springs[index].x,
+                y: springs[index].y,
               }}
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}

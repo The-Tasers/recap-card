@@ -12,10 +12,9 @@ import {
   CloudRain,
   Smile,
   Meh,
-  AlertCircle,
-  ThumbsDown,
-  Sparkles,
-  HelpCircle,
+  Frown,
+  Annoyed,
+  Laugh,
   Target,
   Shuffle,
   Eye,
@@ -25,24 +24,26 @@ import {
 } from 'lucide-react';
 
 // Icons for each state
+// Emotion category uses face emoticons from bad to good
 const STATE_ICONS: Record<string, LucideIcon> = {
   neutral: Minus,
   energized: Sun,
   calm: CloudSun,
   tired: Moon,
   drained: CloudRain,
-  content: Smile,
-  anxious: AlertCircle,
-  frustrated: ThumbsDown,
-  grateful: Sparkles,
-  uncertain: HelpCircle,
+  // Emotion: faces from bad to good
+  frustrated: Frown,      // 😠 worst
+  anxious: Annoyed,       // 😟 bad
+  uncertain: Meh,         // 😐 neutral
+  content: Smile,         // 🙂 good
+  grateful: Laugh,        // 😄 best
   focused: Target,
   scattered: Shuffle,
   present: Eye,
   distracted: EyeOff,
 };
 
-// State colors - red→green gradient like onboarding, slightly softened (400-level)
+// State colors - distinct color families for each category
 const STATE_COLORS: Record<string, { base: string; selected: string; icon: string }> = {
   // Neutral - gray
   neutral: {
@@ -50,73 +51,73 @@ const STATE_COLORS: Record<string, { base: string; selected: string; icon: strin
     selected: 'bg-slate-400/70 border-slate-400',
     icon: 'text-slate-500',
   },
-  // Energy: drained(red) → tired(orange) → calm(lime) → energized(green)
-  drained: {
-    base: 'bg-red-400/10 border-red-400/30 hover:bg-red-400/20',
-    selected: 'bg-red-400 border-red-400',
-    icon: 'text-red-500',
-  },
-  tired: {
-    base: 'bg-orange-400/10 border-orange-400/30 hover:bg-orange-400/20',
-    selected: 'bg-orange-400 border-orange-400',
-    icon: 'text-orange-500',
-  },
-  calm: {
-    base: 'bg-lime-400/10 border-lime-400/30 hover:bg-lime-400/20',
-    selected: 'bg-lime-400 border-lime-400',
-    icon: 'text-lime-500',
-  },
-  energized: {
-    base: 'bg-green-400/10 border-green-400/30 hover:bg-green-400/20',
-    selected: 'bg-green-400 border-green-400',
-    icon: 'text-green-500',
-  },
-  // Emotion: frustrated(red) → anxious(orange) → uncertain(amber) → content(lime) → grateful(emerald)
+  // Emotion: red → orange → yellow → lime → green (classic bad→good)
   frustrated: {
-    base: 'bg-red-400/10 border-red-400/30 hover:bg-red-400/20',
-    selected: 'bg-red-400 border-red-400',
+    base: 'bg-red-500/10 border-red-500/30 hover:bg-red-500/20',
+    selected: 'bg-red-500 border-red-500',
     icon: 'text-red-500',
   },
   anxious: {
-    base: 'bg-orange-400/10 border-orange-400/30 hover:bg-orange-400/20',
-    selected: 'bg-orange-400 border-orange-400',
+    base: 'bg-orange-500/10 border-orange-500/30 hover:bg-orange-500/20',
+    selected: 'bg-orange-500 border-orange-500',
     icon: 'text-orange-500',
   },
   uncertain: {
-    base: 'bg-amber-400/10 border-amber-400/30 hover:bg-amber-400/20',
-    selected: 'bg-amber-400 border-amber-400',
-    icon: 'text-amber-500',
+    base: 'bg-yellow-500/10 border-yellow-500/30 hover:bg-yellow-500/20',
+    selected: 'bg-yellow-500 border-yellow-500',
+    icon: 'text-yellow-600',
   },
   content: {
-    base: 'bg-lime-400/10 border-lime-400/30 hover:bg-lime-400/20',
-    selected: 'bg-lime-400 border-lime-400',
-    icon: 'text-lime-500',
+    base: 'bg-lime-500/10 border-lime-500/30 hover:bg-lime-500/20',
+    selected: 'bg-lime-500 border-lime-500',
+    icon: 'text-lime-600',
   },
   grateful: {
-    base: 'bg-emerald-400/10 border-emerald-400/30 hover:bg-emerald-400/20',
-    selected: 'bg-emerald-400 border-emerald-400',
-    icon: 'text-emerald-500',
+    base: 'bg-green-500/10 border-green-500/30 hover:bg-green-500/20',
+    selected: 'bg-green-500 border-green-500',
+    icon: 'text-green-600',
   },
-  // Tension: scattered(red) → distracted(orange) → focused(lime) → present(green)
+  // Energy: blue/cyan family (cool energy feel)
+  drained: {
+    base: 'bg-indigo-900/10 border-indigo-900/30 hover:bg-indigo-900/20',
+    selected: 'bg-indigo-900 border-indigo-900',
+    icon: 'text-indigo-900',
+  },
+  tired: {
+    base: 'bg-blue-400/10 border-blue-400/30 hover:bg-blue-400/20',
+    selected: 'bg-blue-400 border-blue-400',
+    icon: 'text-blue-500',
+  },
+  calm: {
+    base: 'bg-sky-400/10 border-sky-400/30 hover:bg-sky-400/20',
+    selected: 'bg-sky-400 border-sky-400',
+    icon: 'text-sky-500',
+  },
+  energized: {
+    base: 'bg-cyan-400/10 border-cyan-400/30 hover:bg-cyan-400/20',
+    selected: 'bg-cyan-400 border-cyan-400',
+    icon: 'text-cyan-500',
+  },
+  // Tension/Focus: purple/violet family (mental clarity)
   scattered: {
-    base: 'bg-red-400/10 border-red-400/30 hover:bg-red-400/20',
-    selected: 'bg-red-400 border-red-400',
-    icon: 'text-red-500',
+    base: 'bg-purple-700/10 border-purple-700/30 hover:bg-purple-700/20',
+    selected: 'bg-purple-700 border-purple-700',
+    icon: 'text-purple-700',
   },
   distracted: {
-    base: 'bg-orange-400/10 border-orange-400/30 hover:bg-orange-400/20',
-    selected: 'bg-orange-400 border-orange-400',
-    icon: 'text-orange-500',
+    base: 'bg-purple-500/10 border-purple-500/30 hover:bg-purple-500/20',
+    selected: 'bg-purple-500 border-purple-500',
+    icon: 'text-purple-500',
   },
   focused: {
-    base: 'bg-lime-400/10 border-lime-400/30 hover:bg-lime-400/20',
-    selected: 'bg-lime-400 border-lime-400',
-    icon: 'text-lime-500',
+    base: 'bg-violet-400/10 border-violet-400/30 hover:bg-violet-400/20',
+    selected: 'bg-violet-400 border-violet-400',
+    icon: 'text-violet-500',
   },
   present: {
-    base: 'bg-green-400/10 border-green-400/30 hover:bg-green-400/20',
-    selected: 'bg-green-400 border-green-400',
-    icon: 'text-green-500',
+    base: 'bg-fuchsia-400/10 border-fuchsia-400/30 hover:bg-fuchsia-400/20',
+    selected: 'bg-fuchsia-400 border-fuchsia-400',
+    icon: 'text-fuchsia-500',
   },
 };
 

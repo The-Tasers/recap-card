@@ -35,9 +35,9 @@ export const ALL_COLOR_THEMES: {
   },
   {
     value: 'linen',
-    label: 'Paper',
-    description: 'Calm sage light',
-    preview: { bg: '#f5f7f5', card: '#fcfdfc', accent: '#5a9a7a' },
+    label: 'Daylight',
+    description: 'Warm amber glow',
+    preview: { bg: '#faf7f2', card: '#fdfcf9', accent: '#d4a055' },
     isDark: false,
   },
   {

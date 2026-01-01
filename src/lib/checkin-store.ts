@@ -357,6 +357,11 @@ export const useCheckInStore = create<CheckInStore>()((set, get) => ({
 export async function hydrateCheckInStore(): Promise<void> {
   if (typeof window === 'undefined') return;
 
+  // Skip if already hydrated (e.g., after navigation)
+  if (useCheckInStore.getState().hydrated) {
+    return;
+  }
+
   try {
     const [days, checkIns, people, customContexts] = await Promise.all([
       loadFromDB<Day[]>(LOCAL_DAYS_KEY, []),

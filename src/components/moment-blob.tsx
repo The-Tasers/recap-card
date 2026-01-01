@@ -11,10 +11,9 @@ import {
   Moon,
   CloudRain,
   Smile,
-  AlertCircle,
-  ThumbsDown,
-  Sparkles,
-  HelpCircle,
+  Frown,
+  Annoyed,
+  Laugh,
   Target,
   Shuffle,
   Eye,
@@ -25,24 +24,34 @@ import {
 } from 'lucide-react';
 
 // Icons matching state-selector.tsx exactly
+// Emotion category uses face emoticons from bad to good
 const STATE_ICONS: Record<string, LucideIcon> = {
   neutral: Minus,
   energized: Sun,
   calm: CloudSun,
   tired: Moon,
   drained: CloudRain,
-  content: Smile,
-  anxious: AlertCircle,
-  frustrated: ThumbsDown,
-  grateful: Sparkles,
-  uncertain: HelpCircle,
+  // Emotion: faces from bad to good
+  frustrated: Frown,      // 😠 worst
+  anxious: Annoyed,       // 😟 bad
+  uncertain: Meh,         // 😐 neutral
+  content: Smile,         // 🙂 good
+  grateful: Laugh,        // 😄 best
   focused: Target,
   scattered: Shuffle,
   present: Eye,
   distracted: EyeOff,
 };
 
-// State colors - red→green gradient like onboarding, slightly softened (400-level)
+// =============================================================================
+// STATE COLOR SYSTEM
+// =============================================================================
+// Three categories, each with distinct visual language:
+// - Emotion: red↔green valence spectrum ("How did it feel?")
+// - Energy: amber/orange family with intensity ("How much energy?")
+// - Tension: blue/indigo family with intensity ("How focused/strained?")
+// =============================================================================
+
 const STATE_COLORS: Record<string, { bg: string; text: string; glow: string }> =
   {
     // Neutral - gray
@@ -51,73 +60,76 @@ const STATE_COLORS: Record<string, { bg: string; text: string; glow: string }> =
       text: 'text-white',
       glow: 'rgba(148, 163, 184, 0.3)',
     },
-    // Energy: drained(red) → tired(orange) → calm(lime) → energized(green)
-    drained: {
-      bg: 'bg-red-400',
-      text: 'text-white',
-      glow: 'rgba(248, 113, 113, 0.35)',
-    },
-    tired: {
-      bg: 'bg-orange-400',
-      text: 'text-white',
-      glow: 'rgba(251, 146, 60, 0.35)',
-    },
-    calm: {
-      bg: 'bg-lime-400',
-      text: 'text-white',
-      glow: 'rgba(163, 230, 53, 0.35)',
-    },
-    energized: {
-      bg: 'bg-green-400',
-      text: 'text-white',
-      glow: 'rgba(74, 222, 128, 0.35)',
-    },
-    // Emotion: frustrated(red) → anxious(orange) → uncertain(amber) → content(lime) → grateful(green)
+
+    // EMOTION category: red → orange → yellow → lime → green (classic bad→good)
     frustrated: {
-      bg: 'bg-red-400',
+      bg: 'bg-red-500',
       text: 'text-white',
-      glow: 'rgba(248, 113, 113, 0.35)',
+      glow: 'rgba(239, 68, 68, 0.35)',
     },
     anxious: {
-      bg: 'bg-orange-400',
+      bg: 'bg-orange-500',
       text: 'text-white',
-      glow: 'rgba(251, 146, 60, 0.35)',
+      glow: 'rgba(249, 115, 22, 0.35)',
     },
     uncertain: {
-      bg: 'bg-amber-400',
-      text: 'text-white',
-      glow: 'rgba(251, 191, 36, 0.35)',
+      bg: 'bg-yellow-500',
+      text: 'text-gray-900',
+      glow: 'rgba(234, 179, 8, 0.35)',
     },
     content: {
-      bg: 'bg-lime-400',
-      text: 'text-white',
-      glow: 'rgba(163, 230, 53, 0.35)',
+      bg: 'bg-lime-500',
+      text: 'text-gray-900',
+      glow: 'rgba(132, 204, 22, 0.35)',
     },
     grateful: {
-      bg: 'bg-emerald-400',
+      bg: 'bg-green-500',
       text: 'text-white',
-      glow: 'rgba(52, 211, 153, 0.35)',
+      glow: 'rgba(34, 197, 94, 0.35)',
     },
-    // Tension: scattered(red) → distracted(orange) → focused(lime) → present(green)
-    scattered: {
-      bg: 'bg-red-400',
+
+    // ENERGY category: blue/cyan family (cool energy feel)
+    drained: {
+      bg: 'bg-indigo-900',
       text: 'text-white',
-      glow: 'rgba(248, 113, 113, 0.35)',
+      glow: 'rgba(49, 46, 129, 0.35)',
+    },
+    tired: {
+      bg: 'bg-blue-400',
+      text: 'text-white',
+      glow: 'rgba(96, 165, 250, 0.35)',
+    },
+    calm: {
+      bg: 'bg-sky-400',
+      text: 'text-gray-900',
+      glow: 'rgba(56, 189, 248, 0.35)',
+    },
+    energized: {
+      bg: 'bg-cyan-400',
+      text: 'text-gray-900',
+      glow: 'rgba(34, 211, 238, 0.35)',
+    },
+
+    // TENSION/FOCUS category: purple/violet family (mental clarity)
+    scattered: {
+      bg: 'bg-purple-700',
+      text: 'text-white',
+      glow: 'rgba(126, 34, 206, 0.35)',
     },
     distracted: {
-      bg: 'bg-orange-400',
+      bg: 'bg-purple-500',
       text: 'text-white',
-      glow: 'rgba(251, 146, 60, 0.35)',
+      glow: 'rgba(168, 85, 247, 0.35)',
     },
     focused: {
-      bg: 'bg-lime-400',
+      bg: 'bg-violet-400',
       text: 'text-white',
-      glow: 'rgba(163, 230, 53, 0.35)',
+      glow: 'rgba(167, 139, 250, 0.35)',
     },
     present: {
-      bg: 'bg-green-400',
-      text: 'text-white',
-      glow: 'rgba(74, 222, 128, 0.35)',
+      bg: 'bg-fuchsia-400',
+      text: 'text-gray-900',
+      glow: 'rgba(232, 121, 249, 0.35)',
     },
   };
 
@@ -127,25 +139,28 @@ const DEFAULT_COLORS = {
   glow: 'rgba(148, 163, 184, 0.3)',
 };
 
-// RGB colors for gradient generation - red→green spectrum like onboarding
+// RGB colors for gradient generation - matches category color system
 const STATE_RGB_COLORS: Record<string, string> = {
   neutral: '#94a3b8',
-  // Energy: drained(red) → tired(orange) → calm(lime) → energized(green)
-  drained: '#f87171',   // red-400
-  tired: '#fb923c',     // orange-400
-  calm: '#a3e635',      // lime-400
-  energized: '#4ade80', // green-400
-  // Emotion: frustrated(red) → anxious(orange) → uncertain(amber) → content(lime) → grateful(emerald)
-  frustrated: '#f87171', // red-400
-  anxious: '#fb923c',    // orange-400
-  uncertain: '#fbbf24',  // amber-400
-  content: '#a3e635',    // lime-400
-  grateful: '#34d399',   // emerald-400
-  // Tension: scattered(red) → distracted(orange) → focused(lime) → present(green)
-  scattered: '#f87171',  // red-400
-  distracted: '#fb923c', // orange-400
-  focused: '#a3e635',    // lime-400
-  present: '#4ade80',    // green-400
+
+  // EMOTION: red → orange → yellow → lime → green
+  frustrated: '#ef4444', // red-500
+  anxious: '#f97316',    // orange-500
+  uncertain: '#eab308',  // yellow-500
+  content: '#84cc16',    // lime-500
+  grateful: '#22c55e',   // green-500
+
+  // ENERGY: blue/cyan family
+  drained: '#312e81',    // indigo-900
+  tired: '#60a5fa',      // blue-400
+  calm: '#38bdf8',       // sky-400
+  energized: '#22d3ee',  // cyan-400
+
+  // TENSION/FOCUS: purple/violet family
+  scattered: '#7e22ce',  // purple-700
+  distracted: '#a855f7', // purple-500
+  focused: '#a78bfa',    // violet-400
+  present: '#e879f9',    // fuchsia-400
 };
 
 // Generate a smooth radial/linear gradient string from check-ins (blob-like, not sectored)

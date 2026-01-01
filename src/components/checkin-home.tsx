@@ -4,19 +4,25 @@ import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   useCheckInStore,
-  hydrateCheckInStore,
   getDateString,
   getTodayDateString,
 } from '@/lib/checkin-store';
 import { useOptionsStore } from '@/lib/options-store';
 import { CheckInFlow } from '@/components/checkin-flow';
 import { DayRecap } from '@/components/day-recap';
+import { DatePickerTimeline } from '@/components/date-picker-timeline';
 import { generateMoodGradient } from '@/components/moment-blob';
 import { AppFooter, AppLogo } from '@/components/app-footer';
 import { SettingsButton } from '@/components/settings-button';
 import { SignupPrompt } from '@/components/signup-prompt';
 import { FeedbackModal } from '@/components/feedback-modal';
-import { ExpectationTone, CheckIn, EXPECTATION_TONES } from '@/lib/types';
+import {
+  ExpectationTone,
+  CheckIn,
+  EXPECTATION_TONES,
+  ALL_COLOR_THEMES,
+} from '@/lib/types';
+import { useSettingsStore } from '@/lib/store';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/components/auth-provider';
 import {
@@ -26,6 +32,7 @@ import {
   Sun,
   ChevronLeft,
   ChevronRight,
+  Calendar,
   Sparkles,
   TrendingUp,
   Layers,
@@ -33,8 +40,9 @@ import {
   CloudRain,
   CloudFog,
   Smile,
-  AlertCircle,
-  ThumbsDown,
+  Frown,
+  Annoyed,
+  Laugh,
   HelpCircle,
   Target,
   Shuffle,
@@ -63,17 +71,19 @@ function useIsMobile() {
 }
 
 // State icons matching moment-blob.tsx
+// Emotion category uses face emoticons from bad to good
 const STATE_ICONS: Record<string, LucideIcon> = {
   neutral: Minus,
   energized: Sun,
   calm: CloudSun,
   tired: Moon,
   drained: CloudRain,
-  content: Smile,
-  anxious: AlertCircle,
-  frustrated: ThumbsDown,
-  grateful: Sparkles,
-  uncertain: HelpCircle,
+  // Emotion: faces from bad to good
+  frustrated: Frown,      // worst
+  anxious: Annoyed,       // bad
+  uncertain: Meh,         // neutral
+  content: Smile,         // good
+  grateful: Laugh,        // best
   focused: Target,
   scattered: Shuffle,
   present: Eye,
@@ -170,34 +180,49 @@ function groupOverlappingCheckIns(checkIns: CheckIn[]): CheckIn[][] {
   return groups;
 }
 
-// State colors - red→green gradient like onboarding, slightly softened
+// =============================================================================
+// STATE COLOR SYSTEM
+// =============================================================================
+// Three categories, each with distinct visual language:
+// - Emotion: red → orange → yellow → lime → green (classic bad→good valence)
+// - Energy: blue/cyan family (cool energy feel)
+// - Tension/Focus: purple/violet family (mental clarity)
+// =============================================================================
+
 const STATE_COLORS: Record<string, string> = {
-  neutral: '#94a3b8',
-  // Energy: drained(red) → tired(orange) → calm(lime) → energized(green)
-  drained: '#f87171', // red-400
-  tired: '#fb923c', // orange-400
-  calm: '#a3e635', // lime-400
-  energized: '#4ade80', // green-400
-  // Emotion: frustrated(red) → anxious(orange) → uncertain(amber) → content(lime) → grateful(green)
-  frustrated: '#f87171', // red-400
-  anxious: '#fb923c', // orange-400
-  uncertain: '#fbbf24', // amber-400
-  content: '#a3e635', // lime-400
-  grateful: '#34d399', // emerald-400
-  // Tension: scattered(red) → distracted(orange) → focused(lime) → present(green)
-  scattered: '#f87171', // red-400
-  distracted: '#fb923c', // orange-400
-  focused: '#a3e635', // lime-400
-  present: '#4ade80', // green-400
+  neutral: '#94a3b8', // slate-400
+
+  // EMOTION category: red → orange → yellow → lime → green (classic bad→good)
+  // frustrated(bad) → anxious → uncertain → content → grateful(good)
+  frustrated: '#ef4444', // red-500
+  anxious: '#f97316', // orange-500
+  uncertain: '#eab308', // yellow-500
+  content: '#84cc16', // lime-500
+  grateful: '#22c55e', // green-500
+
+  // ENERGY category: blue/cyan family (cool energy feel)
+  // drained(dark) → tired → calm → energized(bright)
+  drained: '#312e81', // indigo-900 (dark, distinct from neutral)
+  tired: '#60a5fa', // blue-400
+  calm: '#38bdf8', // sky-400
+  energized: '#22d3ee', // cyan-400
+
+  // TENSION/FOCUS category: purple/violet family (mental clarity)
+  // scattered(chaotic) → distracted → focused → present(clear)
+  scattered: '#7e22ce', // purple-700
+  distracted: '#a855f7', // purple-500
+  focused: '#a78bfa', // violet-400
+  present: '#e879f9', // fuchsia-400
 };
 
 // States that need dark text for a11y contrast (light backgrounds)
 const DARK_TEXT_STATES = new Set([
-  'calm', // lime-400 - light
-  'content', // lime-400 - light
-  'focused', // lime-400 - light
-  'uncertain', // amber-400 - light
-  'tired', // orange-400 - can be borderline
+  'uncertain', // yellow-500
+  'content', // lime-500
+  'calm', // sky-400 - light
+  'energized', // cyan-400 - bright
+  'focused', // violet-400
+  'present', // fuchsia-400
 ]);
 
 // Memoized animation constants to prevent recreation on every render
@@ -283,14 +308,6 @@ const SingleOrb = memo(function SingleOrb({
     [anchorPos.x, anchorPos.y, isSelected]
   );
 
-  // Slight transparency to orbs on arc (e6 = 90% opacity)
-  const orbStyle = useMemo(
-    () => ({
-      background: `${color}e6`,
-    }),
-    [color]
-  );
-
   const containerTransition = useMemo(
     () => ({
       ...SPRING_TRANSITION,
@@ -298,6 +315,8 @@ const SingleOrb = memo(function SingleOrb({
     }),
     [groupIndex]
   );
+
+  const size = isSelected ? 24 : 32;
 
   return (
     <motion.div
@@ -316,12 +335,13 @@ const SingleOrb = memo(function SingleOrb({
         onTap();
       }}
     >
+      {/* State orb */}
       <div
         className="rounded-full"
         style={{
-          ...orbStyle,
-          width: isSelected ? 24 : 32,
-          height: isSelected ? 24 : 32,
+          background: `${color}e6`,
+          width: size,
+          height: size,
           opacity: isSelected ? 0.6 : 1,
           boxShadow: isSelected ? 'none' : `0 0 10px ${color}50`,
         }}
@@ -385,6 +405,8 @@ const MergedOrb = memo(function MergedOrb({
     [mergedGradient]
   );
 
+  const size = isGroupExpanded || hasSelectedMoment ? 24 : 44;
+
   return (
     <motion.div
       className="absolute cursor-pointer"
@@ -406,10 +428,13 @@ const MergedOrb = memo(function MergedOrb({
         className="rounded-full relative"
         style={{
           ...orbStyle,
-          width: isGroupExpanded || hasSelectedMoment ? 24 : 44,
-          height: isGroupExpanded || hasSelectedMoment ? 24 : 44,
+          width: size,
+          height: size,
           opacity: isGroupExpanded || hasSelectedMoment ? 0.6 : 1,
-          boxShadow: isGroupExpanded || hasSelectedMoment ? 'none' : `0 0 12px ${groupColors[0]}50`,
+          boxShadow:
+            isGroupExpanded || hasSelectedMoment
+              ? 'none'
+              : `0 0 12px ${groupColors[0]}50`,
         }}
       >
         {remainingCount > 0 && !isGroupExpanded && !hasSelectedMoment && (
@@ -465,7 +490,7 @@ const ExpandedGridOrb = memo(function ExpandedGridOrb({
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
     >
-      {/* The orb with subtle glow */}
+      {/* The orb */}
       <div
         className="w-9 h-9 sm:w-10 sm:h-10 rounded-full"
         style={{
@@ -479,9 +504,321 @@ const ExpandedGridOrb = memo(function ExpandedGridOrb({
   );
 });
 
+// Day Globe - Simplified Earth surface inside the arc
+// Arc uses: center (100, 110), radius 90 - Earth overflows bottom with fade
+interface DayGlobeProps {
+  dayProgress: number;
+  isExpanded: boolean;
+  isDarkTheme?: boolean;
+}
+
+const DayGlobe = memo(function DayGlobe({
+  dayProgress,
+  isExpanded,
+  isDarkTheme = true,
+}: DayGlobeProps) {
+  // Day/night visual based on day progress (not real-world time)
+  const dayness = Math.sin(dayProgress * Math.PI);
+
+  // Colors depend on theme only - simple, decorative
+  let oceanColor: string;
+  let landColor: string;
+
+  if (isDarkTheme) {
+    // Dark theme: visible ocean, subtle land
+    oceanColor = `rgba(40, 100, 150, 0.4)`;
+    landColor = `rgba(35, 60, 45, 0.35)`;
+  } else {
+    // Light theme: visible ocean, subtle land
+    oceanColor = `rgba(100, 160, 200, 0.35)`;
+    landColor = `rgba(180, 160, 130, 0.25)`;
+  }
+
+  // Earth geometry - fits within arc, only overflows at bottom
+  // Arc goes from (10, 110) to (190, 110), so Earth should stay within x: 10-190
+  const cx = 100;
+  const cy = 110; // Centered with arc baseline
+  const r = 88; // Fits within arc width (max ~90 to not overflow sides)
+
+  // Decorative city lights - only shown on dark theme as ambient visual
+  const cities = [
+    // Spread across visible area
+    { x: 45, y: 55, size: 1.2 },
+    { x: 38, y: 62, size: 1.0 },
+    { x: 52, y: 50, size: 0.9 },
+    { x: 95, y: 48, size: 1.1 },
+    { x: 102, y: 52, size: 0.9 },
+    { x: 108, y: 46, size: 1.0 },
+    { x: 135, y: 52, size: 1.3 },
+    { x: 128, y: 58, size: 1.0 },
+    { x: 142, y: 48, size: 0.8 },
+    { x: 100, y: 70, size: 0.9 },
+    { x: 55, y: 85, size: 1.0 },
+    { x: 160, y: 80, size: 0.8 },
+  ];
+
+  return (
+    <motion.div
+      className="absolute inset-0 pointer-events-none"
+      style={{ zIndex: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{
+        opacity: isExpanded ? 0.3 : 1,
+      }}
+      transition={{ duration: 0.8, ease: 'easeOut' }}
+    >
+      <svg
+        viewBox="0 0 200 120"
+        className="absolute inset-0 w-full h-full"
+        style={{ overflow: 'visible' }}
+      >
+        <defs>
+          {/* Vertical fade - solid at top, fades towards bottom */}
+          <linearGradient id="earthFadeV" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="white" stopOpacity="1" />
+            <stop offset="50%" stopColor="white" stopOpacity="1" />
+            <stop offset="75%" stopColor="white" stopOpacity="0.6" />
+            <stop offset="90%" stopColor="white" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="white" stopOpacity="0" />
+          </linearGradient>
+          {/* Horizontal fade - solid in center, fades at edges */}
+          <linearGradient id="earthFadeH" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="white" stopOpacity="0" />
+            <stop offset="15%" stopColor="white" stopOpacity="0.5" />
+            <stop offset="30%" stopColor="white" stopOpacity="1" />
+            <stop offset="70%" stopColor="white" stopOpacity="1" />
+            <stop offset="85%" stopColor="white" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="white" stopOpacity="0" />
+          </linearGradient>
+          {/* Clip path for Earth circle */}
+          <clipPath id="earthClip">
+            <circle cx={cx} cy={cy} r={r} />
+          </clipPath>
+          {/* Combined mask - multiply both gradients */}
+          <mask id="earthMask">
+            <rect
+              x="0"
+              y="0"
+              width="200"
+              height="130"
+              fill="url(#earthFadeV)"
+            />
+          </mask>
+          <mask id="earthMaskH">
+            <rect
+              x="0"
+              y="0"
+              width="200"
+              height="130"
+              fill="url(#earthFadeH)"
+            />
+          </mask>
+        </defs>
+
+        {/* Earth with fade mask - overflows at bottom */}
+        <g mask="url(#earthMask)">
+          <g mask="url(#earthMaskH)">
+            {/* Ocean base */}
+            <circle cx={cx} cy={cy} r={r} fill={oceanColor} />
+
+            {/* Recognizable continents - simplified but identifiable */}
+            {/* Positions adjusted for shifted Earth center */}
+            {/* North America - moved right to avoid arc overlap */}
+            <path
+              d="M 35 60 L 43 47 L 57 43 L 65 50 L 60 60 L 67 65 L 63 75 L 53 77 L 45 70 L 40 63 Z"
+              fill={landColor}
+            />
+            {/* Greenland */}
+            <ellipse cx="70" cy="38" rx="9" ry="7" fill={landColor} />
+
+            {/* Europe */}
+            <path
+              d="M 86 45 L 93 41 L 103 43 L 106 50 L 100 57 L 93 55 L 88 50 Z"
+              fill={landColor}
+            />
+
+            {/* Africa */}
+            <path
+              d="M 93 60 L 106 57 L 116 63 L 118 80 L 110 95 L 98 93 L 93 80 L 90 67 Z"
+              fill={landColor}
+            />
+
+            {/* Asia */}
+            <path
+              d="M 108 43 L 123 37 L 143 40 L 158 47 L 163 60 L 153 70 L 138 65 L 128 60 L 118 55 L 110 47 Z"
+              fill={landColor}
+            />
+
+            {/* Australia */}
+            <path
+              d="M 150 83 L 165 80 L 172 87 L 168 97 L 155 100 L 148 93 Z"
+              fill={landColor}
+            />
+
+            {/* South America */}
+            <path
+              d="M 50 83 L 58 77 L 66 83 L 63 97 L 53 105 L 46 100 L 48 90 Z"
+              fill={landColor}
+            />
+
+            {/* Decorative city lights - only shown on dark theme */}
+            {isDarkTheme &&
+              cities.map((city, i) => (
+                <g key={i}>
+                  {/* Outer glow */}
+                  <circle
+                    cx={city.x}
+                    cy={city.y}
+                    r={city.size * 1.8}
+                    fill="rgba(255, 200, 100, 0.15)"
+                  />
+                  {/* Inner bright point */}
+                  <circle
+                    cx={city.x}
+                    cy={city.y}
+                    r={city.size * 0.6}
+                    fill="rgba(255, 250, 200, 0.6)"
+                  />
+                </g>
+              ))}
+
+            {/* Subtle atmosphere glow at edge */}
+            <circle
+              cx={cx}
+              cy={cy}
+              r={r}
+              fill="none"
+              stroke={
+                isDarkTheme
+                  ? `rgba(100, 160, 200, ${0.1 + dayness * 0.08})`
+                  : `rgba(80, 140, 180, ${0.15 + dayness * 0.1})`
+              }
+              strokeWidth="2"
+            />
+          </g>
+        </g>
+      </svg>
+    </motion.div>
+  );
+});
+
+// Current Time Halo - subtle indicator showing current position in the day
+interface CurrentTimeHaloProps {
+  progress: number; // 0-1 through the day
+  isHidden: boolean;
+}
+
+const CurrentTimeHalo = memo(function CurrentTimeHalo({
+  progress,
+  isHidden,
+}: CurrentTimeHaloProps) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [currentTime, setCurrentTime] = useState<string>('');
+
+  // Update time every minute
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setCurrentTime(
+        now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      );
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Calculate position on arc
+  const pos = getArcPosition(progress);
+
+  return (
+    <motion.div
+      className="absolute cursor-pointer"
+      style={{
+        left: `${(pos.x / 200) * 100}%`,
+        top: `${(pos.y / 120) * 100}%`,
+        zIndex: showTooltip ? 50 : 5,
+      }}
+      initial={{ opacity: 0, scale: 0.5, x: '-50%', y: '-50%' }}
+      animate={{
+        opacity: isHidden ? 0.3 : 1,
+        scale: isHidden ? 0.7 : 1,
+        x: '-50%',
+        y: '-50%',
+      }}
+      transition={{ delay: 0.5, type: 'spring', stiffness: 200 }}
+      onHoverStart={() => setShowTooltip(true)}
+      onHoverEnd={() => setShowTooltip(false)}
+      onTap={() => setShowTooltip((prev) => !prev)}
+    >
+      {/* Outer soft glow - breathing animation */}
+      <motion.div
+        className="absolute rounded-full"
+        style={{
+          width: 24,
+          height: 24,
+          left: '50%',
+          top: '50%',
+          x: '-50%',
+          y: '-50%',
+          background:
+            'radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%)',
+        }}
+        animate={{
+          scale: [1, 1.2, 1],
+          opacity: [0.5, 0.7, 0.5],
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+      />
+      {/* Inner bright point */}
+      <div
+        className="relative rounded-full"
+        style={{
+          width: 8,
+          height: 8,
+          background:
+            'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 100%)',
+          boxShadow: '0 0 8px rgba(255,255,255,0.5)',
+        }}
+      />
+      {/* Tooltip */}
+      <AnimatePresence>
+        {showTooltip && (
+          <motion.div
+            className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none"
+            style={{
+              bottom: '100%',
+              marginBottom: 8,
+            }}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            transition={{ duration: 0.15 }}
+          >
+            <span className="text-xs text-foreground/80 bg-card/90 backdrop-blur-sm px-2 py-1 rounded-md border border-border/50 shadow-sm">
+              Now · {currentTime}
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+});
+
 export function CheckInHome() {
   const { t, language } = useI18n();
   const { user } = useAuth();
+  const { colorTheme } = useSettingsStore();
+
+  // Determine if current theme is dark
+  const isDarkTheme = useMemo(() => {
+    const theme = ALL_COLOR_THEMES.find((t) => t.value === colorTheme);
+    return theme?.isDark ?? true;
+  }, [colorTheme]);
 
   const {
     hydrated,
@@ -511,8 +848,18 @@ export function CheckInHome() {
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showRecapPanel, setShowRecapPanel] = useState(false);
   const [showInsightsPanel, setShowInsightsPanel] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [timeUpdateTrigger, setTimeUpdateTrigger] = useState(0);
   const isMobile = useIsMobile();
   const arcContainerRef = useRef<HTMLDivElement>(null);
+
+  // Update arc progress every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeUpdateTrigger((t) => t + 1);
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Date navigation
   const isToday = useMemo(() => {
@@ -534,9 +881,8 @@ export function CheckInHome() {
     [selectedDate, isToday]
   );
 
-  // Hydrate stores on mount
+  // Load options on mount (hydration is handled by SyncProvider)
   useEffect(() => {
-    hydrateCheckInStore();
     loadOptions(user?.id);
   }, [loadOptions, user?.id]);
 
@@ -600,14 +946,15 @@ export function CheckInHome() {
     return groupOverlappingCheckIns(selectedDayCheckIns);
   }, [selectedDayCheckIns]);
 
-  // Arc progress for selected day
+  // Arc progress for selected day (updates every minute via timeUpdateTrigger)
   const arcProgress = useMemo(() => {
     if (isToday) {
       return getDayProgress();
     }
     // For past days, show full arc
     return 1;
-  }, [isToday]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isToday, timeUpdateTrigger]);
 
   // Morning check
   const isMorning = useMemo(() => {
@@ -756,51 +1103,80 @@ export function CheckInHome() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="flex items-center gap-2 mb-6"
+          className="relative flex flex-col items-center gap-1 mb-6"
         >
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              navigateDate(-1);
-            }}
-            className="p-3 -m-1 rounded-full hover:bg-muted/50 active:bg-muted transition-colors cursor-pointer text-muted-foreground/70 hover:text-foreground"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
+          {/* Top row: Calendar + Today button */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDatePicker(true);
+              }}
+              className="p-1.5 rounded-full hover:bg-muted/50 transition-colors cursor-pointer text-muted-foreground/50 hover:text-muted-foreground"
+            >
+              <Calendar className="h-4 w-4" />
+            </button>
+            {!isToday && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedDate(new Date());
+                  setExpandedGroupIndex(null);
+                  setSelectedMoment(null);
+                  setSelectedMomentGroupIndex(null);
+                }}
+                className="px-2 py-0.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors cursor-pointer text-xs font-medium text-primary"
+              >
+                {language === 'ru' ? 'Сегодня' : 'Today'}
+              </button>
+            )}
+          </div>
 
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!isToday) {
-                setSelectedDate(new Date());
-                setExpandedGroupIndex(null);
-                setSelectedMoment(null);
-                setSelectedMomentGroupIndex(null);
-              }
-            }}
-            className={`text-lg font-medium min-w-[160px] text-center px-2 py-1 rounded-lg transition-colors ${
-              isToday
-                ? 'text-foreground cursor-default'
-                : 'text-foreground hover:bg-muted/50 cursor-pointer'
-            }`}
-          >
-            {formatDateNav(selectedDate, isToday, language)}
-          </button>
+          {/* Date row with arrows */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigateDate(-1);
+              }}
+              className="p-3 -m-1 rounded-full hover:bg-muted/50 active:bg-muted transition-colors cursor-pointer text-muted-foreground/70 hover:text-foreground"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
 
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              navigateDate(1);
+            <span className="text-lg font-medium min-w-[140px] text-center text-foreground">
+              {formatDateNav(selectedDate, isToday, language)}
+            </span>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isToday) navigateDate(1);
+              }}
+              disabled={isToday}
+              className={`p-3 -m-1 rounded-full transition-colors ${
+                isToday
+                  ? 'text-muted-foreground/20 cursor-default'
+                  : 'hover:bg-muted/50 active:bg-muted cursor-pointer text-muted-foreground/70 hover:text-foreground'
+              }`}
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Date Picker - inline for desktop, bottom sheet for mobile */}
+          <DatePickerTimeline
+            isOpen={showDatePicker}
+            onClose={() => setShowDatePicker(false)}
+            selectedDate={selectedDate}
+            onSelectDate={(date) => {
+              setSelectedDate(date);
+              setExpandedGroupIndex(null);
+              setSelectedMoment(null);
+              setSelectedMomentGroupIndex(null);
             }}
-            disabled={isToday}
-            className={`p-3 -m-1 rounded-full transition-colors ${
-              isToday
-                ? 'text-muted-foreground/20 cursor-not-allowed'
-                : 'hover:bg-muted/50 active:bg-muted text-muted-foreground/70 hover:text-foreground cursor-pointer'
-            }`}
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
+            isMobile={isMobile}
+          />
         </motion.div>
 
         {/* Inline Morning Tone Selector - shows on today morning if not set */}
@@ -915,6 +1291,13 @@ export function CheckInHome() {
               </defs>
             </motion.svg>
 
+            {/* Day Globe - Earth visual, moments orbit above like satellites */}
+            <DayGlobe
+              dayProgress={getDayProgress()}
+              isExpanded={!!selectedMoment || expandedGroupIndex !== null}
+              isDarkTheme={isDarkTheme}
+            />
+
             {/* Moment orbs - grouped (using memoized components) */}
             {checkInGroups.map((group, groupIndex) => {
               const isGroupExpanded = expandedGroupIndex === groupIndex;
@@ -955,32 +1338,13 @@ export function CheckInHome() {
               );
             })}
 
-            {/* Current time indicator (sun/moon) - only for today, not clickable */}
+            {/* Current time halo - subtle brightness indicator on arc, only for today */}
             {isToday && (
-              <motion.div
-                className="absolute pointer-events-none"
-                style={{
-                  left: `${(getArcPosition(getDayProgress()).x / 200) * 100}%`,
-                  top: `${(getArcPosition(getDayProgress()).y / 120) * 100}%`,
-                  zIndex: 5,
-                }}
-                initial={{ opacity: 0, scale: 0.5, x: '-50%', y: '-50%' }}
-                animate={{ opacity: 1, scale: 1, x: '-50%', y: '-50%' }}
-                transition={{ delay: 0.5, type: 'spring', stiffness: 200 }}
-              >
-                {getDayProgress() >= 0.79 || getDayProgress() < 0.21 ? (
-                  <Moon className="h-5 w-5 text-indigo-400" />
-                ) : (
-                  <Sun className="h-5 w-5 text-amber-500" />
-                )}
-              </motion.div>
+              <CurrentTimeHalo
+                progress={getDayProgress()}
+                isHidden={!!selectedMoment || expandedGroupIndex !== null}
+              />
             )}
-
-            {/* Time labels */}
-            <Moon className="absolute -left-0.5 -bottom-1 sm:left-0 sm:bottom-0 h-4 w-4 sm:h-5 sm:w-5 text-indigo-400/60" />
-            <Sun className="absolute left-1/2 -translate-x-1/2 top-0 h-4 w-4 sm:h-5 sm:w-5 text-amber-500/60" />
-            <Moon className="absolute -right-0.5 -bottom-1 sm:right-0 sm:bottom-0 h-4 w-4 sm:h-5 sm:w-5 text-indigo-400/60" />
-
 
             {/* Expanded group grid - centered inside arc for selection */}
             <AnimatePresence>
@@ -1007,7 +1371,6 @@ export function CheckInHome() {
                   </motion.div>
                 )}
             </AnimatePresence>
-
 
             {/* Selected moment - animates from arc position to center */}
             <AnimatePresence mode="popLayout">
@@ -1160,7 +1523,7 @@ export function CheckInHome() {
                       </motion.button>
                     )}
 
-                    {/* View day recap - subtle, secondary to main CTA, only in second half of day */}
+                    {/* View day recap - more visible, secondary style */}
                     {selectedDayCheckIns.length > 0 &&
                       (!isToday || getDayProgress() >= 0.5) && (
                         <motion.button
@@ -1168,18 +1531,25 @@ export function CheckInHome() {
                             e.stopPropagation();
                             setShowRecapPanel(true);
                           }}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-muted-foreground/70 hover:text-muted-foreground text-sm font-medium cursor-pointer transition-colors"
+                          className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted/60 border border-muted-foreground/20 text-foreground hover:bg-muted hover:border-muted-foreground/30 text-sm font-medium cursor-pointer transition-colors"
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                         >
                           <div
-                            className="w-2.5 h-2.5 rounded-full opacity-70"
+                            className="w-3 h-3 rounded-full"
                             style={{
                               background:
                                 generateMoodGradient(selectedDayCheckIns),
+                              boxShadow: `0 0 6px ${generateMoodGradient(
+                                selectedDayCheckIns
+                              )}`,
                             }}
                           />
-                          <span>{t('home.seeReflection') || 'View recap'}</span>
+                          <span>
+                            {isToday
+                              ? t('home.seeReflection')
+                              : t('home.seeDayRecap')}
+                          </span>
                         </motion.button>
                       )}
 
@@ -1365,9 +1735,6 @@ export function CheckInHome() {
                     <h2 className="text-xl font-semibold">
                       {t('insights.title') || 'Your patterns'}
                     </h2>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {t('insights.subtitle') || 'Based on the last 7 days'}
-                    </p>
                   </div>
                   <button
                     onClick={() => setShowInsightsPanel(false)}
@@ -1397,9 +1764,6 @@ export function CheckInHome() {
                     <h2 className="text-xl font-semibold">
                       {t('insights.title') || 'Your patterns'}
                     </h2>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {t('insights.subtitle') || 'Based on the last 7 days'}
-                    </p>
                   </div>
                   <button
                     onClick={() => setShowInsightsPanel(false)}
@@ -1495,10 +1859,7 @@ function InsightsPanelContent() {
                   className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
                   style={{ backgroundColor: `${insight.color}20` }}
                 >
-                  <Icon
-                    className="h-4 w-4"
-                    style={{ color: insight.color }}
-                  />
+                  <Icon className="h-4 w-4" style={{ color: insight.color }} />
                 </div>
                 <p className="text-sm text-foreground/80 leading-relaxed pt-1">
                   {insight.text}

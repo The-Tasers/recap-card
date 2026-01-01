@@ -111,6 +111,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   // Track if initial sync has been done for this session
   const hasSyncedRef = useRef(false);
   const previousUserIdRef = useRef<string | null>(null);
+  const isInitializedRef = useRef(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
   // Sync notification state
@@ -328,13 +329,20 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     // Wait for auth to finish loading
     if (authLoading) return;
 
-    // Reset sync flag when user changes
-    if (user?.id !== previousUserIdRef.current) {
+    // Check if user changed (requires re-sync)
+    const userChanged = user?.id !== previousUserIdRef.current;
+    if (userChanged) {
       hasSyncedRef.current = false;
       previousUserIdRef.current = user?.id ?? null;
+      isInitializedRef.current = false;
     }
 
+    // Skip if already initialized with the same user
+    if (isInitializedRef.current) return;
+
     const initialize = async () => {
+      isInitializedRef.current = true;
+
       // First, hydrate from IndexedDB
       await hydrateCheckInStore();
 
