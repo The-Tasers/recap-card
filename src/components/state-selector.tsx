@@ -42,16 +42,15 @@ const STATE_ICONS: Record<string, LucideIcon> = {
   distracted: EyeOff,
 };
 
-// State-specific colors using red→green gradient like app logo
-// Bad states: red/orange, Neutral: yellow/amber, Good states: lime/green/emerald
+// State colors - red→green gradient like onboarding, slightly softened (400-level)
 const STATE_COLORS: Record<string, { base: string; selected: string; icon: string }> = {
-  // Neutral - gray (center point)
+  // Neutral - gray
   neutral: {
     base: 'bg-slate-400/10 border-slate-400/30 hover:bg-slate-400/20',
-    selected: 'bg-slate-400 border-slate-400',
+    selected: 'bg-slate-400/70 border-slate-400',
     icon: 'text-slate-500',
   },
-  // Energy states: drained(red) → tired(orange) → calm(lime) → energized(green)
+  // Energy: drained(red) → tired(orange) → calm(lime) → energized(green)
   drained: {
     base: 'bg-red-400/10 border-red-400/30 hover:bg-red-400/20',
     selected: 'bg-red-400 border-red-400',
@@ -63,25 +62,25 @@ const STATE_COLORS: Record<string, { base: string; selected: string; icon: strin
     icon: 'text-orange-500',
   },
   calm: {
-    base: 'bg-lime-500/10 border-lime-500/30 hover:bg-lime-500/20',
-    selected: 'bg-lime-500 border-lime-500',
-    icon: 'text-lime-600',
+    base: 'bg-lime-400/10 border-lime-400/30 hover:bg-lime-400/20',
+    selected: 'bg-lime-400 border-lime-400',
+    icon: 'text-lime-500',
   },
   energized: {
-    base: 'bg-green-500/10 border-green-500/30 hover:bg-green-500/20',
-    selected: 'bg-green-500 border-green-500',
-    icon: 'text-green-600',
+    base: 'bg-green-400/10 border-green-400/30 hover:bg-green-400/20',
+    selected: 'bg-green-400 border-green-400',
+    icon: 'text-green-500',
   },
-  // Emotion states: frustrated(red) → anxious(orange) → uncertain(amber) → content(lime) → grateful(green)
+  // Emotion: frustrated(red) → anxious(orange) → uncertain(amber) → content(lime) → grateful(emerald)
   frustrated: {
-    base: 'bg-red-500/10 border-red-500/30 hover:bg-red-500/20',
-    selected: 'bg-red-500 border-red-500',
-    icon: 'text-red-600',
+    base: 'bg-red-400/10 border-red-400/30 hover:bg-red-400/20',
+    selected: 'bg-red-400 border-red-400',
+    icon: 'text-red-500',
   },
   anxious: {
-    base: 'bg-orange-500/10 border-orange-500/30 hover:bg-orange-500/20',
-    selected: 'bg-orange-500 border-orange-500',
-    icon: 'text-orange-600',
+    base: 'bg-orange-400/10 border-orange-400/30 hover:bg-orange-400/20',
+    selected: 'bg-orange-400 border-orange-400',
+    icon: 'text-orange-500',
   },
   uncertain: {
     base: 'bg-amber-400/10 border-amber-400/30 hover:bg-amber-400/20',
@@ -94,11 +93,11 @@ const STATE_COLORS: Record<string, { base: string; selected: string; icon: strin
     icon: 'text-lime-500',
   },
   grateful: {
-    base: 'bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20',
-    selected: 'bg-emerald-500 border-emerald-500',
-    icon: 'text-emerald-600',
+    base: 'bg-emerald-400/10 border-emerald-400/30 hover:bg-emerald-400/20',
+    selected: 'bg-emerald-400 border-emerald-400',
+    icon: 'text-emerald-500',
   },
-  // Tension states: scattered(red) → distracted(orange) → focused(lime) → present(green)
+  // Tension: scattered(red) → distracted(orange) → focused(lime) → present(green)
   scattered: {
     base: 'bg-red-400/10 border-red-400/30 hover:bg-red-400/20',
     selected: 'bg-red-400 border-red-400',
@@ -110,14 +109,14 @@ const STATE_COLORS: Record<string, { base: string; selected: string; icon: strin
     icon: 'text-orange-500',
   },
   focused: {
-    base: 'bg-lime-500/10 border-lime-500/30 hover:bg-lime-500/20',
-    selected: 'bg-lime-500 border-lime-500',
-    icon: 'text-lime-600',
+    base: 'bg-lime-400/10 border-lime-400/30 hover:bg-lime-400/20',
+    selected: 'bg-lime-400 border-lime-400',
+    icon: 'text-lime-500',
   },
   present: {
-    base: 'bg-green-500/10 border-green-500/30 hover:bg-green-500/20',
-    selected: 'bg-green-500 border-green-500',
-    icon: 'text-green-600',
+    base: 'bg-green-400/10 border-green-400/30 hover:bg-green-400/20',
+    selected: 'bg-green-400 border-green-400',
+    icon: 'text-green-500',
   },
 };
 

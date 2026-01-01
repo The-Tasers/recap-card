@@ -18,27 +18,30 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
-  Sparkles,
+  Dot,
   MapPin,
   Users,
 } from 'lucide-react';
 
-// State-specific colors using red→green gradient like app logo
+// State colors - red→green gradient like onboarding, slightly softened
 const STATE_COLORS: Record<string, { bg: string; glow: string }> = {
   neutral: { bg: 'bg-slate-400/80', glow: 'rgba(148, 163, 184, 0.3)' },
-  drained: { bg: 'bg-red-400', glow: 'rgba(248, 113, 113, 0.4)' },
-  tired: { bg: 'bg-orange-400', glow: 'rgba(251, 146, 60, 0.4)' },
-  calm: { bg: 'bg-lime-500', glow: 'rgba(132, 204, 22, 0.4)' },
-  energized: { bg: 'bg-green-500', glow: 'rgba(34, 197, 94, 0.4)' },
-  frustrated: { bg: 'bg-red-500', glow: 'rgba(239, 68, 68, 0.4)' },
-  anxious: { bg: 'bg-orange-500', glow: 'rgba(249, 115, 22, 0.4)' },
-  uncertain: { bg: 'bg-amber-400', glow: 'rgba(251, 191, 36, 0.4)' },
-  content: { bg: 'bg-lime-400', glow: 'rgba(163, 230, 53, 0.4)' },
-  grateful: { bg: 'bg-emerald-500', glow: 'rgba(16, 185, 129, 0.4)' },
-  scattered: { bg: 'bg-red-400', glow: 'rgba(248, 113, 113, 0.4)' },
-  distracted: { bg: 'bg-orange-400', glow: 'rgba(251, 146, 60, 0.4)' },
-  focused: { bg: 'bg-lime-500', glow: 'rgba(132, 204, 22, 0.4)' },
-  present: { bg: 'bg-green-500', glow: 'rgba(34, 197, 94, 0.4)' },
+  // Energy: drained(red) → tired(orange) → calm(lime) → energized(green)
+  drained: { bg: 'bg-red-400', glow: 'rgba(248, 113, 113, 0.35)' },
+  tired: { bg: 'bg-orange-400', glow: 'rgba(251, 146, 60, 0.35)' },
+  calm: { bg: 'bg-lime-400', glow: 'rgba(163, 230, 53, 0.35)' },
+  energized: { bg: 'bg-green-400', glow: 'rgba(74, 222, 128, 0.35)' },
+  // Emotion: frustrated(red) → anxious(orange) → uncertain(amber) → content(lime) → grateful(green)
+  frustrated: { bg: 'bg-red-400', glow: 'rgba(248, 113, 113, 0.35)' },
+  anxious: { bg: 'bg-orange-400', glow: 'rgba(251, 146, 60, 0.35)' },
+  uncertain: { bg: 'bg-amber-400', glow: 'rgba(251, 191, 36, 0.35)' },
+  content: { bg: 'bg-lime-400', glow: 'rgba(163, 230, 53, 0.35)' },
+  grateful: { bg: 'bg-emerald-400', glow: 'rgba(52, 211, 153, 0.35)' },
+  // Tension: scattered(red) → distracted(orange) → focused(lime) → present(green)
+  scattered: { bg: 'bg-red-400', glow: 'rgba(248, 113, 113, 0.35)' },
+  distracted: { bg: 'bg-orange-400', glow: 'rgba(251, 146, 60, 0.35)' },
+  focused: { bg: 'bg-lime-400', glow: 'rgba(163, 230, 53, 0.35)' },
+  present: { bg: 'bg-green-400', glow: 'rgba(74, 222, 128, 0.35)' },
 };
 
 const DEFAULT_COLORS = {
@@ -135,7 +138,11 @@ export function DayRecap({ day, checkIns }: DayRecapProps) {
   const getPeopleInsight = () => {
     if (summary.mentionedPeople.length === 0) return null;
 
-    const names = summary.mentionedPeople.map((p) => p.label);
+    const names = summary.mentionedPeople.map((p) =>
+      p.isDefault
+        ? translate(`person.${p.label.toLowerCase()}`) || p.label
+        : p.label
+    );
     if (names.length === 1) {
       return (
         translate('recap.peopleSingle', { person: names[0] }) ||
@@ -240,28 +247,37 @@ export function DayRecap({ day, checkIns }: DayRecapProps) {
           </div>
         </div>
 
-        {/* Energy trend - inline */}
-        {summary.energyTrend && summary.totalCheckIns >= 2 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="relative flex items-center gap-2 mt-3 text-sm text-muted-foreground"
-          >
-            <TrendIcon className="h-4 w-4 shrink-0" />
-            <span>
-              {summary.energyTrend === 'rising' &&
-                (translate('recap.energyRising') ||
-                  'Energy rose through the day')}
-              {summary.energyTrend === 'falling' &&
-                (translate('recap.energyFalling') || 'Energy shifted lower')}
-              {summary.energyTrend === 'stable' &&
-                (translate('recap.energyStable') || 'Energy stayed steady')}
-              {summary.energyTrend === 'mixed' &&
-                (translate('recap.energyMixed') || 'Energy varied throughout')}
+        {/* Overall mood and energy trend */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="relative flex flex-wrap items-center gap-x-4 gap-y-2 mt-3 text-sm text-muted-foreground"
+        >
+          {/* Overall mood */}
+          {summary.overallMood && (
+            <span className="font-medium">
+              {translate(`recap.mood.${summary.overallMood}`)}
             </span>
-          </motion.div>
-        )}
+          )}
+
+          {/* Energy trend */}
+          {summary.energyTrend && summary.totalCheckIns >= 2 && (
+            <span className="flex items-center gap-1.5">
+              <TrendIcon className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                {summary.energyTrend === 'rising' &&
+                  (translate('recap.energyRising') || 'Energy rose')}
+                {summary.energyTrend === 'falling' &&
+                  (translate('recap.energyFalling') || 'Energy fell')}
+                {summary.energyTrend === 'stable' &&
+                  (translate('recap.energyStable') || 'Energy steady')}
+                {summary.energyTrend === 'mixed' &&
+                  (translate('recap.energyMixed') || 'Energy varied')}
+              </span>
+            </span>
+          )}
+        </motion.div>
       </motion.div>
 
       {/* Insights as sentences */}
@@ -301,9 +317,9 @@ export function DayRecap({ day, checkIns }: DayRecapProps) {
           className="text-center py-3"
         >
           <div className="inline-flex items-center gap-2 text-muted-foreground/60">
-            <Sparkles className="h-3 w-3" />
+            <Dot className="h-3 w-3" />
             <p className="text-sm italic">{closingText}</p>
-            <Sparkles className="h-3 w-3" />
+            <Dot className="h-3 w-3" />
           </div>
         </motion.div>
       )}

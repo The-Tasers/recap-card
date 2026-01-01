@@ -27,6 +27,8 @@ import {
 // TYPES
 // ============================================================================
 
+export type OverallMood = 'great' | 'good' | 'neutral' | 'low' | 'rough';
+
 export interface DaySummary {
   // Basic stats
   totalCheckIns: number;
@@ -50,6 +52,9 @@ export interface DaySummary {
 
   // Morning expectation comparison
   expectationMatch: 'matched' | 'better' | 'different' | null;
+
+  // Overall mood (computed from average energy levels)
+  overallMood: OverallMood | null;
 }
 
 export interface PeriodSummary {
@@ -92,6 +97,7 @@ export function computeDaySummary(
     mentionedPeople: [],
     energyTrend: null,
     expectationMatch: null,
+    overallMood: null,
   };
 
   if (checkIns.length === 0) return result;
@@ -153,16 +159,20 @@ export function computeDaySummary(
 
   // Energy trend (needs 2+ check-ins)
   if (checkIns.length >= 2) {
-    result.energyTrend = computeEnergyTrend(sorted);
+    result.energyTrend = computeEnergyTrend(sorted, states);
   }
 
   // Expectation comparison
   if (day.morningExpectationTone && result.dominantState) {
     result.expectationMatch = compareExpectation(
       day.morningExpectationTone,
-      result.dominantState
+      result.dominantState,
+      states
     );
   }
+
+  // Compute overall mood from average energy levels
+  result.overallMood = computeOverallMood(checkIns, states);
 
   return result;
 }
@@ -296,10 +306,31 @@ export function generateDailySummaryText(
     return t('recap.singleCheckin', { state: stateLabel });
   }
 
-  return t('recap.multipleCheckins', {
-    count: summary.totalCheckIns,
-    state: stateLabel,
-  });
+  // Check if there's a truly dominant state (appears > 1 time and > 40% of total)
+  const dominantCount = summary.dominantState
+    ? summary.stateDistribution.get(summary.dominantState) || 0
+    : 0;
+  const dominantPercentage = (dominantCount / summary.totalCheckIns) * 100;
+  const hasClearDominant = dominantCount > 1 && dominantPercentage > 40;
+
+  // Base text: just count
+  const countText = t('recap.multipleCheckins', { count: summary.totalCheckIns });
+
+  // Add dominant state only if clearly dominant
+  if (hasClearDominant && stateLabel) {
+    const dominantText = t('recap.dominantState', { state: stateLabel });
+    return `${countText} ${dominantText}`;
+  }
+
+  // Otherwise show mixed states
+  if (summary.stateDistribution.size > 1) {
+    const mixedText = t('recap.mixedStates');
+    if (mixedText) {
+      return `${countText} ${mixedText}`;
+    }
+  }
+
+  return countText;
 }
 
 /**
@@ -419,34 +450,60 @@ function getTimeOfDay(hour: number): 'morning' | 'afternoon' | 'evening' | 'nigh
 }
 
 /**
+ * Get energy level from a state.
+ * Energy category states have direct levels: energized=4, calm=3, tired=2, drained=1
+ * Other categories are mapped based on positive/negative nature.
+ */
+function getEnergyLevel(stateId: string, states: State[]): number {
+  const state = getStateById(stateId, states);
+  if (!state) return 2.5; // neutral fallback
+
+  // Energy category states have clear energy levels
+  if (state.category === 'energy') {
+    const energyLevels: Record<string, number> = {
+      energized: 4,
+      calm: 3,
+      tired: 2,
+      drained: 1,
+    };
+    return energyLevels[stateId] ?? 2.5;
+  }
+
+  // Emotion states: map to energy equivalents
+  if (state.category === 'emotion') {
+    const emotionToEnergy: Record<string, number> = {
+      grateful: 3.5, // positive, energizing
+      content: 3,    // positive, calm
+      anxious: 2.5,  // negative but can be activating
+      uncertain: 2,  // draining uncertainty
+      frustrated: 2, // draining
+    };
+    return emotionToEnergy[stateId] ?? 2.5;
+  }
+
+  // Tension/focus states: map to energy equivalents
+  if (state.category === 'tension') {
+    const tensionToEnergy: Record<string, number> = {
+      focused: 3.5,   // engaged, energizing
+      present: 3,     // calm engagement
+      distracted: 2,  // draining
+      scattered: 1.5, // very draining
+    };
+    return tensionToEnergy[stateId] ?? 2.5;
+  }
+
+  return 2.5; // neutral fallback
+}
+
+/**
  * Compute energy trend from sorted check-ins.
- * Uses energy category states as proxy for energy level.
+ * Uses actual state data to determine energy levels.
  */
 function computeEnergyTrend(
-  sortedCheckIns: CheckIn[]
+  sortedCheckIns: CheckIn[],
+  states: State[]
 ): 'rising' | 'falling' | 'stable' | 'mixed' {
-  // Map states to energy levels (higher = more energy)
-  const energyLevels: Record<string, number> = {
-    energized: 4,
-    calm: 3,
-    tired: 2,
-    drained: 1,
-    // Non-energy states get neutral value
-    content: 3,
-    anxious: 2,
-    frustrated: 2,
-    grateful: 3,
-    uncertain: 2,
-    focused: 3,
-    scattered: 2,
-    present: 3,
-    distracted: 2,
-    neutral: 2.5,
-  };
-
-  const levels = sortedCheckIns.map(
-    (c) => energyLevels[c.stateId] ?? 2.5
-  );
+  const levels = sortedCheckIns.map((c) => getEnergyLevel(c.stateId, states));
 
   if (levels.length < 2) return 'stable';
 
@@ -460,55 +517,77 @@ function computeEnergyTrend(
 
   const diff = secondAvg - firstAvg;
 
-  if (diff > 0.5) return 'rising';
-  if (diff < -0.5) return 'falling';
+  // Use smaller threshold (0.3) for more sensitive trend detection
+  if (diff > 0.3) return 'rising';
+  if (diff < -0.3) return 'falling';
 
-  // Check for variance (mixed day)
+  // Check for variance (mixed day) - indicates ups and downs
+  const overallAvg = levels.reduce((a, b) => a + b, 0) / levels.length;
   const variance =
-    levels.reduce((sum, l) => sum + Math.pow(l - firstAvg, 2), 0) /
+    levels.reduce((sum, l) => sum + Math.pow(l - overallAvg, 2), 0) /
     levels.length;
-  if (variance > 1) return 'mixed';
+  if (variance > 0.8) return 'mixed';
 
   return 'stable';
 }
 
 /**
+ * Compute overall mood from check-ins based on average energy levels.
+ * Maps energy level to mood: 1-1.8=rough, 1.8-2.3=low, 2.3-2.8=neutral, 2.8-3.4=good, 3.4+=great
+ */
+function computeOverallMood(
+  checkIns: CheckIn[],
+  states: State[]
+): OverallMood | null {
+  if (checkIns.length === 0) return null;
+
+  const levels = checkIns.map((c) => getEnergyLevel(c.stateId, states));
+  const avgLevel = levels.reduce((a, b) => a + b, 0) / levels.length;
+
+  // Map average energy level to mood
+  // Energy scale: 1 (drained) to 4 (energized)
+  if (avgLevel >= 3.4) return 'great';
+  if (avgLevel >= 2.8) return 'good';
+  if (avgLevel >= 2.3) return 'neutral';
+  if (avgLevel >= 1.8) return 'low';
+  return 'rough';
+}
+
+/**
+ * Get expected energy level from morning expectation tone.
+ */
+function getExpectationEnergyLevel(expectation: ExpectationTone): number {
+  const expectationLevels: Record<ExpectationTone, number> = {
+    energized: 4,
+    excited: 3.5,
+    calm: 3,
+    uncertain: 2,
+    anxious: 2,
+    heavy: 1.5,
+  };
+  return expectationLevels[expectation] ?? 2.5;
+}
+
+/**
  * Compare morning expectation with actual day outcome.
+ * Uses energy level comparison for more accurate matching.
  */
 function compareExpectation(
   expectation: ExpectationTone,
-  dominantState: string
+  dominantState: string,
+  states: State[]
 ): 'matched' | 'better' | 'different' {
-  // Group expectations and states by positivity
-  const positiveExpectations: ExpectationTone[] = ['calm', 'excited', 'energized'];
-  const negativeExpectations: ExpectationTone[] = ['anxious', 'uncertain', 'heavy'];
+  const expectedLevel = getExpectationEnergyLevel(expectation);
+  const actualLevel = getEnergyLevel(dominantState, states);
 
-  const positiveStates = [
-    'energized',
-    'calm',
-    'content',
-    'grateful',
-    'focused',
-    'present',
-    'neutral',
-  ];
-  const negativeStates = [
-    'tired',
-    'drained',
-    'anxious',
-    'frustrated',
-    'uncertain',
-    'scattered',
-    'distracted',
-  ];
+  const diff = actualLevel - expectedLevel;
 
-  const expectedPositive = positiveExpectations.includes(expectation);
-  const wasPositive = positiveStates.includes(dominantState);
-  const wasNegative = negativeStates.includes(dominantState);
+  // Within 0.5 points = matched
+  if (Math.abs(diff) <= 0.5) return 'matched';
 
-  if (expectedPositive && wasPositive) return 'matched';
-  if (!expectedPositive && wasNegative) return 'matched';
-  if (!expectedPositive && wasPositive) return 'better';
+  // Actual was better than expected
+  if (diff > 0.5) return 'better';
 
+  // Actual was different (worse) than expected
   return 'different';
 }

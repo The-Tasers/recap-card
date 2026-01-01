@@ -11,7 +11,7 @@ import { Day, CheckIn, Context, Person, ExpectationTone } from './types';
 
 const DB_NAME = 'recapz-db';
 const STORE_NAME = 'recapz-store';
-const DB_VERSION = 2; // Bump version for new stores
+const DB_VERSION = 3; // Must match version in store.ts
 const LOCAL_DAYS_KEY = 'local-days';
 const LOCAL_CHECKINS_KEY = 'local-checkins';
 const LOCAL_PEOPLE_KEY = 'local-people';

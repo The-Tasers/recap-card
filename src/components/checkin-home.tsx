@@ -10,14 +10,13 @@ import {
 } from '@/lib/checkin-store';
 import { useOptionsStore } from '@/lib/options-store';
 import { CheckInFlow } from '@/components/checkin-flow';
-import { MorningExpectation } from '@/components/morning-expectation';
 import { DayRecap } from '@/components/day-recap';
 import { generateMoodGradient } from '@/components/moment-blob';
 import { AppFooter, AppLogo } from '@/components/app-footer';
 import { SettingsButton } from '@/components/settings-button';
 import { SignupPrompt } from '@/components/signup-prompt';
 import { FeedbackModal } from '@/components/feedback-modal';
-import { ExpectationTone, CheckIn } from '@/lib/types';
+import { ExpectationTone, CheckIn, EXPECTATION_TONES } from '@/lib/types';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/components/auth-provider';
 import {
@@ -28,8 +27,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  TrendingUp,
+  Layers,
   CloudSun,
   CloudRain,
+  CloudFog,
   Smile,
   AlertCircle,
   ThumbsDown,
@@ -41,6 +43,7 @@ import {
   Minus,
   Meh,
   X,
+  Zap,
   type LucideIcon,
 } from 'lucide-react';
 import type { TranslationKey } from '@/lib/i18n/translations';
@@ -75,6 +78,16 @@ const STATE_ICONS: Record<string, LucideIcon> = {
   scattered: Shuffle,
   present: Eye,
   distracted: EyeOff,
+};
+
+// Icons for morning expectation tones
+const TONE_ICONS: Record<ExpectationTone, LucideIcon> = {
+  calm: Sun,
+  excited: Sparkles,
+  anxious: CloudRain,
+  uncertain: HelpCircle,
+  energized: Zap,
+  heavy: CloudFog,
 };
 
 // Get day progress as a fraction (0-1) for full 24-hour day
@@ -126,12 +139,12 @@ function formatDateNav(
   return `${weekday} · ${monthDay}`;
 }
 
-// Check if two check-ins overlap in time (within 30 mins)
+// Check if two check-ins overlap in time (within 60 mins)
 function areCheckInsOverlapping(a: CheckIn, b: CheckIn): boolean {
   const timeA = new Date(a.timestamp).getTime();
   const timeB = new Date(b.timestamp).getTime();
-  const thirtyMins = 30 * 60 * 1000;
-  return Math.abs(timeA - timeB) < thirtyMins;
+  const sixtyMins = 60 * 60 * 1000;
+  return Math.abs(timeA - timeB) < sixtyMins;
 }
 
 // Group overlapping check-ins
@@ -157,36 +170,37 @@ function groupOverlappingCheckIns(checkIns: CheckIn[]): CheckIn[][] {
   return groups;
 }
 
-// State colors
+// State colors - red→green gradient like onboarding, slightly softened
 const STATE_COLORS: Record<string, string> = {
   neutral: '#94a3b8',
-  drained: '#f87171',
-  tired: '#fb923c',
-  calm: '#84cc16',
-  energized: '#22c55e',
-  frustrated: '#ef4444',
-  anxious: '#f97316',
-  uncertain: '#fbbf24',
-  content: '#a3e635',
-  grateful: '#10b981',
-  scattered: '#f87171',
-  distracted: '#fb923c',
-  focused: '#84cc16',
-  present: '#22c55e',
+  // Energy: drained(red) → tired(orange) → calm(lime) → energized(green)
+  drained: '#f87171', // red-400
+  tired: '#fb923c', // orange-400
+  calm: '#a3e635', // lime-400
+  energized: '#4ade80', // green-400
+  // Emotion: frustrated(red) → anxious(orange) → uncertain(amber) → content(lime) → grateful(green)
+  frustrated: '#f87171', // red-400
+  anxious: '#fb923c', // orange-400
+  uncertain: '#fbbf24', // amber-400
+  content: '#a3e635', // lime-400
+  grateful: '#34d399', // emerald-400
+  // Tension: scattered(red) → distracted(orange) → focused(lime) → present(green)
+  scattered: '#f87171', // red-400
+  distracted: '#fb923c', // orange-400
+  focused: '#a3e635', // lime-400
+  present: '#4ade80', // green-400
 };
 
+// States that need dark text for a11y contrast (light backgrounds)
+const DARK_TEXT_STATES = new Set([
+  'calm', // lime-400 - light
+  'content', // lime-400 - light
+  'focused', // lime-400 - light
+  'uncertain', // amber-400 - light
+  'tired', // orange-400 - can be borderline
+]);
+
 // Memoized animation constants to prevent recreation on every render
-const FLOAT_ANIMATION: number[] = [0, -3, 0];
-const FLOAT_TRANSITION = {
-  duration: 2.5,
-  repeat: Infinity,
-  ease: 'easeInOut' as const,
-};
-const FLOAT_TRANSITION_STOPPED = {
-  duration: 2.5,
-  repeat: 0,
-  ease: 'easeInOut' as const,
-};
 const SPRING_TRANSITION = {
   type: 'spring' as const,
   stiffness: 200,
@@ -199,8 +213,8 @@ const SPRING_TRANSITION_FAST = {
 };
 const SPRING_TRANSITION_SNAPPY = {
   type: 'spring' as const,
-  stiffness: 400,
-  damping: 30,
+  stiffness: 800,
+  damping: 40,
 };
 
 // Generate rich mixed gradient for merged orbs
@@ -280,7 +294,7 @@ const SingleOrb = memo(function SingleOrb({
   const containerTransition = useMemo(
     () => ({
       ...SPRING_TRANSITION,
-      delay: 0.4 + groupIndex * 0.1,
+      delay: groupIndex * 0.1,
     }),
     [groupIndex]
   );
@@ -292,10 +306,9 @@ const SingleOrb = memo(function SingleOrb({
       style={containerStyle}
       initial={{ scale: 0, x: '-50%', y: '-50%' }}
       animate={{
-        scale: isSelected ? 0.5 : 1,
+        scale: 1,
         x: '-50%',
         y: '-50%',
-        opacity: isSelected ? 0.5 : 1,
       }}
       transition={containerTransition}
       onClick={(e) => {
@@ -303,11 +316,15 @@ const SingleOrb = memo(function SingleOrb({
         onTap();
       }}
     >
-      <motion.div
-        className="w-10 h-10 rounded-full"
-        style={orbStyle}
-        animate={{ y: isSelected ? 0 : FLOAT_ANIMATION }}
-        transition={isSelected ? FLOAT_TRANSITION_STOPPED : FLOAT_TRANSITION}
+      <div
+        className="rounded-full"
+        style={{
+          ...orbStyle,
+          width: isSelected ? 24 : 32,
+          height: isSelected ? 24 : 32,
+          opacity: isSelected ? 0.6 : 1,
+          boxShadow: isSelected ? 'none' : `0 0 10px ${color}50`,
+        }}
       />
     </motion.div>
   );
@@ -356,7 +373,7 @@ const MergedOrb = memo(function MergedOrb({
   const containerTransition = useMemo(
     () => ({
       ...SPRING_TRANSITION,
-      delay: 0.4 + groupIndex * 0.1,
+      delay: groupIndex * 0.1,
     }),
     [groupIndex]
   );
@@ -382,27 +399,25 @@ const MergedOrb = memo(function MergedOrb({
       transition={containerTransition}
       onClick={(e) => {
         e.stopPropagation();
-        if (!isGroupExpanded) {
-          onTap(e);
-        }
+        onTap(e);
       }}
     >
-      {!isGroupExpanded && (
-        <motion.div
-          className="w-11 h-11 rounded-full relative"
-          style={orbStyle}
-          animate={{ y: hasSelectedMoment ? 0 : FLOAT_ANIMATION }}
-          transition={
-            hasSelectedMoment ? FLOAT_TRANSITION_STOPPED : FLOAT_TRANSITION
-          }
-        >
-          {remainingCount > 0 && (
-            <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
-              {remainingCount}
-            </div>
-          )}
-        </motion.div>
-      )}
+      <div
+        className="rounded-full relative"
+        style={{
+          ...orbStyle,
+          width: isGroupExpanded || hasSelectedMoment ? 24 : 44,
+          height: isGroupExpanded || hasSelectedMoment ? 24 : 44,
+          opacity: isGroupExpanded || hasSelectedMoment ? 0.6 : 1,
+          boxShadow: isGroupExpanded || hasSelectedMoment ? 'none' : `0 0 12px ${groupColors[0]}50`,
+        }}
+      >
+        {remainingCount > 0 && !isGroupExpanded && !hasSelectedMoment && (
+          <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
+            {remainingCount}
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 });
@@ -421,13 +436,6 @@ const ExpandedGridOrb = memo(function ExpandedGridOrb({
 }: ExpandedGridOrbProps) {
   const color = STATE_COLORS[checkIn.stateId] || '#94a3b8';
 
-  const orbStyle = useMemo(
-    () => ({
-      background: color,
-    }),
-    [color]
-  );
-
   const transition = useMemo(
     () => ({
       delay: index * 0.05,
@@ -438,9 +446,15 @@ const ExpandedGridOrb = memo(function ExpandedGridOrb({
     [index]
   );
 
+  // Format time from timestamp
+  const time = useMemo(() => {
+    const date = new Date(checkIn.timestamp);
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  }, [checkIn.timestamp]);
+
   return (
     <motion.div
-      className="cursor-pointer relative"
+      className="cursor-pointer flex flex-col items-center gap-1"
       initial={{ scale: 0, y: 20 }}
       animate={{ scale: 1, y: 0 }}
       transition={transition}
@@ -451,10 +465,16 @@ const ExpandedGridOrb = memo(function ExpandedGridOrb({
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
     >
+      {/* The orb with subtle glow */}
       <div
-        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full"
-        style={orbStyle}
+        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full"
+        style={{
+          background: color,
+          boxShadow: `0 0 12px ${color}40`,
+        }}
       />
+      {/* Time label */}
+      <span className="text-[10px] text-muted-foreground/70">{time}</span>
     </motion.div>
   );
 });
@@ -485,8 +505,12 @@ export function CheckInHome() {
     x: number;
     y: number;
   } | null>(null);
+  const [selectedMomentGroupIndex, setSelectedMomentGroupIndex] = useState<
+    number | null
+  >(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showRecapPanel, setShowRecapPanel] = useState(false);
+  const [showInsightsPanel, setShowInsightsPanel] = useState(false);
   const isMobile = useIsMobile();
   const arcContainerRef = useRef<HTMLDivElement>(null);
 
@@ -505,6 +529,7 @@ export function CheckInHome() {
       setSelectedDate(newDate);
       setExpandedGroupIndex(null);
       setSelectedMoment(null);
+      setSelectedMomentGroupIndex(null);
     },
     [selectedDate, isToday]
   );
@@ -587,24 +612,18 @@ export function CheckInHome() {
   // Morning check
   const isMorning = useMemo(() => {
     const hour = new Date().getHours();
-    return hour >= 6 && hour < 12;
+    return hour >= 5 && hour < 12;
   }, []);
 
-  const showMorningPrompt =
-    isToday &&
-    isMorning &&
-    selectedDay &&
-    !selectedDay.morningExpectationTone &&
-    selectedDayCheckIns.length === 0;
+  // Show inline morning prompt on today view (not full-screen overlay)
+  const showInlineMorningPrompt =
+    isToday && isMorning && selectedDay && !selectedDay.morningExpectationTone;
 
   // Handlers
   const handleMorningExpectation = (tone: ExpectationTone) => {
     const day = getOrCreateToday();
     setMorningExpectation(day.id, tone);
-    setViewMode('home');
   };
-
-  const handleSkipMorning = () => setViewMode('home');
 
   const handleStartCheckIn = useCallback(() => {
     getOrCreateToday();
@@ -615,6 +634,7 @@ export function CheckInHome() {
     setViewMode('home');
     setExpandedGroupIndex(null);
     setSelectedMoment(null);
+    setSelectedMomentGroupIndex(null);
   };
 
   const handleGroupTap = (groupIndex: number, event?: React.MouseEvent) => {
@@ -624,12 +644,16 @@ export function CheckInHome() {
       if (selectedMoment?.id === group[0].id) {
         setSelectedMoment(null);
         setSelectedMomentOrigin(null);
+        setSelectedMomentGroupIndex(null);
       } else {
+        // Close any expanded group first
+        setExpandedGroupIndex(null);
         // Calculate origin position from arc
         const checkIn = group[0];
         const pos = getCheckInArcPosition(checkIn.timestamp);
         setSelectedMomentOrigin({ x: pos.x, y: pos.y });
         setSelectedMoment(checkIn);
+        setSelectedMomentGroupIndex(null); // Single moments don't have a group to return to
       }
     } else {
       // Multiple moments - expand/collapse group to show grid in arc center
@@ -640,14 +664,17 @@ export function CheckInHome() {
       }
       setSelectedMoment(null);
       setSelectedMomentOrigin(null);
+      setSelectedMomentGroupIndex(null);
     }
   };
 
   const handleMomentSelect = (checkIn: CheckIn, event?: React.MouseEvent) => {
-    // Select moment from expanded group - collapse group and show moment
-    const pos = getCheckInArcPosition(checkIn.timestamp);
-    setSelectedMomentOrigin({ x: pos.x, y: pos.y });
+    // Select moment from expanded group - animate from grid center (not arc position)
+    // Grid is at left-1/2 top-[70%] in the arc container (200x120 viewBox)
+    // x: 100 = 50% of 200, y: 84 = 70% of 120
+    setSelectedMomentOrigin({ x: 100, y: 84 });
     setSelectedMoment(checkIn);
+    setSelectedMomentGroupIndex(expandedGroupIndex); // Remember which group this came from
     setExpandedGroupIndex(null); // Collapse the group, return others to arc
   };
 
@@ -655,6 +682,7 @@ export function CheckInHome() {
     setExpandedGroupIndex(null);
     setSelectedMoment(null);
     setSelectedMomentOrigin(null);
+    setSelectedMomentGroupIndex(null);
   };
 
   // Loading state
@@ -676,20 +704,6 @@ export function CheckInHome() {
     );
   }
 
-  // Morning expectation view
-  if (viewMode === 'morning' || (viewMode === 'home' && showMorningPrompt)) {
-    return (
-      <div className="h-screen-dynamic flex flex-col bg-background">
-        <div className="flex-1 flex items-center justify-center px-6">
-          <MorningExpectation
-            onSelect={handleMorningExpectation}
-            onSkip={handleSkipMorning}
-          />
-        </div>
-      </div>
-    );
-  }
-
   // Check-in flow view
   if (viewMode === 'checkin') {
     return (
@@ -700,7 +714,7 @@ export function CheckInHome() {
         transition={{ duration: 0.25, ease: 'easeOut' }}
         className="h-screen-dynamic flex flex-col bg-background"
       >
-        <div className="flex-1 px-6 pt-6">
+        <div className="flex-1 px-6 pt-6 pb-6 overflow-hidden">
           <div className="w-full max-w-md mx-auto h-full">
             <CheckInFlow
               onComplete={handleCheckInComplete}
@@ -742,21 +756,36 @@ export function CheckInHome() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="flex items-center gap-4 mb-6"
+          className="flex items-center gap-2 mb-6"
         >
           <button
             onClick={(e) => {
               e.stopPropagation();
               navigateDate(-1);
             }}
-            className="p-2 rounded-full hover:bg-muted/50 transition-colors cursor-pointer text-muted-foreground hover:text-foreground"
+            className="p-3 -m-1 rounded-full hover:bg-muted/50 active:bg-muted transition-colors cursor-pointer text-muted-foreground/70 hover:text-foreground"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
 
-          <span className="text-lg font-medium text-foreground min-w-[160px] text-center">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!isToday) {
+                setSelectedDate(new Date());
+                setExpandedGroupIndex(null);
+                setSelectedMoment(null);
+                setSelectedMomentGroupIndex(null);
+              }
+            }}
+            className={`text-lg font-medium min-w-[160px] text-center px-2 py-1 rounded-lg transition-colors ${
+              isToday
+                ? 'text-foreground cursor-default'
+                : 'text-foreground hover:bg-muted/50 cursor-pointer'
+            }`}
+          >
             {formatDateNav(selectedDate, isToday, language)}
-          </span>
+          </button>
 
           <button
             onClick={(e) => {
@@ -764,15 +793,57 @@ export function CheckInHome() {
               navigateDate(1);
             }}
             disabled={isToday}
-            className={`p-2 rounded-full transition-colors cursor-pointer ${
+            className={`p-3 -m-1 rounded-full transition-colors ${
               isToday
-                ? 'text-muted-foreground/30 cursor-not-allowed'
-                : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'
+                ? 'text-muted-foreground/20 cursor-not-allowed'
+                : 'hover:bg-muted/50 active:bg-muted text-muted-foreground/70 hover:text-foreground cursor-pointer'
             }`}
           >
             <ChevronRight className="h-5 w-5" />
           </button>
         </motion.div>
+
+        {/* Inline Morning Tone Selector - shows on today morning if not set */}
+        <AnimatePresence>
+          {showInlineMorningPrompt && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: 'auto' }}
+              exit={{ opacity: 0, y: -10, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="w-full max-w-md overflow-hidden"
+            >
+              <div className="text-center mb-3">
+                <p className="text-sm text-muted-foreground">
+                  {t('morning.question') || 'How does today feel?'}
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-2 flex-wrap mb-4">
+                {EXPECTATION_TONES.map((tone) => {
+                  const Icon = TONE_ICONS[tone.value];
+                  return (
+                    <motion.button
+                      key={tone.value}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMorningExpectation(tone.value);
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-muted hover:bg-muted hover:border-muted-foreground/30 transition-colors cursor-pointer"
+                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.02 }}
+                    >
+                      <Icon className="h-4 w-4" style={{ color: tone.color }} />
+                      <span className="text-xs font-medium text-foreground">
+                        {t(`tone.${tone.value}` as TranslationKey) ||
+                          tone.label}
+                      </span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Day Arc */}
         <motion.div
@@ -784,10 +855,15 @@ export function CheckInHome() {
         >
           <div className="relative w-full aspect-[200/120]">
             {/* Arc SVG */}
-            <svg
+            <motion.svg
               viewBox="0 0 200 120"
               className="w-full h-full"
               style={{ overflow: 'visible' }}
+              animate={{
+                opacity:
+                  selectedMoment || expandedGroupIndex !== null ? 0.4 : 1,
+              }}
+              transition={{ duration: 0.3 }}
             >
               {/* Background arc */}
               <path
@@ -837,7 +913,7 @@ export function CheckInHome() {
                   <stop offset="100%" stopColor="#1e3a5f" />
                 </linearGradient>
               </defs>
-            </svg>
+            </motion.svg>
 
             {/* Moment orbs - grouped (using memoized components) */}
             {checkInGroups.map((group, groupIndex) => {
@@ -901,9 +977,10 @@ export function CheckInHome() {
             )}
 
             {/* Time labels */}
-            <Moon className="absolute -left-0.5 -bottom-1 sm:left-0 sm:bottom-0 h-4 w-4 text-indigo-400/60" />
-            <Sun className="absolute left-1/2 -translate-x-1/2 top-0 h-4 w-4 text-amber-500/60" />
-            <Moon className="absolute -right-0.5 -bottom-1 sm:right-0 sm:bottom-0 h-4 w-4 text-indigo-400/60" />
+            <Moon className="absolute -left-0.5 -bottom-1 sm:left-0 sm:bottom-0 h-4 w-4 sm:h-5 sm:w-5 text-indigo-400/60" />
+            <Sun className="absolute left-1/2 -translate-x-1/2 top-0 h-4 w-4 sm:h-5 sm:w-5 text-amber-500/60" />
+            <Moon className="absolute -right-0.5 -bottom-1 sm:right-0 sm:bottom-0 h-4 w-4 sm:h-5 sm:w-5 text-indigo-400/60" />
+
 
             {/* Expanded group grid - centered inside arc for selection */}
             <AnimatePresence>
@@ -917,7 +994,7 @@ export function CheckInHome() {
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={SPRING_TRANSITION_FAST}
                   >
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
                       {checkInGroups[expandedGroupIndex].map((checkIn, i) => (
                         <ExpandedGridOrb
                           key={checkIn.id}
@@ -931,8 +1008,9 @@ export function CheckInHome() {
                 )}
             </AnimatePresence>
 
+
             {/* Selected moment - animates from arc position to center */}
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="popLayout">
               {selectedMoment &&
                 (() => {
                   const state = states.find(
@@ -943,6 +1021,9 @@ export function CheckInHome() {
                   );
                   const color =
                     STATE_COLORS[selectedMoment.stateId] || '#94a3b8';
+                  const textColor = DARK_TEXT_STATES.has(selectedMoment.stateId)
+                    ? 'text-gray-900'
+                    : 'text-white';
                   const Icon = STATE_ICONS[selectedMoment.stateId] || Meh;
                   const stateLabel = state
                     ? t(`state.${state.id}` as TranslationKey) || state.label
@@ -981,123 +1062,157 @@ export function CheckInHome() {
                       }}
                       animate={{
                         left: '50%',
-                        top: '75%',
+                        top: '65%',
                         scale: 1,
                         opacity: 1,
                         x: '-50%',
                         y: '-50%',
+                        transition: SPRING_TRANSITION_SNAPPY,
                       }}
                       exit={{
-                        left: `${originX}%`,
-                        top: `${originY}%`,
-                        scale: 0.4,
+                        scale: 0.3,
                         opacity: 0,
                         x: '-50%',
                         y: '-50%',
+                        transition: { duration: 0.08 },
                       }}
-                      transition={SPRING_TRANSITION_SNAPPY}
                       onClick={(e) => {
                         e.stopPropagation();
+                        // Return to the expanded group grid if the moment came from a group
+                        if (selectedMomentGroupIndex !== null) {
+                          setExpandedGroupIndex(selectedMomentGroupIndex);
+                        }
                         setSelectedMoment(null);
                         setSelectedMomentOrigin(null);
+                        setSelectedMomentGroupIndex(null);
                       }}
                     >
-                      {/* Subtle glow effect */}
+                      {/* Subtle glow effect - reduced for better text visibility */}
                       <div
-                        className="absolute inset-0 rounded-full blur-lg opacity-25"
+                        className="absolute inset-0 rounded-full blur-xl opacity-15"
                         style={{ backgroundColor: color }}
                       />
-                      {/* Orb with full info */}
+                      {/* Orb with full info - larger on desktop to fill arc space */}
                       <motion.div
-                        className="relative w-24 h-24 md:w-28 md:h-28 rounded-full flex flex-col items-center justify-center text-white"
+                        className={`relative w-32 h-32 md:w-40 md:h-40 rounded-full flex flex-col items-center justify-center ${textColor}`}
                         style={{ background: color }}
                       >
                         {/* Content */}
-                        <Icon className="w-5 h-5 sm:w-6 sm:h-6 mb-1" />
-                        <span className="text-sm font-semibold leading-tight text-center px-2">
+                        <Icon className="w-5 h-5 md:w-7 md:h-7 mb-1 md:mb-2" />
+                        <span className="text-sm md:text-base font-semibold leading-tight text-center px-2 md:px-3">
                           {stateLabel}
                         </span>
                         {contextLabel && (
-                          <span className="text-xs opacity-80 leading-tight mt-0.5">
+                          <span className="text-xs md:text-sm opacity-70 leading-tight mt-0.5 md:mt-1">
                             {contextLabel}
                           </span>
                         )}
-                        <span className="text-xs opacity-60 mt-1">{time}</span>
+                        <span className="text-xs md:text-sm opacity-50 mt-1 md:mt-1.5">
+                          {time}
+                        </span>
                       </motion.div>
                     </motion.div>
                   );
                 })()}
             </AnimatePresence>
+
+            {/* Contextual message when viewing a moment - inside arc below orb */}
+            <AnimatePresence mode="wait">
+              {selectedMoment && (
+                <motion.p
+                  key="moment-context"
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  transition={{ duration: 0.2, delay: 0.1 }}
+                  className="absolute left-1/2 top-[100%] -translate-x-1/2 text-xs text-muted-foreground/60 text-center z-20"
+                >
+                  {t('home.momentContext') || 'One moment in a larger day.'}
+                </motion.p>
+              )}
+            </AnimatePresence>
+
+            {/* CTA buttons inside arc - shown when no moment is selected and no group expanded */}
+            <AnimatePresence mode="wait">
+              {!selectedMoment && expandedGroupIndex === null && (
+                <motion.div
+                  key="arc-cta-buttons"
+                  className="absolute left-1/2 top-[75%] -translate-x-1/2 -translate-y-1/2 z-20"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    {/* Add Moment - only on Today */}
+                    {isToday && (
+                      <motion.button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStartCheckIn();
+                        }}
+                        className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-medium cursor-pointer shadow-lg"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <Plus className="h-4 w-4" />
+                        <span>{t('checkin.add') || 'Add moment'}</span>
+                      </motion.button>
+                    )}
+
+                    {/* View day recap - subtle, secondary to main CTA, only in second half of day */}
+                    {selectedDayCheckIns.length > 0 &&
+                      (!isToday || getDayProgress() >= 0.5) && (
+                        <motion.button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowRecapPanel(true);
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-muted-foreground/70 hover:text-muted-foreground text-sm font-medium cursor-pointer transition-colors"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div
+                            className="w-2.5 h-2.5 rounded-full opacity-70"
+                            style={{
+                              background:
+                                generateMoodGradient(selectedDayCheckIns),
+                            }}
+                          />
+                          <span>{t('home.seeReflection') || 'View recap'}</span>
+                        </motion.button>
+                      )}
+
+                    {/* Empty state for selected day */}
+                    {selectedDayCheckIns.length === 0 && !isToday && (
+                      <span className="text-sm text-muted-foreground">
+                        {t('home.emptyPast') || 'A quiet day'}
+                      </span>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
 
-        {/* Action buttons - below arc, fixed height container to prevent layout shift */}
-        <div className="mt-6 h-[40px] sm:h-[44px] flex items-center justify-center">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="flex items-center justify-center gap-2 sm:gap-3"
-          >
-            {/* Add Moment - only on Today */}
-            {isToday && (
-              <motion.button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleStartCheckIn();
-                }}
-                className="flex items-center gap-1.5 px-3 py-2 sm:px-5 sm:py-2.5 rounded-full bg-primary text-primary-foreground text-sm sm:text-base font-medium cursor-pointer"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span>{t('checkin.add') || 'Add moment'}</span>
-              </motion.button>
-            )}
-
-            {/* View day recap - always available when there are moments */}
-            {selectedDayCheckIns.length > 0 && (
-              <motion.button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowRecapPanel(true);
-                }}
-                className="flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-full bg-card/80 backdrop-blur-sm border border-border text-muted-foreground text-sm sm:text-base font-medium cursor-pointer"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <div
-                  className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full"
-                  style={{
-                    background: generateMoodGradient(selectedDayCheckIns),
-                  }}
-                />
-                <span>{t('home.seeReflection') || 'View recap'}</span>
-              </motion.button>
-            )}
-
-            {/* Empty state for selected day - shown inline with buttons */}
-            {selectedDayCheckIns.length === 0 && !isToday && (
-              <span className="text-sm text-muted-foreground">
-                {t('home.emptyPast') || 'A quiet day'}
-              </span>
-            )}
-          </motion.div>
-        </div>
-
-        {/* Empty explanation for today only - below buttons, fixed height to prevent shift */}
+        {/* Empty explanation for today only - below buttons */}
         <div className="h-[24px] mt-4 flex items-center justify-center">
-          {selectedDayCheckIns.length === 0 && isToday && (
-            <motion.p
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="text-sm text-muted-foreground text-center max-w-xs"
-            >
-              {t('home.emptyExplanation') ||
-                'Catch how you feel as the day unfolds'}
-            </motion.p>
-          )}
+          <AnimatePresence>
+            {!selectedMoment && selectedDayCheckIns.length === 0 && isToday && (
+              <motion.p
+                key="empty-explanation"
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ delay: 0.5 }}
+                className="text-sm text-muted-foreground text-center max-w-xs"
+              >
+                {t('home.emptyExplanation') ||
+                  'Catch how you feel as the day unfolds'}
+              </motion.p>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Multi-day insights teaser */}
@@ -1107,18 +1222,20 @@ export function CheckInHome() {
           transition={{ delay: 0.7 }}
           className="mt-8 text-center"
         >
-          <button
+          <motion.button
             onClick={(e) => {
               e.stopPropagation();
-              // TODO: Open multi-day insights screen
+              setShowInsightsPanel(true);
             }}
-            className="inline-flex items-center gap-2 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/30 border border-muted/50 text-muted-foreground/80 hover:bg-muted/50 hover:border-muted hover:text-foreground transition-colors cursor-pointer"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            <Sparkles className="h-3 w-3" />
-            <span>
+            <TrendingUp className="h-3.5 w-3.5" />
+            <span className="text-sm font-medium">
               {t('home.insightsTeaser') || 'Patterns emerge over time'}
             </span>
-          </button>
+          </motion.button>
         </motion.div>
       </div>
 
@@ -1213,6 +1330,191 @@ export function CheckInHome() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Insights Panel - Bottom sheet on mobile, modal on desktop */}
+      <AnimatePresence>
+        {showInsightsPanel && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/40 z-40"
+              onClick={() => setShowInsightsPanel(false)}
+            />
+
+            {/* Panel/Modal */}
+            {isMobile ? (
+              // Mobile: Bottom sheet
+              <motion.div
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                className="fixed bottom-0 left-0 right-0 z-50 bg-background rounded-t-3xl max-h-[85vh] overflow-hidden"
+              >
+                {/* Handle */}
+                <div className="flex justify-center pt-3 pb-2">
+                  <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+                </div>
+
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 pb-4">
+                  <div>
+                    <h2 className="text-xl font-semibold">
+                      {t('insights.title') || 'Your patterns'}
+                    </h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {t('insights.subtitle') || 'Based on the last 7 days'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowInsightsPanel(false)}
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                {/* Content */}
+                <div className="overflow-y-auto px-6 pb-10 max-h-[calc(85vh-120px)]">
+                  <InsightsPanelContent />
+                </div>
+              </motion.div>
+            ) : (
+              // Desktop: Centered modal
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-background rounded-2xl shadow-xl overflow-hidden max-h-[80vh]"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+                  <div>
+                    <h2 className="text-xl font-semibold">
+                      {t('insights.title') || 'Your patterns'}
+                    </h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {t('insights.subtitle') || 'Based on the last 7 days'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowInsightsPanel(false)}
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                {/* Content */}
+                <div className="overflow-y-auto px-6 py-6 max-h-[calc(80vh-120px)]">
+                  <InsightsPanelContent />
+                </div>
+              </motion.div>
+            )}
+          </>
+        )}
+      </AnimatePresence>
     </motion.div>
+  );
+}
+
+// Insights panel content - shows placeholder/example insights
+function InsightsPanelContent() {
+  const { t } = useI18n();
+
+  // Example insight patterns to show what user could see after a week
+  const exampleInsights = [
+    {
+      icon: Shuffle,
+      color: '#fb923c',
+      text:
+        t('insights.example.1') ||
+        'Days with many context switches felt heavier overall.',
+    },
+    {
+      icon: Smile,
+      color: '#34d399',
+      text:
+        t('insights.example.2') ||
+        'Low energy followed social moments more than solitary ones.',
+    },
+    {
+      icon: HelpCircle,
+      color: '#fbbf24',
+      text:
+        t('insights.example.3') ||
+        'Uncertain mornings rarely led to focused evenings.',
+    },
+    {
+      icon: Zap,
+      color: '#4ade80',
+      text:
+        t('insights.example.4') ||
+        'A few intense moments shaped the day more than many neutral ones.',
+    },
+  ];
+
+  return (
+    <div className="flex flex-col min-h-full">
+      {/* Explanation */}
+      <div className="text-center py-6">
+        <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+          <Layers className="h-7 w-7 text-primary" />
+        </div>
+        <h3 className="font-medium text-foreground text-lg">
+          {t('insights.needMoreData') || 'Keep checking in'}
+        </h3>
+        <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-3 leading-relaxed">
+          {t('insights.needMoreDataDesc') ||
+            'Patterns emerge after a few days of moments. Even missed days count — they show contrast.'}
+        </p>
+      </div>
+
+      {/* Example insights preview */}
+      <div className="space-y-4 flex-1 pt-4">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          {t('insights.exampleTitle') || 'What you might see'}
+        </p>
+
+        <div className="space-y-3">
+          {exampleInsights.map((insight, i) => {
+            const Icon = insight.icon;
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.1 }}
+                className="flex items-start gap-3 p-4 rounded-xl bg-muted/30"
+              >
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                  style={{ backgroundColor: `${insight.color}20` }}
+                >
+                  <Icon
+                    className="h-4 w-4"
+                    style={{ color: insight.color }}
+                  />
+                </div>
+                <p className="text-sm text-foreground/80 leading-relaxed pt-1">
+                  {insight.text}
+                </p>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Footer encouragement */}
+      <div className="text-center pt-6 pb-2 mt-auto">
+        <p className="text-xs text-muted-foreground">
+          {t('insights.keepGoing') || 'Keep noticing moments.'}
+        </p>
+      </div>
+    </div>
   );
 }

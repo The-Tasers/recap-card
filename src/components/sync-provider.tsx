@@ -105,11 +105,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   const { t } = useI18n();
   const supabase = createClient() as AnySupabase;
 
-  // Get store state and actions
-  const days = useCheckInStore((s) => s.days);
-  const checkIns = useCheckInStore((s) => s.checkIns);
-  const people = useCheckInStore((s) => s.people);
-  const customContexts = useCheckInStore((s) => s.customContexts);
+  // Get store actions
   const setHydrated = useCheckInStore((s) => s.setHydrated);
 
   // Track if initial sync has been done for this session
@@ -155,11 +151,12 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
       if (cloudPeople.error) throw cloudPeople.error;
       if (cloudContexts.error) throw cloudContexts.error;
 
-      // 2. Get current local data
-      const localDays = days;
-      const localCheckIns = checkIns;
-      const localPeople = people;
-      const localCustomContexts = customContexts;
+      // 2. Get current local data directly from store (avoid stale closure)
+      const currentState = useCheckInStore.getState();
+      const localDays = currentState.days;
+      const localCheckIns = currentState.checkIns;
+      const localPeople = currentState.people;
+      const localCustomContexts = currentState.customContexts;
 
       // 3. Merge data (cloud is source of truth, but keep local-only items)
       // Build sets of cloud IDs
@@ -317,7 +314,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsSyncing(false);
     }
-  }, [user, supabase, days, checkIns, people, customContexts, showSyncNotification, t]);
+  }, [user, supabase, showSyncNotification, t]);
 
   // Manual sync trigger
   const syncNow = useCallback(async () => {

@@ -14,8 +14,9 @@ export const translations = {
     'meta.description': 'A quiet place for your days',
 
     // Onboarding
-    'onboarding.title': 'Reflect, not track',
-    'onboarding.description': 'Capture moments as they happen. Over time, they reveal your patterns — without judgment.',
+    'onboarding.title': 'Memory distorts the day',
+    'onboarding.description':
+      'Capture moments as they unfold. You notice more than you think.',
     'onboarding.button': 'Get started',
 
     // Mood select view
@@ -412,9 +413,29 @@ export const translations = {
     'home.emptyTitle': 'Notice moments',
     'home.emptyExplanation': 'Catch how you feel as the day unfolds',
     'home.seeReflection': 'See day recap',
-    'home.addMoreMoments': 'Tap the sun to add more moments throughout your day',
+    'home.addMoreMoments':
+      'Tap the sun to add more moments throughout your day',
     'home.emptyPast': 'A quiet day',
-    'home.insightsTeaser': 'Patterns emerge over time',
+    'home.insightsTeaser': 'Patterns become clearer over time',
+    'home.momentContext': 'One moment in a larger day.',
+
+    // Insights panel
+    'insights.title': 'What you noticed',
+    'insights.subtitle': 'Based on the last 7 days',
+    'insights.needMoreData': 'Keep checking in',
+    'insights.needMoreDataDesc':
+      'After a few days, you will start seeing connections between moments. Even missed days count — they show contrast.',
+    'insights.exampleTitle': 'What you might see',
+    'insights.exampleDesc':
+      'After a week of check-ins, observations like these could appear:',
+    'insights.example.1':
+      'Days with many context switches felt heavier overall.',
+    'insights.example.2':
+      'Low energy followed social moments more than solitary ones.',
+    'insights.example.3': 'Uncertain mornings rarely led to focused evenings.',
+    'insights.example.4':
+      'A few intense moments shaped the day more than many neutral ones.',
+    'insights.keepGoing': 'Keep noticing moments.',
 
     // Check-in home
     'checkin.add': 'How are you?',
@@ -425,7 +446,7 @@ export const translations = {
     'checkin.title': 'Check-in',
     // Check-in flow microcopy
     'checkin.stateQuestion': 'What stands out?',
-    'checkin.stateHint': 'Your mood, energy or focus right now',
+    'checkin.stateHint': "There's no right answer. Just notice.",
     'checkin.contextQuestion': 'Where are you?',
     'checkin.contextHint': 'Activity or place',
     'checkin.personQuestion': 'With anyone?',
@@ -442,8 +463,9 @@ export const translations = {
     'checkin.discard': 'Discard',
 
     // Morning expectation
-    'morning.question': 'How does today feel right now?',
-    'morning.hint': 'Set an expectation for the day ahead',
+    'morning.question': 'How does today feel ahead?',
+    'morning.hint': "This isn't a plan. Just how the day feels right now.",
+    'morning.subhint': "Days often unfold differently — that's okay.",
     'morning.skip': 'Skip for now',
 
     // Expectation tones
@@ -506,30 +528,40 @@ export const translations = {
 
     // Day recap
     'recap.title': 'Your day',
-    'recap.noCheckins': 'No check-ins recorded today.',
-    'recap.singleCheckin': 'One moment captured: feeling {state}.',
-    'recap.multipleCheckins': '{count} moments today. Mostly {state}.',
-    'recap.contexts': 'Where you were',
-    'recap.people': 'Who you saw',
-    'recap.contextSingle': 'Spent time {context}',
-    'recap.contextMultiple': 'Mostly {first}, also {second}',
-    'recap.peopleSingle': 'Time with {person}',
-    'recap.peopleMultiple': 'Time with {people}',
+    'recap.noCheckins': 'A quiet day. Nothing marked.',
+    'recap.singleCheckin': 'One moment: {state}.',
+    'recap.multipleCheckins':
+      '{count} {count, plural, one {moment} other {moments}}.',
+    'recap.dominantState': 'Mostly: {state}.',
+    'recap.mixedStates': 'Mixed states.',
+    'recap.contexts': 'Where',
+    'recap.people': 'With',
+    'recap.contextSingle': '{context}',
+    'recap.contextMultiple': '{first} and {second}',
+    'recap.peopleSingle': '{person}',
+    'recap.peopleMultiple': '{people}',
     'recap.timeline': 'Moments',
-    'recap.timeWith': 'Time with {names}.',
-    'recap.betterThanExpected':
-      'Morning felt {expectation}. The day turned out {state}.',
-    'recap.differentThanExpected': 'Expected {expectation}. Ended up {state}.',
-    'recap.asExpected': 'Morning: {expectation}. Day: {state}.',
-    'recap.closing.1': 'Every day leaves a trace.',
-    'recap.closing.2': 'Small moments, gently recorded.',
-    'recap.closing.3': 'Tomorrow begins fresh.',
+    'recap.timeWith': '{names}',
+    'recap.betterThanExpected': 'Morning — {expectation}. Evening — {state}.',
+    'recap.differentThanExpected':
+      'Morning — {expectation}. Evening — {state}.',
+    'recap.asExpected': 'All day — {state}.',
+    'recap.closing.1': 'One day of many.',
+    'recap.closing.2': 'Recorded.',
+    'recap.closing.3': 'Tomorrow is new.',
 
     // Energy trends
-    'recap.energyRising': 'Energy rose through the day',
-    'recap.energyFalling': 'Energy shifted lower',
-    'recap.energyStable': 'Energy stayed steady',
-    'recap.energyMixed': 'Energy varied throughout',
+    'recap.energyRising': 'Energy rose',
+    'recap.energyFalling': 'Energy fell',
+    'recap.energyStable': 'Energy steady',
+    'recap.energyMixed': 'Energy varied',
+
+    // Overall mood
+    'recap.mood.great': 'A bright day',
+    'recap.mood.good': 'A good day',
+    'recap.mood.neutral': 'An even day',
+    'recap.mood.low': 'A heavier day',
+    'recap.mood.rough': 'A tough day',
 
     // Form
     'form.back': 'Back',
@@ -550,8 +582,9 @@ export const translations = {
     'meta.description': 'Тихое место для твоих дней',
 
     // Onboarding
-    'onboarding.title': 'Осознавай, а не отслеживай',
-    'onboarding.description': 'Отмечай моменты по ходу дня. Со временем они покажут твои паттерны — без оценок.',
+    'onboarding.title': 'Память искажает день',
+    'onboarding.description':
+      'Фиксируй моменты. На самом деле происходит больше, чем кажется.',
     'onboarding.button': 'Начать',
 
     // Mood select view
@@ -945,7 +978,26 @@ export const translations = {
     'home.seeReflection': 'Итоги дня',
     'home.addMoreMoments': 'Нажми на солнце, чтобы добавить ещё моменты',
     'home.emptyPast': 'Тихий день',
-    'home.insightsTeaser': 'Паттерны проявляются со временем',
+    'home.insightsTeaser': 'Закономерности проявятся позже',
+    'home.momentContext': 'Один момент среди многих.',
+
+    // Insights panel
+    'insights.title': 'Что было замечено',
+    'insights.subtitle': 'За 7 дней',
+    'insights.needMoreData': 'Пока мало данных',
+    'insights.needMoreDataDesc':
+      'Через несколько дней начнёшь видеть связи между моментами. Пропущенные дни тоже важны — они показывают контраст.',
+    'insights.exampleTitle': 'Что может появиться',
+    'insights.exampleDesc':
+      'Через неделю отметок могут появиться такие наблюдения:',
+    'insights.example.1': 'Когда много переключений — день ощущается тяжелее.',
+    'insights.example.2':
+      'После общения энергии меньше, чем после времени наедине.',
+    'insights.example.3':
+      'Если утро начиналось смутно — вечер редко был в фокусе.',
+    'insights.example.4':
+      'Пара ярких моментов влияла на день сильнее, чем много ровных.',
+    'insights.keepGoing': 'Продолжай замечать моменты.',
 
     // Check-in home
     'checkin.add': 'Как дела?',
@@ -956,25 +1008,26 @@ export const translations = {
       '{count} {count, plural, one {момент} few {момента} other {моментов}}',
     'checkin.title': 'Отметка',
     // Check-in flow microcopy
-    'checkin.stateQuestion': 'Что заметно?',
-    'checkin.stateHint': 'Настроение, энергия или фокус сейчас',
-    'checkin.contextQuestion': 'Где ты?',
-    'checkin.contextHint': 'Занятие или место',
-    'checkin.personQuestion': 'С кем?',
-    'checkin.personHint': 'Пропусти если один',
+    'checkin.stateQuestion': 'Что чувствуешь?',
+    'checkin.stateHint': 'Как есть - так и отметь',
+    'checkin.contextQuestion': 'Чем занят?',
+    'checkin.contextHint': 'Место или дело',
+    'checkin.personQuestion': 'Кто рядом?',
+    'checkin.personHint': 'Можно пропустить',
     'checkin.detailsTitle': 'Детали',
-    'checkin.tapToChange': 'Нажми чтобы изменить',
-    'checkin.save': 'Сохранить момент',
+    'checkin.tapToChange': 'Нажми, чтобы поменять',
+    'checkin.save': 'Сохранить',
     'checkin.momentSaved': 'Момент сохранён',
-    'checkin.discardTitle': 'Удалить момент?',
-    'checkin.discardMessage': 'Момент ещё не сохранён. Точно удалить?',
+    'checkin.discardTitle': 'Удалить?',
+    'checkin.discardMessage': 'Момент не сохранён. Удалить?',
     'checkin.discardInline': 'Удалить несохранённый момент?',
     'checkin.keepEditing': 'Продолжить',
     'checkin.discard': 'Удалить',
 
     // Morning expectation
-    'morning.question': 'Как ощущается сегодня?',
-    'morning.hint': 'Задай ожидание на день',
+    'morning.question': 'Как ощущается день впереди?',
+    'morning.hint': 'Это не план. Просто ощущение прямо сейчас.',
+    'morning.subhint': 'Дни часто разворачиваются иначе — это нормально.',
     'morning.skip': 'Пропустить',
 
     // Expectation tones
@@ -986,39 +1039,39 @@ export const translations = {
     'tone.heavy': 'Тяжело',
 
     // State selection
-    'state.neutral': 'Нейтрально',
-    'state.energy': 'Энергия',
-    'state.emotion': 'Эмоции',
+    'state.neutral': 'Ровно',
+    'state.energy': 'Силы',
+    'state.emotion': 'Настрой',
     'state.tension': 'Фокус',
     'state.more': 'Ещё',
     // Energy states
-    'state.energized': 'Энергия',
-    'state.calm': 'Спокойствие',
-    'state.tired': 'Усталость',
-    'state.drained': 'Истощение',
+    'state.energized': 'Бодро',
+    'state.calm': 'Спокойно',
+    'state.tired': 'Устал',
+    'state.drained': 'Выжат',
     // Emotion states
-    'state.content': 'Довольство',
-    'state.anxious': 'Тревога',
-    'state.frustrated': 'Раздражение',
-    'state.grateful': 'Благодарность',
-    'state.uncertain': 'Неясность',
+    'state.content': 'Хорошо',
+    'state.anxious': 'Тревожно',
+    'state.frustrated': 'Бесит',
+    'state.grateful': 'Отлично',
+    'state.uncertain': 'Непонятно',
     // Tension states
-    'state.focused': 'Фокус',
-    'state.scattered': 'Рассеянность',
+    'state.focused': 'Собран',
+    'state.scattered': 'Раскидан',
     'state.present': 'В моменте',
-    'state.distracted': 'Отвлечение',
+    'state.distracted': 'Где-то',
 
     // Context selection
     'context.addCustom': 'Добавить',
     // Default contexts
     'context.work': 'Работа',
-    'context.home': 'Дом',
+    'context.home': 'Дома',
     'context.commute': 'В пути',
     'context.social': 'Общение',
     'context.alone': 'Наедине',
     'context.exercise': 'Спорт',
     'context.errands': 'Дела',
-    'context.rest': 'Отдых',
+    'context.rest': 'Отдыхаю',
 
     // Person selection (step 3)
     'person.title': 'Люди',
@@ -1033,35 +1086,43 @@ export const translations = {
 
     // Login prompt for custom items
     'customItem.loginRequired': 'Войди, чтобы добавлять свои',
-    'customItem.loginPrompt': 'чтобы добавлять свои',
+    'customItem.loginPrompt': 'Войди, чтобы добавлять свои',
 
     // Day recap
-    'recap.title': 'День',
-    'recap.noCheckins': 'Нет записей за сегодня.',
+    'recap.title': 'Твой день',
+    'recap.noCheckins': 'Тихий день. Ничего не отмечено.',
     'recap.singleCheckin': 'Один момент: {state}.',
-    'recap.multipleCheckins': '{count} моментов. В основном {state}.',
+    'recap.multipleCheckins':
+      '{count} {count, plural, one {момент} few {момента} other {моментов}}.',
+    'recap.dominantState': 'Чаще: {state}.',
+    'recap.mixedStates': 'Разные состояния.',
     'recap.contexts': 'Где',
     'recap.people': 'С кем',
-    'recap.contextSingle': 'Время {context}',
-    'recap.contextMultiple': 'В основном {first}, также {second}',
-    'recap.peopleSingle': 'Время с {person}',
-    'recap.peopleMultiple': 'Время с {people}',
+    'recap.contextSingle': '{context}',
+    'recap.contextMultiple': '{first} и {second}',
+    'recap.peopleSingle': '{person}',
+    'recap.peopleMultiple': '{people}',
     'recap.timeline': 'Моменты',
-    'recap.timeWith': 'Время с {names}.',
-    'recap.betterThanExpected':
-      'Утром казалось {expectation}. День оказался {state}.',
-    'recap.differentThanExpected':
-      'Ожидалось {expectation}. Получилось {state}.',
-    'recap.asExpected': 'Утро: {expectation}. День: {state}.',
-    'recap.closing.1': 'Каждый день оставляет след.',
-    'recap.closing.2': 'Маленькие моменты, тихо записаны.',
-    'recap.closing.3': 'Завтра начинается заново.',
+    'recap.timeWith': '{names}',
+    'recap.betterThanExpected': 'Утром — {expectation}. К вечеру — {state}.',
+    'recap.differentThanExpected': 'Утром — {expectation}. К вечеру — {state}.',
+    'recap.asExpected': 'Весь день — {state}.',
+    'recap.closing.1': 'Один день из многих.',
+    'recap.closing.2': 'Записано.',
+    'recap.closing.3': 'Завтра — новый день.',
 
     // Energy trends
-    'recap.energyRising': 'Энергия росла в течение дня',
-    'recap.energyFalling': 'Энергия снижалась',
-    'recap.energyStable': 'Энергия была стабильной',
-    'recap.energyMixed': 'Энергия менялась',
+    'recap.energyRising': 'Энергия росла',
+    'recap.energyFalling': 'Энергия падала',
+    'recap.energyStable': 'Энергия ровная',
+    'recap.energyMixed': 'Энергия скакала',
+
+    // Overall mood
+    'recap.mood.great': 'Отличный день',
+    'recap.mood.good': 'Хороший день',
+    'recap.mood.neutral': 'Ровный день',
+    'recap.mood.low': 'Тяжеловатый день',
+    'recap.mood.rough': 'Непростой день',
 
     // Form
     'form.back': 'Назад',

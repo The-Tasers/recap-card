@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useOptionsStore } from '@/lib/options-store';
@@ -70,76 +70,83 @@ const CONTEXT_ICONS: Record<string, LucideIcon> = {
   rest: Moon,
 };
 
-// State colors for orbs (matching moment-blob.tsx)
+// State colors for orbs - red→green gradient like onboarding, slightly softened
 const STATE_ORB_COLORS: Record<
   string,
   { bg: string; glow: string; rgb: string }
 > = {
   neutral: {
     bg: 'bg-slate-400/80',
-    glow: 'rgba(148, 163, 184, 0.4)',
+    glow: 'rgba(148, 163, 184, 0.35)',
     rgb: '#94a3b8',
   },
+  // Energy: drained(red) → tired(orange) → calm(lime) → energized(green)
   drained: {
     bg: 'bg-red-400',
-    glow: 'rgba(248, 113, 113, 0.5)',
+    glow: 'rgba(248, 113, 113, 0.4)',
     rgb: '#f87171',
   },
   tired: {
     bg: 'bg-orange-400',
-    glow: 'rgba(251, 146, 60, 0.5)',
+    glow: 'rgba(251, 146, 60, 0.4)',
     rgb: '#fb923c',
   },
-  calm: { bg: 'bg-lime-500', glow: 'rgba(132, 204, 22, 0.5)', rgb: '#84cc16' },
-  energized: {
-    bg: 'bg-green-500',
-    glow: 'rgba(34, 197, 94, 0.5)',
-    rgb: '#22c55e',
+  calm: {
+    bg: 'bg-lime-400',
+    glow: 'rgba(163, 230, 53, 0.4)',
+    rgb: '#a3e635',
   },
+  energized: {
+    bg: 'bg-green-400',
+    glow: 'rgba(74, 222, 128, 0.4)',
+    rgb: '#4ade80',
+  },
+  // Emotion: frustrated(red) → anxious(orange) → uncertain(amber) → content(lime) → grateful(green)
   frustrated: {
-    bg: 'bg-red-500',
-    glow: 'rgba(239, 68, 68, 0.5)',
-    rgb: '#ef4444',
+    bg: 'bg-red-400',
+    glow: 'rgba(248, 113, 113, 0.4)',
+    rgb: '#f87171',
   },
   anxious: {
-    bg: 'bg-orange-500',
-    glow: 'rgba(249, 115, 22, 0.5)',
-    rgb: '#f97316',
+    bg: 'bg-orange-400',
+    glow: 'rgba(251, 146, 60, 0.4)',
+    rgb: '#fb923c',
   },
   uncertain: {
     bg: 'bg-amber-400',
-    glow: 'rgba(251, 191, 36, 0.5)',
+    glow: 'rgba(251, 191, 36, 0.4)',
     rgb: '#fbbf24',
   },
   content: {
     bg: 'bg-lime-400',
-    glow: 'rgba(163, 230, 53, 0.5)',
+    glow: 'rgba(163, 230, 53, 0.4)',
     rgb: '#a3e635',
   },
   grateful: {
-    bg: 'bg-emerald-500',
-    glow: 'rgba(16, 185, 129, 0.5)',
-    rgb: '#10b981',
+    bg: 'bg-emerald-400',
+    glow: 'rgba(52, 211, 153, 0.4)',
+    rgb: '#34d399',
   },
+  // Tension: scattered(red) → distracted(orange) → focused(lime) → present(green)
   scattered: {
     bg: 'bg-red-400',
-    glow: 'rgba(248, 113, 113, 0.5)',
+    glow: 'rgba(248, 113, 113, 0.4)',
     rgb: '#f87171',
   },
   distracted: {
     bg: 'bg-orange-400',
-    glow: 'rgba(251, 146, 60, 0.5)',
+    glow: 'rgba(251, 146, 60, 0.4)',
     rgb: '#fb923c',
   },
   focused: {
-    bg: 'bg-lime-500',
-    glow: 'rgba(132, 204, 22, 0.5)',
-    rgb: '#84cc16',
+    bg: 'bg-lime-400',
+    glow: 'rgba(163, 230, 53, 0.4)',
+    rgb: '#a3e635',
   },
   present: {
-    bg: 'bg-green-500',
-    glow: 'rgba(34, 197, 94, 0.5)',
-    rgb: '#22c55e',
+    bg: 'bg-green-400',
+    glow: 'rgba(74, 222, 128, 0.4)',
+    rgb: '#4ade80',
   },
 };
 
@@ -185,9 +192,9 @@ function StateOrb({
   const Icon = STATE_ICONS[state.id] || Meh;
 
   const sizeConfig = {
-    sm: { orb: 'w-12 h-12', icon: 'w-5 h-5', text: 'text-xs' },
-    md: { orb: 'w-16 h-16', icon: 'w-6 h-6', text: 'text-sm' },
-    lg: { orb: 'w-20 h-20', icon: 'w-8 h-8', text: 'text-base' },
+    sm: { orb: 'w-12 h-12 sm:w-12 sm:h-12', icon: 'w-5 h-5 sm:w-5 sm:h-5', text: 'text-[10px] sm:text-xs' },
+    md: { orb: 'w-14 h-14 sm:w-16 sm:h-16', icon: 'w-6 h-6 sm:w-6 sm:h-6', text: 'text-xs sm:text-sm' },
+    lg: { orb: 'w-16 h-16 sm:w-20 sm:h-20', icon: 'w-7 h-7 sm:w-8 sm:h-8', text: 'text-xs sm:text-base' },
   };
 
   const config = sizeConfig[size];
@@ -196,24 +203,24 @@ function StateOrb({
     <motion.button
       type="button"
       onClick={onSelect}
-      className="flex flex-col items-center gap-1.5 cursor-pointer"
+      className="flex flex-col items-center gap-1 sm:gap-1.5 cursor-pointer"
       whileTap={{ scale: 0.95 }}
-      whileHover={{ scale: 1.08 }}
+      whileHover={{ scale: 1.03 }}
     >
       <motion.div
         className={cn(
-          'rounded-full flex items-center justify-center text-white shadow-md transition-shadow',
+          'rounded-full flex items-center justify-center text-white shadow-sm transition-shadow',
           colors.bg,
           config.orb
         )}
         animate={{
-          scale: isSelected ? 1.1 : 1,
+          scale: isSelected ? 1.05 : 1,
           boxShadow: isSelected
-            ? `0 0 24px ${colors.glow}`
-            : `0 2px 8px rgba(0,0,0,0.1)`,
+            ? `0 0 12px ${colors.glow}`
+            : `0 1px 4px rgba(0,0,0,0.1)`,
         }}
         whileHover={{
-          boxShadow: `0 0 16px ${colors.glow}`,
+          boxShadow: `0 0 8px ${colors.glow}`,
         }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       >
@@ -357,6 +364,9 @@ export function CheckInFlow({
   const [showLoginNotice, setShowLoginNotice] = useState<
     'context' | 'person' | null
   >(null);
+  const [tooltipPosition, setTooltipPosition] = useState<'left' | 'right'>('left');
+  const contextButtonRef = useRef<HTMLDivElement>(null);
+  const personButtonRef = useRef<HTMLDivElement>(null);
 
   // Close login notice on click outside
   useEffect(() => {
@@ -459,6 +469,19 @@ export function CheckInFlow({
   const handleAddButtonClick = useCallback(
     (type: 'context' | 'person') => {
       if (!isAuthenticated) {
+        // Calculate tooltip position based on button position
+        const buttonRef = type === 'context' ? contextButtonRef : personButtonRef;
+        if (buttonRef.current) {
+          const rect = buttonRef.current.getBoundingClientRect();
+          const tooltipWidth = 180; // min-w-[180px]
+          const screenWidth = window.innerWidth;
+          // If tooltip would overflow right edge, position from right instead
+          if (rect.left + tooltipWidth > screenWidth - 16) {
+            setTooltipPosition('right');
+          } else {
+            setTooltipPosition('left');
+          }
+        }
         setShowLoginNotice(type);
         return;
       }
@@ -505,11 +528,21 @@ export function CheckInFlow({
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Header */}
-      <div className="shrink-0 pb-4">
+      {/* Header - fixed */}
+      <div className="shrink-0 pb-2 sm:pb-4 sticky top-0 z-10 bg-background">
         <div className="relative flex items-center justify-center h-10">
-          {/* Close button / Discard confirmation - absolute left */}
-          <div className="absolute left-0 top-0">
+          {/* Title - centered */}
+          <div className="text-center">
+            <h2 className="text-base sm:text-lg font-semibold leading-tight">
+              {t('checkin.stateQuestion')}
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {t('checkin.stateHint')}
+            </p>
+          </div>
+
+          {/* Close button / Discard confirmation - absolute right */}
+          <div className="absolute right-0 top-0">
             <AnimatePresence mode="wait">
               {showDiscardMessage ? (
                 <InlineDiscardMessage
@@ -533,31 +566,11 @@ export function CheckInFlow({
               )}
             </AnimatePresence>
           </div>
-
-          {/* Title - centered with responsive text and padding */}
-          <h2 className="text-base sm:text-lg font-semibold px-12 sm:px-14 text-center leading-tight">
-            {t('checkin.stateQuestion')}
-          </h2>
-
-          {/* Save button - absolute right */}
-          <motion.button
-            onClick={handleDone}
-            disabled={!canComplete || isSaving}
-            className={cn(
-              'absolute right-0 top-0 flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all',
-              canComplete
-                ? 'bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer'
-                : 'bg-muted text-muted-foreground cursor-not-allowed'
-            )}
-            whileTap={canComplete ? { scale: 0.95 } : undefined}
-          >
-            <Check className="h-4 w-4 sm:h-5 sm:w-5" />
-          </motion.button>
         </div>
       </div>
 
       {/* Content - Single scrollable area */}
-      <div className="flex-1 overflow-x-visible scrollbar-hide space-y-6">
+      <div className="flex-1 overflow-y-auto overflow-x-visible scrollbar-hide space-y-4 sm:space-y-6 pb-8">
         {/* State Selection / Selected State - single AnimatePresence for smooth transitions */}
         <AnimatePresence mode="wait" initial={false}>
           {showStateSelector ? (
@@ -567,11 +580,11 @@ export function CheckInFlow({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="space-y-6"
+              className="space-y-3 sm:space-y-6 pt-1"
             >
               {/* Neutral state - prominent at top */}
               {neutralState && (
-                <div className="flex justify-center pb-4 border-b border-border/50 overflow-visible">
+                <div className="flex justify-center pb-2 sm:pb-4 border-b border-border/50">
                   <StateOrb
                     state={neutralState}
                     isSelected={stateId === 'neutral'}
@@ -587,11 +600,11 @@ export function CheckInFlow({
                 if (categoryStates.length === 0) return null;
 
                 return (
-                  <div key={category} className="space-y-3">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide text-center">
+                  <div key={category} className="space-y-1.5 sm:space-y-3">
+                    <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide text-center">
                       {t(`state.${category}` as any)}
                     </p>
-                    <div className="flex justify-center gap-3 flex-wrap">
+                    <div className="flex justify-center gap-1.5 sm:gap-3 flex-wrap">
                       {categoryStates.map((state) => (
                         <StateOrb
                           key={state.id}
@@ -655,8 +668,7 @@ export function CheckInFlow({
                         ? 'bg-primary border-primary text-primary-foreground'
                         : 'bg-muted/50 border-muted hover:bg-muted hover:border-muted-foreground/20'
                     )}
-                    whileTap={{ scale: 0.95 }}
-                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
                   >
                     {!isCustom && (
                       <Icon
@@ -677,42 +689,42 @@ export function CheckInFlow({
 
               {/* Add context button */}
               {isAddingContext ? (
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   <input
                     type="text"
                     value={newContextLabel}
                     onChange={(e) => setNewContextLabel(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleAddContext();
+                      if (e.key === 'Enter' && newContextLabel.trim()) handleAddContext();
                       if (e.key === 'Escape') {
                         setIsAddingContext(false);
                         setNewContextLabel('');
                       }
                     }}
-                    placeholder={t('context.addCustom')}
-                    className="px-3 py-2 text-sm rounded-l-xl border-2 border-r-0 border-primary bg-background focus:outline-none w-24"
+                    placeholder="..."
+                    className="px-3 py-2 text-sm rounded-xl border-2 border-primary bg-background focus:outline-none w-28"
                     autoFocus
                     maxLength={20}
                   />
                   <button
                     onClick={handleAddContext}
                     disabled={!newContextLabel.trim()}
-                    className="px-3 py-2 text-sm border-2 border-l-0 border-r-0 border-primary bg-primary text-primary-foreground font-medium disabled:opacity-50 cursor-pointer"
+                    className="p-2 rounded-xl bg-primary text-primary-foreground disabled:opacity-30 cursor-pointer transition-opacity"
                   >
-                    {t('form.add')}
+                    <Check className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => {
                       setIsAddingContext(false);
                       setNewContextLabel('');
                     }}
-                    className="px-3 py-2 text-sm rounded-r-xl border-2 border-l-0 border-muted bg-muted text-muted-foreground cursor-pointer"
+                    className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
                   >
-                    ✕
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
               ) : (
-                <div className="relative">
+                <div className="relative" ref={contextButtonRef}>
                   <motion.button
                     type="button"
                     onClick={() => handleAddButtonClick('context')}
@@ -732,17 +744,20 @@ export function CheckInFlow({
                         initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 4 }}
-                        className="absolute left-0 top-full mt-2 z-10 px-4 py-3 rounded-xl bg-card border border-border shadow-lg min-w-48"
+                        className={`absolute top-full mt-2 z-10 px-4 py-3 rounded-xl bg-card border border-border shadow-lg min-w-[180px] ${
+                          tooltipPosition === 'right' ? 'right-0' : 'left-0'
+                        }`}
                       >
-                        <p className="text-sm text-muted-foreground">
-                          <Link
-                            href="/login"
-                            className="font-medium text-primary hover:underline"
-                          >
-                            {t('settings.signIn')}
-                          </Link>{' '}
-                          {t('customItem.loginPrompt')}
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {t('customItem.loginRequired')}
                         </p>
+                        <Link
+                          href="/login"
+                          className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 font-medium"
+                        >
+                          <LogIn className="h-4 w-4" />
+                          {t('auth.signIn')}
+                        </Link>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -778,8 +793,7 @@ export function CheckInFlow({
                     ? 'bg-muted border-muted-foreground/30 text-foreground'
                     : 'bg-muted/50 border-muted hover:bg-muted hover:border-muted-foreground/20'
                 )}
-                whileTap={{ scale: 0.95 }}
-                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
               >
                 <X className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">{t('person.skip')}</span>
@@ -805,8 +819,7 @@ export function CheckInFlow({
                         ? 'bg-primary border-primary text-primary-foreground'
                         : 'bg-muted/50 border-muted hover:bg-muted hover:border-muted-foreground/20'
                     )}
-                    whileTap={{ scale: 0.95 }}
-                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
                   >
                     <User
                       className={cn(
@@ -823,42 +836,42 @@ export function CheckInFlow({
 
               {/* Add person button */}
               {isAddingPerson ? (
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   <input
                     type="text"
                     value={newPersonLabel}
                     onChange={(e) => setNewPersonLabel(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleAddPerson();
+                      if (e.key === 'Enter' && newPersonLabel.trim()) handleAddPerson();
                       if (e.key === 'Escape') {
                         setIsAddingPerson(false);
                         setNewPersonLabel('');
                       }
                     }}
-                    placeholder={t('person.addNew')}
-                    className="px-3 py-2 text-sm rounded-l-xl border-2 border-r-0 border-primary bg-background focus:outline-none w-24"
+                    placeholder="..."
+                    className="px-3 py-2 text-sm rounded-xl border-2 border-primary bg-background focus:outline-none w-28"
                     autoFocus
                     maxLength={20}
                   />
                   <button
                     onClick={handleAddPerson}
                     disabled={!newPersonLabel.trim()}
-                    className="px-3 py-2 text-sm border-2 border-l-0 border-r-0 border-primary bg-primary text-primary-foreground font-medium disabled:opacity-50 cursor-pointer"
+                    className="p-2 rounded-xl bg-primary text-primary-foreground disabled:opacity-30 cursor-pointer transition-opacity"
                   >
-                    {t('form.add')}
+                    <Check className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => {
                       setIsAddingPerson(false);
                       setNewPersonLabel('');
                     }}
-                    className="px-3 py-2 text-sm rounded-r-xl border-2 border-l-0 border-muted bg-muted text-muted-foreground cursor-pointer"
+                    className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
                   >
-                    ✕
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
               ) : (
-                <div className="relative">
+                <div className="relative" ref={personButtonRef}>
                   <motion.button
                     type="button"
                     onClick={() => handleAddButtonClick('person')}
@@ -878,23 +891,50 @@ export function CheckInFlow({
                         initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 4 }}
-                        className="absolute left-0 top-full mt-2 z-10 px-4 py-3 rounded-xl bg-card border border-border shadow-lg min-w-48"
+                        className={`absolute top-full mt-2 z-10 px-4 py-3 rounded-xl bg-card border border-border shadow-lg min-w-[180px] ${
+                          tooltipPosition === 'right' ? 'right-0' : 'left-0'
+                        }`}
                       >
-                        <p className="text-sm text-muted-foreground">
-                          <Link
-                            href="/login"
-                            className="font-medium text-primary hover:underline"
-                          >
-                            {t('settings.signIn')}
-                          </Link>{' '}
-                          {t('customItem.loginPrompt')}
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {t('customItem.loginRequired')}
                         </p>
+                        <Link
+                          href="/login"
+                          className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 font-medium"
+                        >
+                          <LogIn className="h-4 w-4" />
+                          {t('auth.signIn')}
+                        </Link>
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
               )}
             </div>
+          </motion.div>
+        )}
+
+        {/* Save button - shown after context is selected */}
+        {stateId && contextId && !showStateSelector && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: 0.25 }}
+            className="pt-2"
+          >
+            <motion.button
+              onClick={handleDone}
+              disabled={!canComplete || isSaving}
+              className={cn(
+                'w-full py-2.5 rounded-xl font-medium text-sm transition-all',
+                canComplete
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer'
+                  : 'bg-muted text-muted-foreground cursor-not-allowed'
+              )}
+              whileTap={canComplete ? { scale: 0.98 } : undefined}
+            >
+              {t('checkin.save')}
+            </motion.button>
           </motion.div>
         )}
       </div>
