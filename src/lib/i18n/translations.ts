@@ -14,10 +14,13 @@ export const translations = {
     'meta.description': 'A quiet place for your days',
 
     // Onboarding
-    'onboarding.title': 'Memory distorts the day',
+    'onboarding.title': 'A day is many moments',
     'onboarding.description':
-      'Capture moments as they unfold. You notice more than you think.',
-    'onboarding.button': 'Get started',
+      'Capture how you feel as it happens. See your day as it really was, not as memory rewrites it.',
+    'onboarding.button': 'Try it now',
+    'onboarding.successTitle': 'Your first moment',
+    'onboarding.successDesc': 'This is how your day builds up, one moment at a time.',
+    'onboarding.seeRecap': 'See your recap',
 
     // Mood select view
     'mood.title': 'How was today?',
@@ -412,30 +415,57 @@ export const translations = {
     'home.emptyHint': 'You can notice moments as they happen',
     'home.emptyTitle': 'Notice moments',
     'home.emptyExplanation': 'Catch how you feel as the day unfolds',
-    'home.seeReflection': 'Recap so far',
+    'home.seeReflection': 'Day so far',
     'home.seeDayRecap': 'See day recap',
     'home.addMoreMoments':
       'Tap the sun to add more moments throughout your day',
     'home.emptyPast': 'A quiet day',
-    'home.insightsTeaser': 'Patterns become clearer over time',
     'home.momentContext': 'One moment in a larger day.',
 
+    // Rotating button labels for insights (intriguing, curiosity-driven)
+    'insights.button.0': 'See patterns?',
+    'insights.button.1': 'Your rhythm',
+    'insights.button.2': 'What changed?',
+    'insights.button.3': 'Week pulse',
+    'insights.button.4': 'Notice anything?',
+
     // Insights panel
-    'insights.title': 'What you noticed',
-    'insights.needMoreData': 'Keep checking in',
-    'insights.needMoreDataDesc':
-      'After a few days, you will start seeing connections between moments. Even missed days count — they show contrast.',
-    'insights.exampleTitle': 'What you might see',
-    'insights.exampleDesc':
-      'After a week of check-ins, observations like these could appear:',
-    'insights.example.1':
-      'Days with many context switches felt heavier overall.',
-    'insights.example.2':
-      'Low energy followed social moments more than solitary ones.',
-    'insights.example.3': 'Uncertain mornings rarely led to focused evenings.',
-    'insights.example.4':
-      'A few intense moments shaped the day more than many neutral ones.',
-    'insights.keepGoing': 'Keep noticing moments.',
+    'insights.title': 'Patterns',
+    'insights.empty': 'A few more moments and patterns will emerge',
+    'insights.examplesTitle': 'What you might discover:',
+    'insights.example.1': 'You feel drained after work, but energized at home',
+    'insights.example.2': 'Time with friends consistently lifts your mood',
+    'insights.example.3': 'Your mornings start calm, but evenings get scattered',
+    // Real dynamic insights with actual data
+    'insights.contextMakesState': '{context} usually brings {state}',
+    'insights.personMakesState': '{person} often brings {state}',
+    'insights.morningVsEvening': 'Mornings feel {comparison} than evenings',
+    'insights.eveningVsMorning': 'Evenings feel {comparison} than mornings',
+    'insights.weekendBoost': 'Weekends noticeably lift your mood',
+    'insights.workDrains': 'Work days take more energy',
+    'insights.betterRecently': 'Things have been looking up lately',
+    'insights.harderRecently': 'Last few days felt heavier',
+    'insights.steadyWeek': 'Your energy stayed steady this week',
+    'insights.variedWeek': 'This week was a rollercoaster',
+    // Comparison words
+    'insights.comparison.better': 'better',
+    'insights.comparison.calmer': 'calmer',
+    'insights.comparison.more_energized': 'more energized',
+    // State forms for insights (nouns/feelings that work after "brings")
+    'insights.state.energized': 'energy',
+    'insights.state.calm': 'calm',
+    'insights.state.tired': 'tiredness',
+    'insights.state.drained': 'fatigue',
+    'insights.state.content': 'contentment',
+    'insights.state.anxious': 'anxiety',
+    'insights.state.frustrated': 'frustration',
+    'insights.state.grateful': 'gratitude',
+    'insights.state.uncertain': 'uncertainty',
+    'insights.state.focused': 'focus',
+    'insights.state.scattered': 'scatter',
+    'insights.state.present': 'presence',
+    'insights.state.distracted': 'distraction',
+    'insights.state.neutral': 'balance',
 
     // Check-in home
     'checkin.add': 'How are you?',
@@ -549,6 +579,7 @@ export const translations = {
     'recap.closing.1': 'One day of many.',
     'recap.closing.2': 'Recorded.',
     'recap.closing.3': 'Tomorrow is new.',
+    'recap.keepNoticing': 'Keep noticing moments as your day unfolds',
 
     // Energy trends
     'recap.energyRising': 'Energy rose',
@@ -568,6 +599,7 @@ export const translations = {
     'form.next': 'Next',
     'form.add': 'Add',
     'form.cancel': 'Cancel',
+    'form.skip': 'Skip',
 
     // Upgrade prompts (soft, non-blocking)
     'upgrade.customContextLimit':
@@ -586,10 +618,13 @@ export const translations = {
     'meta.description': 'Тихое место для твоих дней',
 
     // Onboarding
-    'onboarding.title': 'Память искажает день',
+    'onboarding.title': 'День — это много моментов',
     'onboarding.description':
-      'Фиксируй моменты. На самом деле происходит больше, чем кажется.',
-    'onboarding.button': 'Начать',
+      'Отмечай как себя чувствуешь прямо сейчас. Увидишь день таким, каким он был, а не каким его перепишет память.',
+    'onboarding.button': 'Попробовать',
+    'onboarding.successTitle': 'Твой первый момент',
+    'onboarding.successDesc': 'Так день складывается из моментов, один за другим.',
+    'onboarding.seeRecap': 'Посмотреть итоги',
 
     // Mood select view
     'mood.title': 'Как прошёл день?',
@@ -983,25 +1018,52 @@ export const translations = {
     'home.seeDayRecap': 'Итоги дня',
     'home.addMoreMoments': 'Нажми на солнце, чтобы добавить ещё моменты',
     'home.emptyPast': 'Тихий день',
-    'home.insightsTeaser': 'Со временем всё станет яснее',
     'home.momentContext': 'Один момент из многих.',
 
+    // Rotating button labels for insights (intriguing, curiosity-driven)
+    'insights.button.0': 'Заметил паттерны?',
+    'insights.button.1': 'Твой ритм',
+    'insights.button.2': 'Что изменилось?',
+    'insights.button.3': 'Пульс недели',
+    'insights.button.4': 'Замечаешь?',
+
     // Insights panel
-    'insights.title': 'Что было замечено',
-    'insights.needMoreData': 'Продолжай замечать моменты',
-    'insights.needMoreDataDesc':
-      'Через несколько дней начнёшь видеть связи между моментами. Пропущенные дни тоже важны — они показывают контраст.',
-    'insights.exampleTitle': 'Что может появиться',
-    'insights.exampleDesc':
-      'Через неделю отметок могут появиться такие наблюдения:',
-    'insights.example.1': 'Когда много переключений — день ощущается тяжелее.',
-    'insights.example.2':
-      'После общения энергии меньше, чем после времени наедине.',
-    'insights.example.3':
-      'Если утро начиналось смутно — вечер редко был в фокусе.',
-    'insights.example.4':
-      'Пара ярких моментов влияла на день сильнее, чем много ровных.',
-    'insights.keepGoing': 'Продолжай замечать моменты.',
+    'insights.title': 'Паттерны',
+    'insights.empty': 'Ещё пара моментов — и появятся паттерны',
+    'insights.examplesTitle': 'Что ты можешь обнаружить:',
+    'insights.example.1': 'После работы ты выжат, а дома — полон сил',
+    'insights.example.2': 'Время с друзьями стабильно поднимает настроение',
+    'insights.example.3': 'Утром ты спокоен, но к вечеру рассеян',
+    // Real dynamic insights with actual data
+    'insights.contextMakesState': '{context} приносит {state}',
+    'insights.personMakesState': '{person} приносит {state}',
+    'insights.morningVsEvening': 'Утром {comparison}, чем вечером',
+    'insights.eveningVsMorning': 'Вечером {comparison}, чем утром',
+    'insights.weekendBoost': 'На выходных настроение лучше',
+    'insights.workDrains': 'Рабочие дни забирают больше сил',
+    'insights.betterRecently': 'Последние дни стало лучше',
+    'insights.harderRecently': 'Последние дни были тяжелее',
+    'insights.steadyWeek': 'Энергия стабильна всю неделю',
+    'insights.variedWeek': 'Неделя была американскими горками',
+    // Comparison words
+    'insights.comparison.better': 'лучше',
+    'insights.comparison.calmer': 'спокойнее',
+    'insights.comparison.more_energized': 'больше сил',
+    // State forms for insights (nouns that work after "приносит")
+    'insights.state.energized': 'энергию',
+    'insights.state.calm': 'спокойствие',
+    'insights.state.tired': 'усталость',
+    'insights.state.drained': 'истощение',
+    'insights.state.content': 'довольство',
+    'insights.state.anxious': 'тревогу',
+    'insights.state.frustrated': 'раздражение',
+    'insights.state.grateful': 'благодарность',
+    'insights.state.uncertain': 'неясность',
+    'insights.state.focused': 'фокус',
+    'insights.state.scattered': 'рассеянность',
+    'insights.state.present': 'вовлечённость',
+    'insights.state.distracted': 'отвлечённость',
+    'insights.state.neutral': 'равновесие',
 
     // Check-in home
     'checkin.add': 'Как дела?',
@@ -1060,7 +1122,7 @@ export const translations = {
     'state.grateful': 'Отлично',
     'state.uncertain': 'Непонятно',
     // Tension states
-    'state.focused': 'Сосредоточен',
+    'state.focused': 'Собран',
     'state.scattered': 'Рассеян',
     'state.present': 'Вовлечён',
     'state.distracted': 'Отвлечён',
@@ -1114,6 +1176,7 @@ export const translations = {
     'recap.closing.1': 'Один день из многих.',
     'recap.closing.2': 'Записано.',
     'recap.closing.3': 'Завтра — новый день.',
+    'recap.keepNoticing': 'Продолжай замечать моменты по ходу дня',
 
     // Energy trends
     'recap.energyRising': 'Энергия росла',
@@ -1133,6 +1196,7 @@ export const translations = {
     'form.next': 'Далее',
     'form.add': 'Добавить',
     'form.cancel': 'Отмена',
+    'form.skip': 'Пропустить',
 
     // Upgrade prompts (soft, non-blocking)
     'upgrade.customContextLimit': 'Больше контекстов доступно с платным планом',

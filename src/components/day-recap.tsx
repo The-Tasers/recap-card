@@ -46,12 +46,13 @@ const DEFAULT_COLORS = { glow: 'rgba(148, 163, 184, 0.3)' };
 interface DayRecapProps {
   day: Day;
   checkIns: CheckIn[];
+  isToday?: boolean;
 }
 
 /**
  * Day Recap Component - Compact sentence-based insights
  */
-export function DayRecap({ day, checkIns }: DayRecapProps) {
+export function DayRecap({ day, checkIns, isToday }: DayRecapProps) {
   const { t, language } = useI18n();
   const { states, contexts, people } = useOptionsStore();
 
@@ -106,7 +107,9 @@ export function DayRecap({ day, checkIns }: DayRecapProps) {
     const topContext = contexts.find((c) => c.id === entries[0][0]);
     if (!topContext) return null;
 
-    const topName = translate(`context.${entries[0][0]}`) || topContext.label;
+    const topName = topContext.isDefault
+      ? translate(`context.${entries[0][0]}`) || topContext.label
+      : topContext.label;
 
     if (entries.length === 1) {
       return (
@@ -117,7 +120,9 @@ export function DayRecap({ day, checkIns }: DayRecapProps) {
 
     const secondContext = contexts.find((c) => c.id === entries[1][0]);
     const secondName = secondContext
-      ? translate(`context.${entries[1][0]}`) || secondContext.label
+      ? secondContext.isDefault
+        ? translate(`context.${entries[1][0]}`) || secondContext.label
+        : secondContext.label
       : '';
 
     return (
@@ -294,7 +299,7 @@ export function DayRecap({ day, checkIns }: DayRecapProps) {
 
 
       {/* Closing observation */}
-      {closingText && (
+      {closingText && !isToday && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -306,6 +311,20 @@ export function DayRecap({ day, checkIns }: DayRecapProps) {
             <p className="text-sm italic">{closingText}</p>
             <Dot className="h-3 w-3" />
           </div>
+        </motion.div>
+      )}
+
+      {/* Today's encouragement message */}
+      {isToday && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="text-center py-3"
+        >
+          <p className="text-sm text-muted-foreground">
+            {translate('recap.keepNoticing') || 'Keep noticing moments as your day unfolds'}
+          </p>
         </motion.div>
       )}
     </motion.div>

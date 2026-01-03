@@ -394,7 +394,9 @@ export function generateContextDistributionText(
   const parts = sorted.map(([contextId, count]) => {
     const context = allContexts.find((c) => c.id === contextId);
     const label = context
-      ? t(`context.${contextId}`)?.toLowerCase() || context.label.toLowerCase()
+      ? context.isDefault
+        ? t(`context.${contextId}`)?.toLowerCase() || context.label.toLowerCase()
+        : context.label.toLowerCase()
       : contextId;
     return `${label} (${count})`;
   });

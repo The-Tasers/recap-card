@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useOptionsStore } from '@/lib/options-store';
 import { useCheckInStore } from '@/lib/checkin-store';
-import { useI18n } from '@/lib/i18n';
+import { useI18n, type TranslationKey } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { FREE_PLAN_LIMITS, State } from '@/lib/types';
 import {
@@ -47,11 +47,11 @@ const STATE_ICONS: Record<string, LucideIcon> = {
   tired: Moon,
   drained: CloudRain,
   // Emotion: faces from bad to good
-  frustrated: Frown,      // worst
-  anxious: Annoyed,       // bad
-  uncertain: Meh,         // neutral
-  content: Smile,         // good
-  grateful: Laugh,        // best
+  frustrated: Frown, // worst
+  anxious: Annoyed, // bad
+  uncertain: Meh, // neutral
+  content: Smile, // good
+  grateful: Laugh, // best
   focused: Target,
   scattered: Shuffle,
   present: Eye,
@@ -182,6 +182,7 @@ interface CheckInFlowProps {
   onComplete: () => void;
   onCancel: () => void;
   isAuthenticated?: boolean;
+  userId?: string;
 }
 
 // State orb component for selection
@@ -205,9 +206,21 @@ function StateOrb({
   const Icon = STATE_ICONS[state.id] || Meh;
 
   const sizeConfig = {
-    sm: { orb: 'w-12 h-12 sm:w-12 sm:h-12', icon: 'w-5 h-5 sm:w-5 sm:h-5', text: 'text-[10px] sm:text-xs' },
-    md: { orb: 'w-14 h-14 sm:w-16 sm:h-16', icon: 'w-6 h-6 sm:w-6 sm:h-6', text: 'text-xs sm:text-sm' },
-    lg: { orb: 'w-16 h-16 sm:w-20 sm:h-20', icon: 'w-7 h-7 sm:w-8 sm:h-8', text: 'text-xs sm:text-base' },
+    sm: {
+      orb: 'w-12 h-12 sm:w-12 sm:h-12',
+      icon: 'w-5 h-5 sm:w-5 sm:h-5',
+      text: 'text-[10px] sm:text-xs',
+    },
+    md: {
+      orb: 'w-14 h-14 sm:w-16 sm:h-16',
+      icon: 'w-6 h-6 sm:w-6 sm:h-6',
+      text: 'text-xs sm:text-sm',
+    },
+    lg: {
+      orb: 'w-16 h-16 sm:w-20 sm:h-20',
+      icon: 'w-7 h-7 sm:w-8 sm:h-8',
+      text: 'text-xs sm:text-base',
+    },
   };
 
   const config = sizeConfig[size];
@@ -256,17 +269,26 @@ function StateOrb({
 // Selected state display at top center
 interface SelectedStateDisplayProps {
   stateId: string;
+  contextId?: string;
   onTap: () => void;
 }
 
-function SelectedStateDisplay({ stateId, onTap }: SelectedStateDisplayProps) {
+function SelectedStateDisplay({ stateId, contextId, onTap }: SelectedStateDisplayProps) {
   const { t } = useI18n();
-  const { states } = useOptionsStore();
+  const { states, contexts } = useOptionsStore();
   const state = states.find((s) => s.id === stateId);
   if (!state) return null;
 
   const colors = STATE_ORB_COLORS[stateId] || DEFAULT_ORB_COLORS;
   const Icon = STATE_ICONS[stateId] || Meh;
+
+  // Get context label if selected
+  const context = contextId ? contexts.find((c) => c.id === contextId) : null;
+  const contextLabel = context
+    ? context.isDefault
+      ? t(`context.${context.id}` as TranslationKey) || context.label
+      : context.label
+    : null;
 
   return (
     <motion.div
@@ -296,11 +318,18 @@ function SelectedStateDisplay({ stateId, onTap }: SelectedStateDisplayProps) {
       </motion.button>
       <div className="flex flex-col items-center">
         <span className="text-sm font-semibold text-foreground">
-          {t(`state.${stateId}` as any) || state.label}
+          {t(`state.${stateId}` as TranslationKey) || state.label}
         </span>
-        <span className="text-xs text-muted-foreground">
-          {t('checkin.tapToChange')}
-        </span>
+        {contextLabel && (
+          <span className="text-xs text-muted-foreground">
+            {contextLabel}
+          </span>
+        )}
+        {!contextLabel && (
+          <span className="text-xs text-muted-foreground">
+            {t('checkin.tapToChange')}
+          </span>
+        )}
       </div>
     </motion.div>
   );
@@ -354,11 +383,11 @@ export function CheckInFlow({
   onComplete,
   onCancel,
   isAuthenticated = false,
+  userId,
 }: CheckInFlowProps) {
   const { t } = useI18n();
-  const { addCheckIn, addPerson, addContext, getOrCreateToday } =
-    useCheckInStore();
-  const { states, contexts, people, getCustomContexts, getCustomPeople } =
+  const { addCheckIn, getOrCreateToday } = useCheckInStore();
+  const { states, contexts, people, getCustomContexts, getCustomPeople, addCustomContext, addCustomPerson } =
     useOptionsStore();
 
   const [stateId, setStateId] = useState<string | undefined>();
@@ -377,7 +406,9 @@ export function CheckInFlow({
   const [showLoginNotice, setShowLoginNotice] = useState<
     'context' | 'person' | null
   >(null);
-  const [tooltipPosition, setTooltipPosition] = useState<'left' | 'right'>('left');
+  const [tooltipPosition, setTooltipPosition] = useState<'left' | 'right'>(
+    'left'
+  );
   const contextButtonRef = useRef<HTMLDivElement>(null);
   const personButtonRef = useRef<HTMLDivElement>(null);
 
@@ -413,9 +444,10 @@ export function CheckInFlow({
   const getOrderedStatesForCategory = useCallback(
     (category: string): State[] => {
       const order = CATEGORY_STATE_ORDER[category] || [];
+
       return order
         .map((id) => states.find((s) => s.id === id))
-        .filter((s): s is State => s !== undefined);
+        .filter(Boolean) as State[];
     },
     [states]
   );
@@ -458,32 +490,41 @@ export function CheckInFlow({
     setShowDiscardMessage(false);
   }, []);
 
-  // Handle adding custom context
-  const handleAddContext = useCallback(() => {
-    if (newContextLabel.trim() && canAddContext) {
-      const context = addContext(newContextLabel.trim());
-      setContextId(context.id);
-      setNewContextLabel('');
-      setIsAddingContext(false);
+  // Handle adding custom context (saves to server)
+  const handleAddContext = useCallback(async () => {
+    if (newContextLabel.trim() && canAddContext && userId) {
+      try {
+        const context = await addCustomContext(newContextLabel.trim(), userId);
+        setContextId(context.id);
+        setNewContextLabel('');
+        setIsAddingContext(false);
+      } catch (error) {
+        console.error('Failed to add context:', error);
+      }
     }
-  }, [newContextLabel, canAddContext, addContext]);
+  }, [newContextLabel, canAddContext, userId, addCustomContext]);
 
-  // Handle adding custom person
-  const handleAddPerson = useCallback(() => {
-    if (newPersonLabel.trim() && canAddPerson) {
-      const person = addPerson(newPersonLabel.trim());
-      setPersonId(person.id);
-      setNewPersonLabel('');
-      setIsAddingPerson(false);
+  // Handle adding custom person (saves to server)
+  const handleAddPerson = useCallback(async () => {
+    if (newPersonLabel.trim() && canAddPerson && userId) {
+      try {
+        const person = await addCustomPerson(newPersonLabel.trim(), userId);
+        setPersonId(person.id);
+        setNewPersonLabel('');
+        setIsAddingPerson(false);
+      } catch (error) {
+        console.error('Failed to add person:', error);
+      }
     }
-  }, [newPersonLabel, canAddPerson, addPerson]);
+  }, [newPersonLabel, canAddPerson, userId, addCustomPerson]);
 
   // Handle add button click with login check
   const handleAddButtonClick = useCallback(
     (type: 'context' | 'person') => {
       if (!isAuthenticated) {
         // Calculate tooltip position based on button position
-        const buttonRef = type === 'context' ? contextButtonRef : personButtonRef;
+        const buttonRef =
+          type === 'context' ? contextButtonRef : personButtonRef;
         if (buttonRef.current) {
           const rect = buttonRef.current.getBoundingClientRect();
           const tooltipWidth = 180; // min-w-[180px]
@@ -643,6 +684,7 @@ export function CheckInFlow({
             >
               <SelectedStateDisplay
                 stateId={stateId}
+                contextId={contextId}
                 onTap={handleSelectedStateTap}
               />
             </motion.div>
@@ -669,6 +711,10 @@ export function CheckInFlow({
                 const isSelected = contextId === context.id;
                 const Icon = CONTEXT_ICONS[context.id] || ShoppingBag;
                 const isCustom = !context.isDefault;
+                // Use translation for default contexts, label for custom ones
+                const label = context.isDefault
+                  ? t(`context.${context.id}` as TranslationKey) || context.label
+                  : context.label;
 
                 return (
                   <motion.button
@@ -693,9 +739,7 @@ export function CheckInFlow({
                         )}
                       />
                     )}
-                    <span className="text-sm font-medium">
-                      {t(`context.${context.id}` as any) || context.label}
-                    </span>
+                    <span className="text-sm font-medium">{label}</span>
                   </motion.button>
                 );
               })}
@@ -708,7 +752,8 @@ export function CheckInFlow({
                     value={newContextLabel}
                     onChange={(e) => setNewContextLabel(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && newContextLabel.trim()) handleAddContext();
+                      if (e.key === 'Enter' && newContextLabel.trim())
+                        handleAddContext();
                       if (e.key === 'Escape') {
                         setIsAddingContext(false);
                         setNewContextLabel('');
@@ -855,7 +900,8 @@ export function CheckInFlow({
                     value={newPersonLabel}
                     onChange={(e) => setNewPersonLabel(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && newPersonLabel.trim()) handleAddPerson();
+                      if (e.key === 'Enter' && newPersonLabel.trim())
+                        handleAddPerson();
                       if (e.key === 'Escape') {
                         setIsAddingPerson(false);
                         setNewPersonLabel('');
@@ -926,7 +972,6 @@ export function CheckInFlow({
             </div>
           </motion.div>
         )}
-
       </div>
 
       {/* Save button - sticky at bottom on mobile, shown after context is selected */}

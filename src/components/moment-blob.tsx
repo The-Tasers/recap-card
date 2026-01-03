@@ -330,7 +330,9 @@ function MomentOrb({
 
   const stateLabel = state ? t(`state.${state.id}` as any) || state.label : '';
   const contextLabel = context
-    ? t(`context.${context.id}` as any) || context.label
+    ? context.isDefault
+      ? t(`context.${context.id}` as any) || context.label
+      : context.label
     : '';
 
   const baseSize = getOrbSize(index, total, isDesktop);

@@ -34,8 +34,6 @@ import {
   ChevronRight,
   Calendar,
   Sparkles,
-  TrendingUp,
-  Layers,
   CloudSun,
   CloudRain,
   CloudFog,
@@ -79,11 +77,11 @@ const STATE_ICONS: Record<string, LucideIcon> = {
   tired: Moon,
   drained: CloudRain,
   // Emotion: faces from bad to good
-  frustrated: Frown,      // worst
-  anxious: Annoyed,       // bad
-  uncertain: Meh,         // neutral
-  content: Smile,         // good
-  grateful: Laugh,        // best
+  frustrated: Frown, // worst
+  anxious: Annoyed, // bad
+  uncertain: Meh, // neutral
+  content: Smile, // good
+  grateful: Laugh, // best
   focused: Target,
   scattered: Shuffle,
   present: Eye,
@@ -329,7 +327,8 @@ const SingleOrb = memo(function SingleOrb({
         x: '-50%',
         y: '-50%',
       }}
-      transition={containerTransition}
+      whileHover={{ scale: 1.15 }}
+      transition={{ ...containerTransition, scale: { duration: 0.15 } }}
       onClick={(e) => {
         e.stopPropagation();
         onTap();
@@ -339,7 +338,7 @@ const SingleOrb = memo(function SingleOrb({
       <div
         className="rounded-full"
         style={{
-          background: `${color}e6`,
+          background: color,
           width: size,
           height: size,
           opacity: isSelected ? 0.6 : 1,
@@ -418,25 +417,37 @@ const MergedOrb = memo(function MergedOrb({
         y: '-50%',
         opacity: hasSelectedMoment ? 0.5 : 1,
       }}
-      transition={containerTransition}
+      whileHover={{ scale: hasSelectedMoment ? 0.55 : 1.1 }}
+      transition={{ ...containerTransition, scale: { duration: 0.15 } }}
       onClick={(e) => {
         e.stopPropagation();
         onTap(e);
       }}
     >
-      <div
-        className="rounded-full relative"
-        style={{
-          ...orbStyle,
-          width: size,
-          height: size,
-          opacity: isGroupExpanded || hasSelectedMoment ? 0.6 : 1,
-          boxShadow:
-            isGroupExpanded || hasSelectedMoment
-              ? 'none'
-              : `0 0 12px ${groupColors[0]}50`,
-        }}
-      >
+      <div className="relative" style={{ width: size, height: size }}>
+        {/* Rotating gradient layer for multi-color orbs */}
+        <motion.div
+          className="rounded-full absolute inset-0"
+          style={{
+            ...orbStyle,
+            opacity: isGroupExpanded || hasSelectedMoment ? 0.6 : 1,
+            boxShadow:
+              isGroupExpanded || hasSelectedMoment
+                ? 'none'
+                : `0 0 12px ${groupColors[0]}50`,
+          }}
+          animate={
+            group.length > 1 && !isGroupExpanded && !hasSelectedMoment
+              ? { rotate: 360 }
+              : { rotate: 0 }
+          }
+          transition={
+            group.length > 1 && !isGroupExpanded && !hasSelectedMoment
+              ? { duration: 20, repeat: Infinity, ease: 'linear' }
+              : { duration: 0.3 }
+          }
+        />
+        {/* Badge stays fixed, not rotating */}
         {remainingCount > 0 && !isGroupExpanded && !hasSelectedMoment && (
           <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
             {remainingCount}
@@ -526,8 +537,8 @@ const DayGlobe = memo(function DayGlobe({
 
   if (isDarkTheme) {
     // Dark theme: visible ocean, subtle land
-    oceanColor = `rgba(40, 100, 150, 0.4)`;
-    landColor = `rgba(35, 60, 45, 0.35)`;
+    oceanColor = `rgba(40, 100, 150, 0.2)`;
+    landColor = `rgba(35, 60, 45, 0.5)`;
   } else {
     // Light theme: visible ocean, subtle land
     oceanColor = `rgba(100, 160, 200, 0.35)`;
@@ -537,8 +548,8 @@ const DayGlobe = memo(function DayGlobe({
   // Earth geometry - fits within arc, only overflows at bottom
   // Arc goes from (10, 110) to (190, 110), so Earth should stay within x: 10-190
   const cx = 100;
-  const cy = 110; // Centered with arc baseline
-  const r = 88; // Fits within arc width (max ~90 to not overflow sides)
+  const cy = 110; // Slightly lower to not overlap arc at top
+  const r = 88; // Smaller radius to not overlap arc
 
   // Decorative city lights - only shown on dark theme as ambient visual
   const cities = [
@@ -683,7 +694,7 @@ const DayGlobe = memo(function DayGlobe({
               ))}
 
             {/* Subtle atmosphere glow at edge */}
-            <circle
+            {/* <circle
               cx={cx}
               cy={cy}
               r={r}
@@ -694,7 +705,7 @@ const DayGlobe = memo(function DayGlobe({
                   : `rgba(80, 140, 180, ${0.15 + dayness * 0.1})`
               }
               strokeWidth="2"
-            />
+            /> */}
           </g>
         </g>
       </svg>
@@ -712,32 +723,16 @@ const CurrentTimeHalo = memo(function CurrentTimeHalo({
   progress,
   isHidden,
 }: CurrentTimeHaloProps) {
-  const [showTooltip, setShowTooltip] = useState(false);
-  const [currentTime, setCurrentTime] = useState<string>('');
-
-  // Update time every minute
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setCurrentTime(
-        now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      );
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
   // Calculate position on arc
   const pos = getArcPosition(progress);
 
   return (
     <motion.div
-      className="absolute cursor-pointer"
+      className="absolute"
       style={{
         left: `${(pos.x / 200) * 100}%`,
         top: `${(pos.y / 120) * 100}%`,
-        zIndex: showTooltip ? 50 : 5,
+        zIndex: 5,
       }}
       initial={{ opacity: 0, scale: 0.5, x: '-50%', y: '-50%' }}
       animate={{
@@ -747,9 +742,6 @@ const CurrentTimeHalo = memo(function CurrentTimeHalo({
         y: '-50%',
       }}
       transition={{ delay: 0.5, type: 'spring', stiffness: 200 }}
-      onHoverStart={() => setShowTooltip(true)}
-      onHoverEnd={() => setShowTooltip(false)}
-      onTap={() => setShowTooltip((prev) => !prev)}
     >
       {/* Outer soft glow - breathing animation */}
       <motion.div
@@ -785,31 +777,19 @@ const CurrentTimeHalo = memo(function CurrentTimeHalo({
           boxShadow: '0 0 8px rgba(255,255,255,0.5)',
         }}
       />
-      {/* Tooltip */}
-      <AnimatePresence>
-        {showTooltip && (
-          <motion.div
-            className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none"
-            style={{
-              bottom: '100%',
-              marginBottom: 8,
-            }}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
-            transition={{ duration: 0.15 }}
-          >
-            <span className="text-xs text-foreground/80 bg-card/90 backdrop-blur-sm px-2 py-1 rounded-md border border-border/50 shadow-sm">
-              Now · {currentTime}
-            </span>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 });
 
-export function CheckInHome() {
+interface CheckInHomeProps {
+  initialShowRecap?: boolean;
+  onRecapShown?: () => void;
+}
+
+export function CheckInHome({
+  initialShowRecap,
+  onRecapShown,
+}: CheckInHomeProps) {
   const { t, language } = useI18n();
   const { user } = useAuth();
   const { colorTheme } = useSettingsStore();
@@ -830,7 +810,7 @@ export function CheckInHome() {
     getCheckInsForDay,
   } = useCheckInStore();
 
-  const { loadOptions, states, contexts } = useOptionsStore();
+  const { states, contexts } = useOptionsStore();
 
   const [viewMode, setViewMode] = useState<ViewMode>('home');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -850,14 +830,29 @@ export function CheckInHome() {
   const [showInsightsPanel, setShowInsightsPanel] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [timeUpdateTrigger, setTimeUpdateTrigger] = useState(0);
+  const [currentTime, setCurrentTime] = useState<string>('');
   const isMobile = useIsMobile();
   const arcContainerRef = useRef<HTMLDivElement>(null);
 
-  // Update arc progress every minute
+  // Show recap panel if triggered from onboarding
   useEffect(() => {
-    const interval = setInterval(() => {
+    if (initialShowRecap && hydrated) {
+      setShowRecapPanel(true);
+      onRecapShown?.();
+    }
+  }, [initialShowRecap, hydrated, onRecapShown]);
+
+  // Update arc progress and current time every minute
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setCurrentTime(
+        now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      );
       setTimeUpdateTrigger((t) => t + 1);
-    }, 60000);
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -880,11 +875,6 @@ export function CheckInHome() {
     },
     [selectedDate, isToday]
   );
-
-  // Load options on mount (hydration is handled by SyncProvider)
-  useEffect(() => {
-    loadOptions(user?.id);
-  }, [loadOptions, user?.id]);
 
   // Keyboard navigation for date
   useEffect(() => {
@@ -1067,6 +1057,7 @@ export function CheckInHome() {
               onComplete={handleCheckInComplete}
               onCancel={() => setViewMode('home')}
               isAuthenticated={!!user}
+              userId={user?.id}
             />
           </div>
         </div>
@@ -1163,6 +1154,11 @@ export function CheckInHome() {
               <ChevronRight className="h-5 w-5" />
             </button>
           </div>
+
+          {/* Current time - always reserve space to prevent layout shift */}
+          <span className={`text-sm h-5 ${isToday && currentTime ? 'text-muted-foreground' : 'invisible'}`}>
+            {currentTime || '00:00'}
+          </span>
 
           {/* Date Picker - inline for desktop, bottom sheet for mobile */}
           <DatePickerTimeline
@@ -1392,8 +1388,9 @@ export function CheckInHome() {
                     ? t(`state.${state.id}` as TranslationKey) || state.label
                     : '';
                   const contextLabel = context
-                    ? t(`context.${context.id}` as TranslationKey) ||
-                      context.label
+                    ? context.isDefault
+                      ? t(`context.${context.id}` as TranslationKey) || context.label
+                      : context.label
                     : '';
                   const time = new Date(
                     selectedMoment.timestamp
@@ -1523,7 +1520,7 @@ export function CheckInHome() {
                       </motion.button>
                     )}
 
-                    {/* View day recap - more visible, secondary style */}
+                    {/* View day recap - primary for past days, secondary for today */}
                     {selectedDayCheckIns.length > 0 &&
                       (!isToday || getDayProgress() >= 0.5) && (
                         <motion.button
@@ -1531,16 +1528,20 @@ export function CheckInHome() {
                             e.stopPropagation();
                             setShowRecapPanel(true);
                           }}
-                          className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted/60 border border-muted-foreground/20 text-foreground hover:bg-muted hover:border-muted-foreground/30 text-sm font-medium cursor-pointer transition-colors"
+                          className={`flex items-center gap-2 rounded-full font-medium cursor-pointer transition-colors ${
+                            isToday
+                              ? 'px-4 py-2 bg-muted/60 border border-muted-foreground/20 text-foreground hover:bg-muted hover:border-muted-foreground/30 text-sm'
+                              : 'px-5 py-2.5 bg-primary text-primary-foreground text-sm shadow-lg'
+                          }`}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                         >
                           <div
-                            className="w-3 h-3 rounded-full"
+                            className={`rounded-full ${isToday ? 'w-3 h-3' : 'w-4 h-4'}`}
                             style={{
                               background:
                                 generateMoodGradient(selectedDayCheckIns),
-                              boxShadow: `0 0 6px ${generateMoodGradient(
+                              boxShadow: `0 0 ${isToday ? '6px' : '8px'} ${generateMoodGradient(
                                 selectedDayCheckIns
                               )}`,
                             }}
@@ -1585,28 +1586,8 @@ export function CheckInHome() {
           </AnimatePresence>
         </div>
 
-        {/* Multi-day insights teaser */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-          className="mt-8 text-center"
-        >
-          <motion.button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowInsightsPanel(true);
-            }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/30 border border-muted/50 text-muted-foreground/80 hover:bg-muted/50 hover:border-muted hover:text-foreground transition-colors cursor-pointer"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <TrendingUp className="h-3.5 w-3.5" />
-            <span className="text-sm font-medium">
-              {t('home.insightsTeaser') || 'Patterns emerge over time'}
-            </span>
-          </motion.button>
-        </motion.div>
+        {/* Insights button with rotating intriguing labels */}
+        <InsightsButton onClick={() => setShowInsightsPanel(true)} />
       </div>
 
       {/* Footer */}
@@ -1654,7 +1635,7 @@ export function CheckInHome() {
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 pb-3">
                   <h2 className="text-lg font-semibold">
-                    {t('recap.title') || 'Your day'}
+                    {isToday ? t('home.seeReflection') : t('home.seeDayRecap')}
                   </h2>
                   <button
                     onClick={() => setShowRecapPanel(false)}
@@ -1666,7 +1647,11 @@ export function CheckInHome() {
 
                 {/* Content */}
                 <div className="overflow-y-auto px-6 pb-8 max-h-[calc(85vh-80px)]">
-                  <DayRecap day={selectedDay} checkIns={selectedDayCheckIns} />
+                  <DayRecap
+                    day={selectedDay}
+                    checkIns={selectedDayCheckIns}
+                    isToday={isToday}
+                  />
                 </div>
               </motion.div>
             ) : (
@@ -1681,7 +1666,7 @@ export function CheckInHome() {
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-border">
                   <h2 className="text-lg font-semibold">
-                    {t('recap.title') || 'Your day'}
+                    {isToday ? t('home.seeReflection') : t('home.seeDayRecap')}
                   </h2>
                   <button
                     onClick={() => setShowRecapPanel(false)}
@@ -1693,7 +1678,11 @@ export function CheckInHome() {
 
                 {/* Content */}
                 <div className="overflow-y-auto px-6 py-4 max-h-[calc(80vh-80px)]">
-                  <DayRecap day={selectedDay} checkIns={selectedDayCheckIns} />
+                  <DayRecap
+                    day={selectedDay}
+                    checkIns={selectedDayCheckIns}
+                    isToday={isToday}
+                  />
                 </div>
               </motion.div>
             )}
@@ -1731,11 +1720,9 @@ export function CheckInHome() {
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 pb-4">
-                  <div>
-                    <h2 className="text-xl font-semibold">
-                      {t('insights.title') || 'Your patterns'}
-                    </h2>
-                  </div>
+                  <h2 className="text-xl font-semibold">
+                    {t('insights.title')}
+                  </h2>
                   <button
                     onClick={() => setShowInsightsPanel(false)}
                     className="flex items-center justify-center w-10 h-10 rounded-full bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
@@ -1745,7 +1732,7 @@ export function CheckInHome() {
                 </div>
 
                 {/* Content */}
-                <div className="overflow-y-auto px-6 pb-10 max-h-[calc(85vh-120px)]">
+                <div className="px-6 pb-6">
                   <InsightsPanelContent />
                 </div>
               </motion.div>
@@ -1756,15 +1743,13 @@ export function CheckInHome() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-background rounded-2xl shadow-xl overflow-hidden max-h-[80vh]"
+                className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-background rounded-2xl shadow-xl overflow-hidden"
               >
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-5 border-b border-border">
-                  <div>
-                    <h2 className="text-xl font-semibold">
-                      {t('insights.title') || 'Your patterns'}
-                    </h2>
-                  </div>
+                  <h2 className="text-xl font-semibold">
+                    {t('insights.title')}
+                  </h2>
                   <button
                     onClick={() => setShowInsightsPanel(false)}
                     className="flex items-center justify-center w-10 h-10 rounded-full bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
@@ -1774,7 +1759,7 @@ export function CheckInHome() {
                 </div>
 
                 {/* Content */}
-                <div className="overflow-y-auto px-6 py-6 max-h-[calc(80vh-120px)]">
+                <div className="px-6 py-6">
                   <InsightsPanelContent />
                 </div>
               </motion.div>
@@ -1786,96 +1771,429 @@ export function CheckInHome() {
   );
 }
 
-// Insights panel content - shows placeholder/example insights
-function InsightsPanelContent() {
-  const { t } = useI18n();
+// Rotating button labels - curiosity-driven
+const INSIGHTS_BUTTON_COUNT = 5;
 
-  // Example insight patterns to show what user could see after a week
-  const exampleInsights = [
-    {
-      icon: Shuffle,
-      color: '#fb923c',
-      text:
-        t('insights.example.1') ||
-        'Days with many context switches felt heavier overall.',
-    },
-    {
-      icon: Smile,
-      color: '#34d399',
-      text:
-        t('insights.example.2') ||
-        'Low energy followed social moments more than solitary ones.',
-    },
-    {
-      icon: HelpCircle,
-      color: '#fbbf24',
-      text:
-        t('insights.example.3') ||
-        'Uncertain mornings rarely led to focused evenings.',
-    },
-    {
-      icon: Zap,
-      color: '#4ade80',
-      text:
-        t('insights.example.4') ||
-        'A few intense moments shaped the day more than many neutral ones.',
-    },
-  ];
+// Insights button with rotating intriguing labels
+function InsightsButton({ onClick }: { onClick: () => void }) {
+  const { t } = useI18n();
+  // Pick random initial label
+  const [labelIndex, setLabelIndex] = useState(
+    () => Math.floor(Math.random() * INSIGHTS_BUTTON_COUNT)
+  );
+
+  // Rotate every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLabelIndex(prev => (prev + 1) % INSIGHTS_BUTTON_COUNT);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const label = t(`insights.button.${labelIndex}` as TranslationKey) || 'See patterns?';
 
   return (
-    <div className="flex flex-col min-h-full">
-      {/* Explanation */}
-      <div className="text-center py-6">
-        <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-          <Layers className="h-7 w-7 text-primary" />
-        </div>
-        <h3 className="font-medium text-foreground text-lg">
-          {t('insights.needMoreData') || 'Keep checking in'}
-        </h3>
-        <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-3 leading-relaxed">
-          {t('insights.needMoreDataDesc') ||
-            'Patterns emerge after a few days of moments. Even missed days count — they show contrast.'}
-        </p>
-      </div>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.7, type: 'spring', stiffness: 200 }}
+      className="mt-8 text-center"
+    >
+      <motion.button
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick();
+        }}
+        className="group relative inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-gradient-to-r from-violet-500/10 via-fuchsia-500/10 to-pink-500/10 border border-violet-500/20 text-foreground/90 hover:from-violet-500/20 hover:via-fuchsia-500/20 hover:to-pink-500/20 hover:border-violet-500/30 transition-all duration-300 cursor-pointer"
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.97 }}
+      >
+        {/* Subtle animated glow */}
+        <motion.div
+          className="absolute inset-0 rounded-full bg-gradient-to-r from-violet-500/5 via-fuchsia-500/5 to-pink-500/5 blur-lg"
+          animate={{
+            opacity: [0.3, 0.6, 0.3],
+            scale: [1, 1.05, 1],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+        <Sparkles className="relative h-4 w-4 text-violet-400 group-hover:text-violet-300 transition-colors" />
+        <span className="relative text-sm font-medium">{label}</span>
+      </motion.button>
+    </motion.div>
+  );
+}
 
-      {/* Example insights preview */}
-      <div className="space-y-4 flex-1 pt-4">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          {t('insights.exampleTitle') || 'What you might see'}
-        </p>
+// Positive states for mood scoring
+const POSITIVE_STATES = new Set(['grateful', 'content', 'energized', 'calm', 'focused', 'present']);
+const NEGATIVE_STATES = new Set(['frustrated', 'anxious', 'drained', 'tired', 'scattered', 'distracted']);
 
-        <div className="space-y-3">
-          {exampleInsights.map((insight, i) => {
-            const Icon = insight.icon;
-            return (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className="flex items-start gap-3 p-4 rounded-xl bg-muted/30"
+// Minimum days with data to show real insights (otherwise show examples)
+const MIN_DAYS_FOR_INSIGHTS = 3;
+
+// Insight type - stores text and data for rendering
+interface DynamicInsight {
+  type: 'contextState' | 'personState' | 'timeComparison' | 'weekTrend' | 'generic';
+  text: string;
+  icon?: 'context' | 'person' | 'time' | 'trend' | 'sparkle';
+  color?: string;
+}
+
+// Insights panel content - REAL dynamic insights
+function InsightsPanelContent() {
+  const { t } = useI18n();
+  const { days, checkIns } = useCheckInStore();
+  const { states, contexts, people } = useOptionsStore();
+
+  // Get last 7 days data
+  const weekData = useMemo(() => {
+    const result = [];
+    const today = new Date();
+
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = getDateString(date);
+      const day = days.find(d => d.date === dateStr);
+      const dayCheckIns = day ? checkIns.filter(c => c.dayId === day.id) : [];
+      const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+      result.push({
+        date,
+        dateStr,
+        day,
+        checkIns: dayCheckIns,
+        isToday: i === 0,
+        isWeekend,
+      });
+    }
+    return result;
+  }, [days, checkIns]);
+
+  const totalMoments = weekData.reduce((sum, d) => sum + d.checkIns.length, 0);
+  const daysWithData = weekData.filter(d => d.checkIns.length > 0).length;
+  const hasEnoughData = daysWithData >= MIN_DAYS_FOR_INSIGHTS && totalMoments >= 5;
+
+  // Generate REAL dynamic insights from actual data
+  const insights = useMemo((): DynamicInsight[] => {
+    if (!hasEnoughData) return [];
+
+    // Helper to get insight-specific state form (noun form that works after "brings"/"приносит")
+    const getInsightStateLabel = (stateId: string) => {
+      // First try insight-specific form
+      const insightForm = t(`insights.state.${stateId}` as TranslationKey);
+      if (insightForm && insightForm !== `insights.state.${stateId}`) {
+        return insightForm;
+      }
+      // Fallback to regular state label
+      const state = states.find(s => s.id === stateId);
+      return state ? (t(`state.${state.id}` as TranslationKey) || state.label) : stateId;
+    };
+
+    // Helper to get translated context label
+    const getContextLabel = (contextId: string) => {
+      const context = contexts.find(c => c.id === contextId);
+      if (!context) return contextId;
+      // Use translation for default contexts, label for custom ones
+      if (context.isDefault) {
+        return t(`context.${context.id}` as TranslationKey) || context.label;
+      }
+      return context.label;
+    };
+
+    // Helper to get translated person label
+    const getPersonLabel = (personId: string) => {
+      const person = people.find(p => p.id === personId);
+      if (!person) return personId;
+      // Use translation for default people, label for custom ones
+      if (person.isDefault) {
+        return t(`person.${person.label.toLowerCase()}` as TranslationKey) || person.label;
+      }
+      return person.label;
+    };
+
+    const allCheckIns = weekData.flatMap(d => d.checkIns);
+    const detected: DynamicInsight[] = [];
+
+    // 1. Find context → state correlations (the main insight type user wants)
+    // Group check-ins by context and find dominant state for each
+    const contextGroups = new Map<string, { positive: number; negative: number; total: number; dominantState: string }>();
+
+    allCheckIns.forEach(c => {
+      if (!c.contextId) return;
+      const group = contextGroups.get(c.contextId) || { positive: 0, negative: 0, total: 0, dominantState: '' };
+      group.total++;
+      if (POSITIVE_STATES.has(c.stateId)) group.positive++;
+      if (NEGATIVE_STATES.has(c.stateId)) group.negative++;
+      contextGroups.set(c.contextId, group);
+    });
+
+    // Find contexts with clear patterns (at least 2 check-ins)
+    contextGroups.forEach((group, contextId) => {
+      if (group.total < 2) return;
+
+      // Find the most common state for this context
+      const statesInContext = allCheckIns
+        .filter(c => c.contextId === contextId)
+        .map(c => c.stateId);
+
+      const stateCount = new Map<string, number>();
+      statesInContext.forEach(s => stateCount.set(s, (stateCount.get(s) || 0) + 1));
+
+      let dominantState = '';
+      let maxCount = 0;
+      stateCount.forEach((count, stateId) => {
+        if (count > maxCount) {
+          maxCount = count;
+          dominantState = stateId;
+        }
+      });
+
+      // Only show if dominant state appears in at least 50% of check-ins for this context
+      if (dominantState && maxCount >= group.total * 0.5) {
+        const contextLabel = getContextLabel(contextId);
+        const stateLabel = getInsightStateLabel(dominantState);
+        const stateColor = STATE_COLORS[dominantState] || '#94a3b8';
+
+        detected.push({
+          type: 'contextState',
+          text: t('insights.contextMakesState', { context: contextLabel, state: stateLabel }) ||
+                `${contextLabel} → often ${stateLabel}`,
+          icon: 'context',
+          color: stateColor,
+        });
+      }
+    });
+
+    // 2. Find person → state correlations
+    const personGroups = new Map<string, string[]>();
+    allCheckIns.forEach(c => {
+      if (!c.personId) return;
+      const states = personGroups.get(c.personId) || [];
+      states.push(c.stateId);
+      personGroups.set(c.personId, states);
+    });
+
+    personGroups.forEach((stateIds, personId) => {
+      if (stateIds.length < 2) return;
+
+      const stateCount = new Map<string, number>();
+      stateIds.forEach(s => stateCount.set(s, (stateCount.get(s) || 0) + 1));
+
+      let dominantState = '';
+      let maxCount = 0;
+      stateCount.forEach((count, stateId) => {
+        if (count > maxCount) {
+          maxCount = count;
+          dominantState = stateId;
+        }
+      });
+
+      if (dominantState && maxCount >= stateIds.length * 0.5) {
+        const personLabel = getPersonLabel(personId);
+        const stateLabel = getInsightStateLabel(dominantState);
+        const stateColor = STATE_COLORS[dominantState] || '#94a3b8';
+
+        detected.push({
+          type: 'personState',
+          text: t('insights.personMakesState', { person: personLabel, state: stateLabel }) ||
+                `With ${personLabel} → ${stateLabel}`,
+          icon: 'person',
+          color: stateColor,
+        });
+      }
+    });
+
+    // 3. Morning vs evening comparison
+    const morningCheckIns = allCheckIns.filter(c => {
+      const hour = new Date(c.timestamp).getHours();
+      return hour >= 5 && hour < 12;
+    });
+    const eveningCheckIns = allCheckIns.filter(c => {
+      const hour = new Date(c.timestamp).getHours();
+      return hour >= 17 && hour < 24;
+    });
+
+    if (morningCheckIns.length >= 2 && eveningCheckIns.length >= 2) {
+      const morningPositive = morningCheckIns.filter(c => POSITIVE_STATES.has(c.stateId)).length / morningCheckIns.length;
+      const eveningPositive = eveningCheckIns.filter(c => POSITIVE_STATES.has(c.stateId)).length / eveningCheckIns.length;
+
+      if (morningPositive > eveningPositive + 0.25) {
+        const comparison = t('insights.comparison.better') || 'better';
+        detected.push({
+          type: 'timeComparison',
+          text: t('insights.morningVsEvening', { comparison }) || `Mornings feel ${comparison} than evenings`,
+          icon: 'time',
+          color: '#f97316', // orange - morning
+        });
+      } else if (eveningPositive > morningPositive + 0.25) {
+        const comparison = t('insights.comparison.better') || 'better';
+        detected.push({
+          type: 'timeComparison',
+          text: t('insights.eveningVsMorning', { comparison }) || `Evenings feel ${comparison} than mornings`,
+          icon: 'time',
+          color: '#c084fc', // purple - evening
+        });
+      }
+    }
+
+    // 4. Weekend boost
+    const weekdayCheckIns = weekData.filter(d => !d.isWeekend).flatMap(d => d.checkIns);
+    const weekendCheckIns = weekData.filter(d => d.isWeekend).flatMap(d => d.checkIns);
+
+    if (weekdayCheckIns.length >= 3 && weekendCheckIns.length >= 2) {
+      const weekdayPositive = weekdayCheckIns.filter(c => POSITIVE_STATES.has(c.stateId)).length / weekdayCheckIns.length;
+      const weekendPositive = weekendCheckIns.filter(c => POSITIVE_STATES.has(c.stateId)).length / weekendCheckIns.length;
+
+      if (weekendPositive > weekdayPositive + 0.25) {
+        detected.push({
+          type: 'generic',
+          text: t('insights.weekendBoost') || 'Weekends lift your mood',
+          icon: 'sparkle',
+          color: '#22c55e', // green - positive
+        });
+      }
+    }
+
+    // 5. Week trend (recent vs earlier)
+    const recentCheckIns = weekData.slice(-3).flatMap(d => d.checkIns);
+    const earlierCheckIns = weekData.slice(0, 4).flatMap(d => d.checkIns);
+
+    if (recentCheckIns.length >= 3 && earlierCheckIns.length >= 3) {
+      const recentPositive = recentCheckIns.filter(c => POSITIVE_STATES.has(c.stateId)).length / recentCheckIns.length;
+      const earlierPositive = earlierCheckIns.filter(c => POSITIVE_STATES.has(c.stateId)).length / earlierCheckIns.length;
+
+      if (recentPositive > earlierPositive + 0.2) {
+        detected.push({
+          type: 'weekTrend',
+          text: t('insights.betterRecently') || 'Things are looking up lately',
+          icon: 'trend',
+          color: '#22c55e', // green - positive
+        });
+      } else if (earlierPositive > recentPositive + 0.2) {
+        detected.push({
+          type: 'weekTrend',
+          text: t('insights.harderRecently') || 'This week has been heavier',
+          icon: 'trend',
+          color: '#ef4444', // red - harder
+        });
+      }
+    }
+
+    // 6. Energy consistency
+    const uniqueStates = new Set(allCheckIns.map(c => c.stateId)).size;
+    if (uniqueStates <= 3 && allCheckIns.length >= 5) {
+      detected.push({
+        type: 'generic',
+        text: t('insights.steadyWeek') || 'Your energy has been steady',
+        icon: 'sparkle',
+        color: '#38bdf8', // blue - calm
+      });
+    } else if (uniqueStates >= 6 && allCheckIns.length >= 6) {
+      detected.push({
+        type: 'generic',
+        text: t('insights.variedWeek') || 'A week of ups and downs',
+        icon: 'sparkle',
+        color: '#a855f7', // purple - varied
+      });
+    }
+
+    // Prioritize: context/person insights first, then time, then generic
+    detected.sort((a, b) => {
+      const priority: Record<string, number> = { contextState: 0, personState: 1, timeComparison: 2, weekTrend: 3, generic: 4 };
+      return priority[a.type] - priority[b.type];
+    });
+
+    return detected.slice(0, 3); // Max 3 insights
+  }, [weekData, hasEnoughData, states, contexts, people, t]);
+
+  // Get icon component for insight type
+  const getInsightIcon = (icon?: string, color?: string) => {
+    const iconClass = "h-5 w-5 shrink-0";
+    const style = color ? { color } : undefined;
+
+    switch (icon) {
+      case 'context':
+        return <Activity className={iconClass} style={style} />;
+      case 'person':
+        return <Smile className={iconClass} style={style} />;
+      case 'time':
+        return <Sun className={iconClass} style={style} />;
+      case 'trend':
+        return <Zap className={iconClass} style={style} />;
+      case 'sparkle':
+      default:
+        return <Sparkles className={iconClass} style={style} />;
+    }
+  };
+
+  return (
+    <div className="flex flex-col py-2">
+      {hasEnoughData && insights.length > 0 ? (
+        // Real insights from actual data
+        <div className="space-y-4">
+          {insights.map((insight, i) => (
+            <motion.div
+              key={`${insight.type}-${i}`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 + i * 0.15 }}
+              className="flex items-start gap-3 p-3 rounded-xl bg-muted/30 border border-muted"
+            >
+              {/* Colored icon indicator */}
+              <div
+                className="mt-0.5 p-1.5 rounded-lg"
+                style={{ backgroundColor: `${insight.color}15` }}
               >
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-                  style={{ backgroundColor: `${insight.color}20` }}
-                >
-                  <Icon className="h-4 w-4" style={{ color: insight.color }} />
+                {getInsightIcon(insight.icon, insight.color)}
+              </div>
+              {/* Insight text */}
+              <p className="text-base text-foreground leading-relaxed pt-0.5">
+                {insight.text}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      ) : (
+        // Example insights when not enough data
+        <div className="space-y-5">
+          <p className="text-sm text-muted-foreground">
+            {t('insights.examplesTitle')}
+          </p>
+          <div className="space-y-3">
+            {[1, 2, 3].map((num, i) => (
+              <motion.div
+                key={num}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + i * 0.15 }}
+                className="flex items-start gap-3 p-3 rounded-xl bg-muted/20 border border-muted/50"
+              >
+                <div className="mt-0.5 p-1.5 rounded-lg bg-muted/30">
+                  <Sparkles className="h-4 w-4 text-muted-foreground/40" />
                 </div>
-                <p className="text-sm text-foreground/80 leading-relaxed pt-1">
-                  {insight.text}
+                <p className="text-sm text-muted-foreground/60 leading-relaxed italic pt-0.5">
+                  {t(`insights.example.${num}` as TranslationKey)}
                 </p>
               </motion.div>
-            );
-          })}
+            ))}
+          </div>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="text-sm text-muted-foreground/40 pt-2 text-center"
+          >
+            {t('insights.empty')}
+          </motion.p>
         </div>
-      </div>
-
-      {/* Footer encouragement */}
-      <div className="text-center pt-6 pb-2 mt-auto">
-        <p className="text-xs text-muted-foreground">
-          {t('insights.keepGoing') || 'Keep noticing moments.'}
-        </p>
-      </div>
+      )}
     </div>
   );
 }

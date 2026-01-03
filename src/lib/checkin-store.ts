@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
-import { Day, CheckIn, Context, Person, ExpectationTone } from './types';
+import { Day, CheckIn, ExpectationTone } from './types';
 
 // ============================================================================
 // IndexedDB Storage Keys
@@ -14,8 +14,6 @@ const STORE_NAME = 'recapz-store';
 const DB_VERSION = 3; // Must match version in store.ts
 const LOCAL_DAYS_KEY = 'local-days';
 const LOCAL_CHECKINS_KEY = 'local-checkins';
-const LOCAL_PEOPLE_KEY = 'local-people';
-const LOCAL_CONTEXTS_KEY = 'local-contexts';
 
 // ============================================================================
 // IndexedDB Helpers
@@ -125,8 +123,6 @@ interface CheckInStore {
   // State
   days: Day[];
   checkIns: CheckIn[];
-  people: Person[];
-  customContexts: Context[];
   hydrated: boolean;
 
   // Actions - Days
@@ -139,14 +135,6 @@ interface CheckInStore {
   updateCheckIn: (id: string, updates: Partial<CheckIn>) => void;
   deleteCheckIn: (id: string) => void;
 
-  // Actions - People
-  addPerson: (label: string) => Person;
-  deletePerson: (id: string) => void;
-
-  // Actions - Contexts
-  addContext: (label: string) => Context;
-  deleteContext: (id: string) => void;
-
   // Actions - Store
   setHydrated: (state: boolean) => void;
   clearAllData: () => void;
@@ -154,7 +142,6 @@ interface CheckInStore {
   // Selectors
   getTodayCheckIns: () => CheckIn[];
   getCheckInsForDay: (dayId: string) => CheckIn[];
-  getAllContexts: () => Context[];
   getToday: () => Day | undefined;
 }
 
@@ -166,8 +153,6 @@ export const useCheckInStore = create<CheckInStore>()((set, get) => ({
   // Initial state
   days: [],
   checkIns: [],
-  people: [],
-  customContexts: [],
   hydrated: false,
 
   // ============================================================================
@@ -242,60 +227,6 @@ export const useCheckInStore = create<CheckInStore>()((set, get) => ({
   },
 
   // ============================================================================
-  // People Actions
-  // ============================================================================
-
-  addPerson: (label: string) => {
-    const person: Person = {
-      id: generateId(),
-      label: label.trim(),
-      isDefault: false,
-    };
-
-    set((state) => ({
-      people: [...state.people, person],
-    }));
-    saveToDB(LOCAL_PEOPLE_KEY, get().people);
-
-    return person;
-  },
-
-  deletePerson: (id) => {
-    set((state) => ({
-      people: state.people.filter((p) => p.id !== id),
-    }));
-    saveToDB(LOCAL_PEOPLE_KEY, get().people);
-  },
-
-  // ============================================================================
-  // Context Actions
-  // ============================================================================
-
-  addContext: (label: string) => {
-    const contextId = label.toLowerCase().replace(/\s+/g, '-');
-    const context: Context = {
-      id: `custom-${contextId}-${Date.now()}`,
-      label: label.trim(),
-      isDefault: false,
-    };
-
-    set((state) => ({
-      customContexts: [...state.customContexts, context],
-    }));
-    saveToDB(LOCAL_CONTEXTS_KEY, get().customContexts);
-
-    return context;
-  },
-
-  deleteContext: (id) => {
-    // Only allow deleting custom contexts
-    set((state) => ({
-      customContexts: state.customContexts.filter((c) => c.id !== id),
-    }));
-    saveToDB(LOCAL_CONTEXTS_KEY, get().customContexts);
-  },
-
-  // ============================================================================
   // Store Actions
   // ============================================================================
 
@@ -305,13 +236,9 @@ export const useCheckInStore = create<CheckInStore>()((set, get) => ({
     set({
       days: [],
       checkIns: [],
-      people: [],
-      customContexts: [],
     });
     saveToDB(LOCAL_DAYS_KEY, []);
     saveToDB(LOCAL_CHECKINS_KEY, []);
-    saveToDB(LOCAL_PEOPLE_KEY, []);
-    saveToDB(LOCAL_CONTEXTS_KEY, []);
   },
 
   // ============================================================================
@@ -342,12 +269,6 @@ export const useCheckInStore = create<CheckInStore>()((set, get) => ({
           new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
   },
-
-  getAllContexts: () => {
-    // Returns only local custom contexts
-    // For full list including defaults, use useOptionsStore
-    return get().customContexts;
-  },
 }));
 
 // ============================================================================
@@ -363,18 +284,14 @@ export async function hydrateCheckInStore(): Promise<void> {
   }
 
   try {
-    const [days, checkIns, people, customContexts] = await Promise.all([
+    const [days, checkIns] = await Promise.all([
       loadFromDB<Day[]>(LOCAL_DAYS_KEY, []),
       loadFromDB<CheckIn[]>(LOCAL_CHECKINS_KEY, []),
-      loadFromDB<Person[]>(LOCAL_PEOPLE_KEY, []),
-      loadFromDB<Context[]>(LOCAL_CONTEXTS_KEY, []),
     ]);
 
     useCheckInStore.setState({
       days,
       checkIns,
-      people,
-      customContexts,
       hydrated: true,
     });
   } catch (error) {

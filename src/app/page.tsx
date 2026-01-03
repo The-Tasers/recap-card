@@ -10,6 +10,8 @@ export default function HomePage() {
     showOnboarding,
     completeOnboarding,
     checked: onboardingChecked,
+    shouldShowRecap,
+    clearShowRecap,
   } = useOnboarding();
 
   // Loading state
@@ -38,7 +40,7 @@ export default function HomePage() {
 
   return (
     <>
-      <CheckInHome />
+      <CheckInHome initialShowRecap={shouldShowRecap} onRecapShown={clearShowRecap} />
       <SignupPrompt />
     </>
   );

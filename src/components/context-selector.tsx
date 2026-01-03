@@ -119,7 +119,9 @@ export function ContextSelector({
                 />
               )}
               <span className="text-sm font-medium">
-                {t(`context.${context.id}` as any) || context.label}
+                {context.isDefault
+                  ? t(`context.${context.id}` as any) || context.label
+                  : context.label}
               </span>
             </motion.button>
           );
@@ -240,7 +242,9 @@ export function ContextBadge({ contextId, size = 'md' }: ContextBadgeProps) {
         <Icon className={cn(iconSizes[size], 'text-muted-foreground')} />
       )}
       <span className="font-medium text-muted-foreground">
-        {t(`context.${contextId}` as any) || context.label}
+        {context.isDefault
+          ? t(`context.${contextId}` as any) || context.label
+          : context.label}
       </span>
     </span>
   );

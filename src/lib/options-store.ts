@@ -18,6 +18,7 @@ interface OptionsStore {
 
   // Loading state
   loading: boolean;
+  loaded: boolean; // Prevents re-fetching static data
   error: string | null;
 
   // Computed getters
@@ -28,7 +29,7 @@ interface OptionsStore {
   getCustomPeople: () => Person[];
 
   // Actions
-  loadOptions: (userId?: string) => Promise<void>;
+  loadOptions: (userId?: string, force?: boolean) => Promise<void>;
   addCustomContext: (label: string, userId: string) => Promise<Context>;
   addCustomPerson: (label: string, userId: string) => Promise<Person>;
   deleteCustomContext: (id: string) => Promise<void>;
@@ -77,6 +78,7 @@ export const useOptionsStore = create<OptionsStore>()((set, get) => ({
   contexts: [],
   people: [],
   loading: false,
+  loaded: false,
   error: null,
 
   // ============================================================================
@@ -107,7 +109,17 @@ export const useOptionsStore = create<OptionsStore>()((set, get) => ({
   // Load Options from Database
   // ============================================================================
 
-  loadOptions: async (userId?: string) => {
+  loadOptions: async (userId?: string, force?: boolean) => {
+    // Skip if already loaded (unless forced)
+    if (get().loaded && !force) {
+      return;
+    }
+
+    // Skip if already loading
+    if (get().loading) {
+      return;
+    }
+
     set({ loading: true, error: null });
 
     try {
@@ -144,6 +156,7 @@ export const useOptionsStore = create<OptionsStore>()((set, get) => ({
         contexts: ((contextsData || []) as DbContext[]).map(dbContextToAppContext),
         people: ((peopleData || []) as DbPerson[]).map(dbPersonToAppPerson),
         loading: false,
+        loaded: true,
         error: null,
       });
     } catch (error) {
@@ -252,6 +265,7 @@ export const useOptionsStore = create<OptionsStore>()((set, get) => ({
       contexts: [],
       people: [],
       loading: false,
+      loaded: false,
       error: null,
     });
   },

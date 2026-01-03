@@ -10,8 +10,9 @@ import {
 } from 'react';
 import { useAuth } from '@/components/auth-provider';
 import { useCheckInStore, hydrateCheckInStore } from '@/lib/checkin-store';
+import { useOptionsStore } from '@/lib/options-store';
 import { createClient } from '@/lib/supabase/client';
-import type { Day, CheckIn, Person, Context } from '@/lib/types';
+import type { Day, CheckIn } from '@/lib/types';
 import { useI18n, type TranslationKey } from '@/lib/i18n';
 import type { SupabaseClient, PostgrestError } from '@supabase/supabase-js';
 
@@ -107,6 +108,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
   // Get store actions
   const setHydrated = useCheckInStore((s) => s.setHydrated);
+  const loadOptions = useOptionsStore((s) => s.loadOptions);
 
   // Track if initial sync has been done for this session
   const hasSyncedRef = useRef(false);
@@ -132,45 +134,38 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
-  // Full sync: merge local and cloud data
+  // Full sync: merge local and cloud data (days and checkins only)
+  // People and contexts are managed by options-store
   const performFullSync = useCallback(async () => {
     if (!user) return;
     setIsSyncing(true);
 
     try {
-      // 1. Fetch all cloud data
-      const [cloudDays, cloudCheckIns, cloudPeople, cloudContexts] = await Promise.all([
-        supabase.from('days').select('*').eq('user_id', user.id),
-        supabase.from('checkins').select('*').eq('user_id', user.id),
-        supabase.from('people').select('*').eq('user_id', user.id),
-        supabase.from('contexts').select('*').or(`user_id.eq.${user.id},is_default.eq.true`),
+      // 1. Fetch cloud days and checkins
+      const [cloudDays, cloudCheckIns] = await Promise.all([
+        supabase.from('days').select('*').eq('user_id', user.id).order('date', { ascending: false }),
+        supabase.from('checkins').select('*').eq('user_id', user.id).order('timestamp', { ascending: false }),
       ]);
 
       // Check for errors
       if (cloudDays.error) throw cloudDays.error;
       if (cloudCheckIns.error) throw cloudCheckIns.error;
-      if (cloudPeople.error) throw cloudPeople.error;
-      if (cloudContexts.error) throw cloudContexts.error;
 
-      // 2. Get current local data directly from store (avoid stale closure)
+      // 2. Get current local data directly from store
       const currentState = useCheckInStore.getState();
       const localDays = currentState.days;
       const localCheckIns = currentState.checkIns;
-      const localPeople = currentState.people;
-      const localCustomContexts = currentState.customContexts;
 
-      // 3. Merge data (cloud is source of truth, but keep local-only items)
-      // Build sets of cloud IDs
+      // 3. Build sets of cloud IDs
       const cloudDayIds = new Set((cloudDays.data || []).map((d: { id: string }) => d.id));
       const cloudCheckInIds = new Set((cloudCheckIns.data || []).map((c: { id: string }) => c.id));
-      const cloudPeopleIds = new Set((cloudPeople.data || []).map((p: { id: string }) => p.id));
-      const cloudContextIds = new Set((cloudContexts.data || []).map((c: { id: string }) => c.id));
 
       // Find local-only items (not in cloud)
       const localOnlyDays = localDays.filter((d) => !cloudDayIds.has(d.id));
       const localOnlyCheckIns = localCheckIns.filter((c) => !cloudCheckInIds.has(c.id));
-      const localOnlyPeople = localPeople.filter((p) => !cloudPeopleIds.has(p.id));
-      const localOnlyContexts = localCustomContexts.filter((c) => !cloudContextIds.has(c.id));
+
+      // Track if we uploaded anything
+      const hasUploads = localOnlyDays.length > 0 || localOnlyCheckIns.length > 0;
 
       // 4. Upload local-only items to cloud
       if (localOnlyDays.length > 0) {
@@ -185,31 +180,6 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
           { onConflict: 'id' }
         );
         if (error) console.error('Error uploading days:', error);
-      }
-
-      if (localOnlyPeople.length > 0) {
-        const { error } = await supabase.from('people').upsert(
-          localOnlyPeople.map((p) => ({
-            id: p.id,
-            user_id: user.id,
-            label: p.label,
-          })),
-          { onConflict: 'id' }
-        );
-        if (error) console.error('Error uploading people:', error);
-      }
-
-      if (localOnlyContexts.length > 0) {
-        const { error } = await supabase.from('contexts').upsert(
-          localOnlyContexts.map((c) => ({
-            id: c.id,
-            user_id: user.id,
-            label: c.label,
-            is_default: false,
-          })),
-          { onConflict: 'id' }
-        );
-        if (error) console.error('Error uploading contexts:', error);
       }
 
       if (localOnlyCheckIns.length > 0) {
@@ -228,16 +198,26 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         if (error) console.error('Error uploading check-ins:', error);
       }
 
-      // 5. Fetch final cloud data (includes newly uploaded)
-      const [finalDays, finalCheckIns, finalPeople, finalContexts] = await Promise.all([
-        supabase.from('days').select('*').eq('user_id', user.id).order('date', { ascending: false }),
-        supabase.from('checkins').select('*').eq('user_id', user.id).order('timestamp', { ascending: false }),
-        supabase.from('people').select('*').eq('user_id', user.id),
-        supabase.from('contexts').select('*').or(`user_id.eq.${user.id},is_default.eq.true`),
-      ]);
+      // 5. Use initial data or re-fetch only if we uploaded something
+      let finalDaysData = cloudDays.data || [];
+      let finalCheckInsData = cloudCheckIns.data || [];
+
+      if (hasUploads) {
+        // Only re-fetch if we uploaded new data
+        const [refetchedDays, refetchedCheckIns] = await Promise.all([
+          supabase.from('days').select('*').eq('user_id', user.id).order('date', { ascending: false }),
+          supabase.from('checkins').select('*').eq('user_id', user.id).order('timestamp', { ascending: false }),
+        ]);
+
+        if (refetchedDays.error) throw refetchedDays.error;
+        if (refetchedCheckIns.error) throw refetchedCheckIns.error;
+
+        finalDaysData = refetchedDays.data || [];
+        finalCheckInsData = refetchedCheckIns.data || [];
+      }
 
       // 6. Transform and update local store
-      const mergedDays: Day[] = (finalDays.data || []).map((d: {
+      const mergedDays: Day[] = finalDaysData.map((d: {
         id: string;
         user_id: string;
         date: string;
@@ -251,7 +231,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         createdAt: d.created_at,
       }));
 
-      const mergedCheckIns: CheckIn[] = (finalCheckIns.data || []).map((c: {
+      const mergedCheckIns: CheckIn[] = finalCheckInsData.map((c: {
         id: string;
         day_id: string;
         timestamp: string;
@@ -268,43 +248,15 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         personId: c.person_id || undefined,
       }));
 
-      const mergedPeople: Person[] = (finalPeople.data || []).map((p: {
-        id: string;
-        user_id: string | null;
-        label: string;
-        is_default: boolean;
-      }) => ({
-        id: p.id,
-        userId: p.user_id || undefined,
-        label: p.label,
-        isDefault: p.is_default,
-      }));
-
-      const mergedCustomContexts: Context[] = (finalContexts.data || [])
-        .filter((c: { is_default: boolean }) => !c.is_default)
-        .map((c: {
-          id: string;
-          label: string;
-          is_default: boolean;
-          user_id: string | null;
-        }) => ({
-          id: c.id,
-          label: c.label,
-          isDefault: false,
-          userId: c.user_id || undefined,
-        }));
-
-      // Update store
+      // Update store (only days and checkIns)
       useCheckInStore.setState({
         days: mergedDays,
         checkIns: mergedCheckIns,
-        people: mergedPeople,
-        customContexts: mergedCustomContexts,
         hydrated: true,
       });
 
       // Show success if we uploaded anything
-      const uploadedCount = localOnlyDays.length + localOnlyCheckIns.length + localOnlyPeople.length + localOnlyContexts.length;
+      const uploadedCount = localOnlyDays.length + localOnlyCheckIns.length;
       if (uploadedCount > 0) {
         showSyncNotification('success', t('sync.synced', { count: uploadedCount }));
       }
@@ -343,7 +295,10 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     const initialize = async () => {
       isInitializedRef.current = true;
 
-      // First, hydrate from IndexedDB
+      // Load options (states, contexts, people) - only fetches once
+      await loadOptions(user?.id);
+
+      // Hydrate check-in data from IndexedDB
       await hydrateCheckInStore();
 
       if (user) {
@@ -359,7 +314,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     };
 
     initialize();
-  }, [user, authLoading, setHydrated, performFullSync]);
+  }, [user, authLoading, setHydrated, performFullSync, loadOptions]);
 
   const contextValue: SyncContextValue = {
     isAuthenticated: !!user,
