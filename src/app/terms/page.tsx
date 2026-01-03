@@ -47,13 +47,6 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-foreground font-medium mb-2">
-              {t('terms.account')}
-            </h2>
-            <p>{t('terms.accountText')}</p>
-          </section>
-
-          <section>
-            <h2 className="text-foreground font-medium mb-2">
               {t('terms.service')}
             </h2>
             <p>{t('terms.serviceText')}</p>

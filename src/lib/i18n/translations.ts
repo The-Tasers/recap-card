@@ -59,33 +59,12 @@ export const translations = {
 
     // Settings
     'settings.title': 'Settings',
-    'settings.logOut': 'Log out',
-    'settings.account': 'Account',
     'settings.appearance': 'Appearance',
     'settings.data': 'Data',
     'settings.language': 'Language',
-    'settings.syncing': 'Syncing',
-    'settings.signedOut': 'Signed out',
-    'settings.signInPrompt': 'Sign in to sync across devices',
-    'settings.signIn': 'Sign in',
-    'settings.signUp': 'Sign up',
-    'settings.changePassword': 'Change password',
-    'settings.deleteAccount': 'Delete account',
-    'settings.deleteAccountConfirm': 'Delete your account and all data?',
     'settings.cancel': 'Cancel',
-    'settings.yesDelete': 'Yes, delete',
-    'settings.deleting': 'Deleting...',
-    'settings.newPassword': 'New password',
-    'settings.confirmPassword': 'Confirm new password',
     'settings.save': 'Save',
     'settings.saving': 'Saving...',
-    'settings.passwordMismatch': 'Passwords do not match',
-    'settings.passwordTooShort': 'Password must be at least 6 characters',
-    'settings.passwordUpdated': 'Password updated',
-    'settings.cloudSync': 'Cloud sync',
-    'settings.cloudSyncDesc': 'Data synced across devices',
-    'settings.localOnly': 'Local only',
-    'settings.localOnlyDesc': 'Data stored on this device',
     'settings.daysCaptured':
       '{count} {count, plural, one {day} other {days}} captured',
     'settings.clearData': 'Clear all data',
@@ -93,55 +72,7 @@ export const translations = {
       'This will permanently delete {count} {count, plural, one {day} other {days}}.',
     'settings.keepData': 'Keep My Data',
     'settings.deleteAll': 'Delete All',
-
-    // Auth
-    'auth.email': 'Email',
-    'auth.password': 'Password',
-    'auth.confirmPassword': 'Confirm password',
-    'auth.signIn': 'Sign in',
-    'auth.signUp': 'Create account',
-    'auth.signingIn': 'Signing in...',
-    'auth.creatingAccount': 'Creating account...',
-    'auth.forgotPassword': 'Forgot password?',
-    'auth.noAccount': "Don't have an account?",
-    'auth.haveAccount': 'Already have an account?',
-    'auth.signUpLink': 'Sign up',
-    'auth.signInLink': 'Sign in',
-    'auth.welcomeBack': 'Welcome back',
-    'auth.createAccount': 'Create an account',
-    'auth.forgotPasswordTitle': 'Forgot password?',
-    'auth.forgotPasswordDescription':
-      "Enter your email and we'll send you a reset link.",
-    'auth.sendResetLink': 'Send reset link',
-    'auth.backToLogin': 'Back to login',
-    'auth.rememberPassword': 'Remember your password?',
-    'auth.checkEmail': 'Check your email',
-    'auth.resetLinkSent': 'We sent a password reset link to',
-    'auth.clickLinkToReset': 'Click the link to reset your password.',
-    'auth.confirmationSent': 'We sent a confirmation link to',
-    'auth.clickLinkToActivate': 'Click the link to activate your account.',
-    'auth.invalidEmail': 'Please enter a valid email address',
-    'auth.passwordMismatch': 'Passwords do not match',
-    'auth.passwordTooShort': 'Password must be at least 6 characters',
-
-    // Auth errors (Supabase)
-    'auth.error.invalid_credentials': 'Invalid email or password',
-    'auth.error.email_not_confirmed': 'Please confirm your email first',
-    'auth.error.user_not_found': 'No account found with this email',
-    'auth.error.email_exists': 'An account with this email already exists',
-    'auth.error.user_already_exists':
-      'An account with this email already exists',
-    'auth.error.weak_password':
-      'Password is too weak. Use at least 6 characters',
-    'auth.error.over_request_rate_limit':
-      'Too many attempts. Please wait a moment',
-    'auth.error.over_email_send_rate_limit':
-      'Too many emails sent. Please wait a moment',
-    'auth.error.email_address_invalid': 'Invalid email address',
-    'auth.error.user_banned': 'This account has been suspended',
-    'auth.error.session_expired':
-      'Your session has expired. Please sign in again',
-    'auth.error.unknown': 'Something went wrong. Please try again',
+    'settings.deleting': 'Deleting...',
 
     // Settings - appearance
     'settings.theme': 'Theme',
@@ -152,13 +83,6 @@ export const translations = {
     'settings.about': 'Support',
     'settings.contact': 'Contact',
     'settings.leaveFeedback': 'Feedback',
-
-    // Signup prompt
-    'signupPrompt.title': 'Keep your days safe',
-    'signupPrompt.description':
-      '{count} {count, plural, one {day} other {days}} captured. Sign in to keep them across devices.',
-    'signupPrompt.later': 'Maybe later',
-    'signupPrompt.signUp': 'Sign up',
 
     // Feedback modal
     'feedback.title': 'Quick feedback',
@@ -174,17 +98,6 @@ export const translations = {
     'feedback.thanks': 'Thank you for your feedback!',
     'feedback.error': 'Failed to send feedback',
 
-    // Password reset
-    'auth.resetPasswordTitle': 'Set new password',
-    'auth.resetPasswordDescription': 'Enter your new password below.',
-    'auth.newPassword': 'New password',
-    'auth.confirmNewPassword': 'Confirm new password',
-    'auth.resetPassword': 'Reset password',
-    'auth.passwordResetSuccess': 'Password updated',
-    'auth.passwordResetSuccessDescription':
-      'Your password has been successfully changed.',
-    'auth.continue': 'Continue',
-
     // Footer
     'footer.privacy': 'Privacy',
     'footer.terms': 'Terms',
@@ -193,16 +106,16 @@ export const translations = {
     'privacy.title': 'Privacy Policy',
     'privacy.yourData': 'Your Data',
     'privacy.yourDataText':
-      'Recapz stores your journal entries locally on your device. If you create an account, your data syncs to our secure cloud servers to enable access across devices.',
+      'Recapz stores your journal entries locally on your device. Your data never leaves your device.',
     'privacy.whatWeCollect': 'What We Collect',
     'privacy.whatWeCollectText':
-      "We collect only what you provide: your email (for accounts), journal entries, mood selections, and any photos you add. We don't track your behavior or sell your data.",
+      "We don't collect any data. Everything stays on your device. We don't track your behavior or sell your data.",
     'privacy.dataSecurity': 'Data Security',
     'privacy.dataSecurityText':
-      'Your data is encrypted in transit and at rest. We use Supabase for secure cloud storage with industry-standard security practices.',
+      'Your data is stored locally on your device. We prioritize your privacy with industry-standard security practices.',
     'privacy.yourRights': 'Your Rights',
     'privacy.yourRightsText':
-      'You can delete all your data at any time from the app settings. Deleting your account removes all data from our servers permanently.',
+      'You can delete all your data at any time from the app settings.',
     'privacy.contact': 'Contact',
     'privacy.contactText': 'Questions? Reach out at',
 
@@ -214,9 +127,6 @@ export const translations = {
     'terms.yourContent': 'Your Content',
     'terms.yourContentText':
       "You own everything you create in Recapz. We don't claim any rights to your journal entries, photos, or other content. You're responsible for what you write.",
-    'terms.account': 'Account',
-    'terms.accountText':
-      "Keep your login credentials secure. You're responsible for activity on your account. We may suspend accounts that violate these terms.",
     'terms.service': 'Service',
     'terms.serviceText':
       "We provide Recapz as-is. While we strive for reliability, we can't guarantee uninterrupted service. We may update or modify the app at any time.",
@@ -356,9 +266,6 @@ export const translations = {
     // Toasts
     'toast.allDataCleared': 'All data cleared',
     'toast.failedToClearData': 'Failed to clear data',
-    'toast.failedToDeleteCloudData': 'Failed to delete cloud data',
-    'toast.accountDeleted': 'Account deleted',
-    'toast.failedToDeleteAccount': 'Failed to delete account',
     'toast.noDataToExport': 'No data to export',
     'toast.invalidImage': 'Invalid image',
     'toast.failedToProcessImage': 'Failed to process image',
@@ -552,10 +459,6 @@ export const translations = {
     'person.friends': 'Friends',
     'person.colleagues': 'Colleagues',
 
-    // Login prompt for custom items
-    'customItem.loginRequired': 'Sign in to add your own',
-    'customItem.loginPrompt': 'to add your own items',
-
     // Day recap
     'recap.title': 'Your day',
     'recap.noCheckins': 'A quiet day. Nothing marked.',
@@ -663,33 +566,12 @@ export const translations = {
 
     // Settings
     'settings.title': 'Настройки',
-    'settings.logOut': 'Выйти',
-    'settings.account': 'Аккаунт',
     'settings.appearance': 'Оформление',
     'settings.data': 'Данные',
     'settings.language': 'Язык',
-    'settings.syncing': 'Синхронизация',
-    'settings.signedOut': 'Выход выполнен',
-    'settings.signInPrompt': 'Войди, чтобы синхронизировать данные',
-    'settings.signIn': 'Войти',
-    'settings.signUp': 'Создать аккаунт',
-    'settings.changePassword': 'Сменить пароль',
-    'settings.deleteAccount': 'Удалить аккаунт',
-    'settings.deleteAccountConfirm': 'Удалить аккаунт и все данные?',
     'settings.cancel': 'Отмена',
-    'settings.yesDelete': 'Да, удалить',
-    'settings.deleting': 'Удаляю...',
-    'settings.newPassword': 'Новый пароль',
-    'settings.confirmPassword': 'Повтори пароль',
     'settings.save': 'Сохранить',
     'settings.saving': 'Сохраняю...',
-    'settings.passwordMismatch': 'Пароли не совпадают',
-    'settings.passwordTooShort': 'Минимум 6 символов',
-    'settings.passwordUpdated': 'Пароль изменён',
-    'settings.cloudSync': 'Облако',
-    'settings.cloudSyncDesc': 'Данные синхронизируются',
-    'settings.localOnly': 'Локально',
-    'settings.localOnlyDesc': 'Данные на этом устройстве',
     'settings.daysCaptured':
       '{count} {count, plural, one {день} few {дня} other {дней}}',
     'settings.clearData': 'Удалить все данные',
@@ -697,50 +579,7 @@ export const translations = {
       '{count} {count, plural, one {день} few {дня} other {дней}} {count, plural, one {будет удалён} few {будут удалены} other {будет удалено}}. Навсегда.',
     'settings.keepData': 'Оставить',
     'settings.deleteAll': 'Удалить всё',
-
-    // Auth
-    'auth.email': 'Email',
-    'auth.password': 'Пароль',
-    'auth.confirmPassword': 'Подтверди пароль',
-    'auth.signIn': 'Войти',
-    'auth.signUp': 'Создать аккаунт',
-    'auth.signingIn': 'Вхожу...',
-    'auth.creatingAccount': 'Создаю...',
-    'auth.forgotPassword': 'Не помнишь пароль?',
-    'auth.noAccount': 'Нет аккаунта?',
-    'auth.haveAccount': 'Уже есть аккаунт?',
-    'auth.signUpLink': 'Создать',
-    'auth.signInLink': 'Войти',
-    'auth.welcomeBack': 'С возвращением',
-    'auth.createAccount': 'Создать аккаунт',
-    'auth.forgotPasswordTitle': 'Восстановление пароля',
-    'auth.forgotPasswordDescription':
-      'Укажи email - отправим ссылку для сброса.',
-    'auth.sendResetLink': 'Отправить',
-    'auth.backToLogin': 'Назад',
-    'auth.rememberPassword': 'Помнишь пароль?',
-    'auth.checkEmail': 'Проверь почту',
-    'auth.resetLinkSent': 'Ссылка для сброса отправлена на',
-    'auth.clickLinkToReset': 'Перейди по ней, чтобы задать новый пароль.',
-    'auth.confirmationSent': 'Ссылка для подтверждения отправлена на',
-    'auth.clickLinkToActivate': 'Перейди по ней, чтобы активировать аккаунт.',
-    'auth.invalidEmail': 'Некорректный email',
-    'auth.passwordMismatch': 'Пароли не совпадают',
-    'auth.passwordTooShort': 'Минимум 6 символов',
-
-    // Auth errors (Supabase)
-    'auth.error.invalid_credentials': 'Неверный email или пароль',
-    'auth.error.email_not_confirmed': 'Сначала подтвердите email',
-    'auth.error.user_not_found': 'Аккаунт с таким email не найден',
-    'auth.error.email_exists': 'Аккаунт с таким email уже есть',
-    'auth.error.user_already_exists': 'Аккаунт с таким email уже есть',
-    'auth.error.weak_password': 'Слабый пароль. Минимум 6 символов',
-    'auth.error.over_request_rate_limit': 'Слишком много попыток. Подождите',
-    'auth.error.over_email_send_rate_limit': 'Слишком много писем. Подождите',
-    'auth.error.email_address_invalid': 'Некорректный email',
-    'auth.error.user_banned': 'Аккаунт заблокирован',
-    'auth.error.session_expired': 'Сессия истекла. Войдите снова',
-    'auth.error.unknown': 'Что-то пошло не так. Попробуйте ещё раз',
+    'settings.deleting': 'Удаляю...',
 
     // Settings - appearance
     'settings.theme': 'Тема',
@@ -751,13 +590,6 @@ export const translations = {
     'settings.about': 'Поддержка',
     'settings.contact': 'Написать',
     'settings.leaveFeedback': 'Отзыв',
-
-    // Signup prompt
-    'signupPrompt.title': 'Сохрани свои дни',
-    'signupPrompt.description':
-      '{count} {count, plural, one {день} few {дня} other {дней}} записано. Войди, чтобы синхронизировать.',
-    'signupPrompt.later': 'Позже',
-    'signupPrompt.signUp': 'Создать аккаунт',
 
     // Feedback modal
     'feedback.title': 'Быстрый отзыв',
@@ -773,17 +605,6 @@ export const translations = {
     'feedback.thanks': 'Спасибо за отзыв!',
     'feedback.error': 'Не удалось отправить',
 
-    // Password reset
-    'auth.resetPasswordTitle': 'Новый пароль',
-    'auth.resetPasswordDescription': 'Введи новый пароль.',
-    'auth.newPassword': 'Новый пароль',
-    'auth.confirmNewPassword': 'Повтори пароль',
-    'auth.resetPassword': 'Сохранить',
-    'auth.passwordResetSuccess': 'Пароль изменён',
-    'auth.passwordResetSuccessDescription':
-      'Теперь можешь использовать новый пароль.',
-    'auth.continue': 'Продолжить',
-
     // Footer
     'footer.privacy': 'Приватность',
     'footer.terms': 'Условия',
@@ -792,16 +613,16 @@ export const translations = {
     'privacy.title': 'Конфиденциальность',
     'privacy.yourData': 'Твои данные',
     'privacy.yourDataText':
-      'Recapz хранит записи на твоём устройстве. Если создашь аккаунт - они синхронизируются с нашими серверами для доступа с других устройств.',
+      'Recapz хранит записи на твоём устройстве. Данные никуда не отправляются.',
     'privacy.whatWeCollect': 'Что мы собираем',
     'privacy.whatWeCollectText':
-      'Только то, что ты сам добавляешь: email, записи, настроение и фото. Мы не следим за тобой и не продаём данные.',
+      'Мы не собираем никаких данных. Всё остаётся на твоём устройстве. Мы не следим за тобой и не продаём данные.',
     'privacy.dataSecurity': 'Безопасность',
     'privacy.dataSecurityText':
-      'Данные шифруются при передаче и хранении. Мы используем Supabase - надёжное облачное хранилище.',
+      'Данные хранятся локально на твоём устройстве.',
     'privacy.yourRights': 'Твои права',
     'privacy.yourRightsText':
-      'Ты можешь удалить все данные в любой момент через настройки. При удалении аккаунта всё стирается с серверов навсегда.',
+      'Ты можешь удалить все данные в любой момент через настройки.',
     'privacy.contact': 'Связь',
     'privacy.contactText': 'Вопросы? Пиши на',
 
@@ -813,9 +634,6 @@ export const translations = {
     'terms.yourContent': 'Твой контент',
     'terms.yourContentText':
       'Всё, что ты создаёшь в Recapz, принадлежит тебе. Мы не претендуем на твои записи, фото или другой контент. Ты сам отвечаешь за то, что пишешь.',
-    'terms.account': 'Аккаунт',
-    'terms.accountText':
-      'Береги свои данные для входа. Ты отвечаешь за всё, что происходит в твоём аккаунте. Мы можем заблокировать нарушителей.',
     'terms.service': 'Сервис',
     'terms.serviceText':
       'Recapz предоставляется «как есть». Мы стараемся работать стабильно, но не можем гарантировать бесперебойность. Приложение может обновляться.',
@@ -955,9 +773,6 @@ export const translations = {
     // Toasts
     'toast.allDataCleared': 'Данные удалены',
     'toast.failedToClearData': 'Не удалось удалить',
-    'toast.failedToDeleteCloudData': 'Ошибка удаления',
-    'toast.accountDeleted': 'Аккаунт удалён',
-    'toast.failedToDeleteAccount': 'Не удалось удалить аккаунт',
     'toast.noDataToExport': 'Нечего экспортировать',
     'toast.invalidImage': 'Неверный формат',
     'toast.failedToProcessImage': 'Не удалось обработать',
@@ -1149,10 +964,6 @@ export const translations = {
     'person.family': 'Семья',
     'person.friends': 'Друзья',
     'person.colleagues': 'Коллеги',
-
-    // Login prompt for custom items
-    'customItem.loginRequired': 'Войди, чтобы добавлять свои',
-    'customItem.loginPrompt': 'Войди, чтобы добавлять свои',
 
     // Day recap
     'recap.title': 'Твой день',

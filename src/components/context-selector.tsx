@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FREE_PLAN_LIMITS } from '@/lib/types';
+import { motion } from 'framer-motion';
 import { useOptionsStore } from '@/lib/options-store';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
@@ -16,7 +15,6 @@ import {
   ShoppingBag,
   Moon,
   Plus,
-  LogIn,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -36,42 +34,24 @@ interface ContextSelectorProps {
   value?: string;
   onChange: (contextId: string) => void;
   onAddContext?: (label: string) => void;
-  isPaidUser?: boolean;
-  showLoginPrompt?: boolean;
 }
 
 export function ContextSelector({
   value,
   onChange,
   onAddContext,
-  isPaidUser = false,
-  showLoginPrompt = false,
 }: ContextSelectorProps) {
   const { t } = useI18n();
-  const { contexts, getCustomContexts } = useOptionsStore();
+  const { contexts } = useOptionsStore();
   const [isAdding, setIsAdding] = useState(false);
   const [newLabel, setNewLabel] = useState('');
-  const [showLoginNotice, setShowLoginNotice] = useState(false);
-
-  // Contexts are loaded from the database via options store
-  const customContexts = getCustomContexts();
-
-  // Check if user can add more custom contexts
-  const canAddCustomContext =
-    isPaidUser || customContexts.length < FREE_PLAN_LIMITS.maxCustomContexts;
 
   const handleAddButtonClick = () => {
-    if (showLoginPrompt) {
-      // Not logged in - show login notice
-      setShowLoginNotice(true);
-      setTimeout(() => setShowLoginNotice(false), 3000);
-    } else if (canAddCustomContext) {
-      setIsAdding(true);
-    }
+    setIsAdding(true);
   };
 
   const handleAddContext = () => {
-    if (newLabel.trim() && onAddContext && canAddCustomContext) {
+    if (newLabel.trim() && onAddContext) {
       onAddContext(newLabel.trim());
       setNewLabel('');
       setIsAdding(false);
@@ -160,49 +140,17 @@ export function ContextSelector({
             </button>
           </div>
         ) : (
-          <div className="relative">
-            <motion.button
-              type="button"
-              onClick={handleAddButtonClick}
-              className={cn(
-                'flex items-center gap-2 px-3 py-2 rounded-xl border-2 border-dashed transition-colors cursor-pointer',
-                showLoginPrompt
-                  ? 'border-muted-foreground/20 text-muted-foreground/60'
-                  : 'border-muted-foreground/30 hover:border-muted-foreground/50 text-muted-foreground hover:text-foreground'
-              )}
-              whileTap={{ scale: 0.95 }}
-            >
-              {showLoginPrompt ? (
-                <LogIn className="h-4 w-4" />
-              ) : (
-                <Plus className="h-4 w-4" />
-              )}
-              <span className="text-sm">{t('context.addCustom')}</span>
-            </motion.button>
-            {/* Tooltip for login prompt */}
-            <AnimatePresence>
-              {showLoginNotice && (
-                <motion.div
-                  initial={{ opacity: 0, y: 4, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                  className="absolute left-0 top-full mt-2 z-10 px-3 py-2 rounded-lg bg-foreground text-background text-xs font-medium shadow-lg whitespace-nowrap"
-                >
-                  {t('customItem.loginRequired')}
-                  <div className="absolute -top-1 left-4 w-2 h-2 bg-foreground rotate-45" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          <motion.button
+            type="button"
+            onClick={handleAddButtonClick}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border-2 border-dashed transition-colors cursor-pointer border-muted-foreground/30 hover:border-muted-foreground/50 text-muted-foreground hover:text-foreground"
+            whileTap={{ scale: 0.95 }}
+          >
+            <Plus className="h-4 w-4" />
+            <span className="text-sm">{t('context.addCustom')}</span>
+          </motion.button>
         )}
       </div>
-
-      {/* Soft upgrade prompt when limit reached (only when logged in) */}
-      {!showLoginPrompt && !canAddCustomContext && (
-        <p className="text-xs text-muted-foreground mt-2">
-          {t('upgrade.customContextLimit')}
-        </p>
-      )}
     </div>
   );
 }

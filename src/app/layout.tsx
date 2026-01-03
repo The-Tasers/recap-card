@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
 import { ThemeProvider } from '@/components/theme-provider';
-import { AuthProvider } from '@/components/auth-provider';
 import { AppLoader } from '@/components/app-loader';
 import { Geist } from 'next/font/google';
 import './globals.css';
@@ -72,27 +71,25 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} font-sans antialiased min-h-screen-dynamic bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100`}
       >
-        <AuthProvider>
-          <ThemeProvider>
-            <I18nProvider>
-              <DynamicMetadata />
-              <SyncProvider>
-                <AppLoader>
-                  <Suspense
-                    fallback={
-                      <div className="flex items-center justify-center min-h-screen text-muted-foreground">
-                        Loading...
-                      </div>
-                    }
-                  >
-                    {children}
-                  </Suspense>
-                </AppLoader>
-                <Toaster />
-              </SyncProvider>
-            </I18nProvider>
-          </ThemeProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <I18nProvider>
+            <DynamicMetadata />
+            <SyncProvider>
+              <AppLoader>
+                <Suspense
+                  fallback={
+                    <div className="flex items-center justify-center min-h-screen text-muted-foreground">
+                      Loading...
+                    </div>
+                  }
+                >
+                  {children}
+                </Suspense>
+              </AppLoader>
+              <Toaster />
+            </SyncProvider>
+          </I18nProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
