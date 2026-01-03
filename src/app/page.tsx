@@ -2,7 +2,6 @@
 
 import { CheckInHome } from '@/components/checkin-home';
 import { Onboarding, useOnboarding } from '@/components/onboarding';
-import { SignupPrompt } from '@/components/signup-prompt';
 import { Activity } from 'lucide-react';
 
 export default function HomePage() {
@@ -10,8 +9,8 @@ export default function HomePage() {
     showOnboarding,
     completeOnboarding,
     checked: onboardingChecked,
-    shouldShowRecap,
-    clearShowRecap,
+    shouldOpenCheckIn,
+    clearOpenCheckIn,
   } = useOnboarding();
 
   // Loading state
@@ -39,9 +38,9 @@ export default function HomePage() {
   }
 
   return (
-    <>
-      <CheckInHome initialShowRecap={shouldShowRecap} onRecapShown={clearShowRecap} />
-      <SignupPrompt />
-    </>
+    <CheckInHome
+      initialOpenCheckIn={shouldOpenCheckIn}
+      onCheckInOpened={clearOpenCheckIn}
+    />
   );
 }

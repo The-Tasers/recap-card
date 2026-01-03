@@ -14,8 +14,6 @@ import { DatePickerTimeline } from '@/components/date-picker-timeline';
 import { generateMoodGradient } from '@/components/moment-blob';
 import { AppFooter, AppLogo } from '@/components/app-footer';
 import { SettingsButton } from '@/components/settings-button';
-import { SignupPrompt } from '@/components/signup-prompt';
-import { FeedbackModal } from '@/components/feedback-modal';
 import {
   ExpectationTone,
   CheckIn,
@@ -24,7 +22,6 @@ import {
 } from '@/lib/types';
 import { useSettingsStore } from '@/lib/store';
 import { useI18n } from '@/lib/i18n';
-import { useAuth } from '@/components/auth-provider';
 import {
   Activity,
   Plus,
@@ -782,16 +779,15 @@ const CurrentTimeHalo = memo(function CurrentTimeHalo({
 });
 
 interface CheckInHomeProps {
-  initialShowRecap?: boolean;
-  onRecapShown?: () => void;
+  initialOpenCheckIn?: boolean;
+  onCheckInOpened?: () => void;
 }
 
 export function CheckInHome({
-  initialShowRecap,
-  onRecapShown,
+  initialOpenCheckIn,
+  onCheckInOpened,
 }: CheckInHomeProps) {
   const { t, language } = useI18n();
-  const { user } = useAuth();
   const { colorTheme } = useSettingsStore();
 
   // Determine if current theme is dark
@@ -825,7 +821,6 @@ export function CheckInHome({
   const [selectedMomentGroupIndex, setSelectedMomentGroupIndex] = useState<
     number | null
   >(null);
-  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showRecapPanel, setShowRecapPanel] = useState(false);
   const [showInsightsPanel, setShowInsightsPanel] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -834,13 +829,13 @@ export function CheckInHome({
   const isMobile = useIsMobile();
   const arcContainerRef = useRef<HTMLDivElement>(null);
 
-  // Show recap panel if triggered from onboarding
+  // Open check-in flow if triggered from onboarding
   useEffect(() => {
-    if (initialShowRecap && hydrated) {
-      setShowRecapPanel(true);
-      onRecapShown?.();
+    if (initialOpenCheckIn && hydrated) {
+      setViewMode('checkin');
+      onCheckInOpened?.();
     }
-  }, [initialShowRecap, hydrated, onRecapShown]);
+  }, [initialOpenCheckIn, hydrated, onCheckInOpened]);
 
   // Update arc progress and current time every minute
   useEffect(() => {
@@ -890,33 +885,6 @@ export function CheckInHome({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [viewMode, navigateDate]);
 
-  // Check if should show feedback modal
-  useEffect(() => {
-    if (!hydrated) return;
-    const feedbackGiven =
-      localStorage.getItem('recapz_feedback_given') === 'true';
-    if (feedbackGiven) return;
-    const lastPrompt = localStorage.getItem('recapz_feedback_last_prompt');
-    const today = new Date().toDateString();
-    if (lastPrompt === today) return;
-
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split('T')[0];
-    const yesterdayDay = days.find((d) => d.date === yesterdayStr);
-    if (yesterdayDay) {
-      const yesterdayCheckIns = checkIns.filter(
-        (c) => c.dayId === yesterdayDay.id
-      );
-      if (yesterdayCheckIns.length >= 2) {
-        const timer = setTimeout(() => {
-          setShowFeedbackModal(true);
-          localStorage.setItem('recapz_feedback_last_prompt', today);
-        }, 2000);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [hydrated, days, checkIns]);
 
   const optionsLoaded = states.length > 0;
   const isReady = hydrated && optionsLoaded;
@@ -1056,8 +1024,6 @@ export function CheckInHome({
             <CheckInFlow
               onComplete={handleCheckInComplete}
               onCancel={() => setViewMode('home')}
-              isAuthenticated={!!user}
-              userId={user?.id}
             />
           </div>
         </div>
@@ -1082,7 +1048,7 @@ export function CheckInHome({
           <div className="flex items-center justify-between">
             <div className="w-10" />
             <AppLogo size="lg" />
-            <SettingsButton isAuthenticated={!!user} />
+            <SettingsButton />
           </div>
         </div>
       </div>
@@ -1594,15 +1560,6 @@ export function CheckInHome({
       <div className="shrink-0 px-6">
         <AppFooter showLogo={false} />
       </div>
-
-      {/* Signup prompt */}
-      <SignupPrompt />
-
-      {/* Feedback modal */}
-      <FeedbackModal
-        isOpen={showFeedbackModal}
-        onClose={() => setShowFeedbackModal(false)}
-      />
 
       {/* Day Recap Panel - Bottom sheet on mobile, modal on desktop */}
       <AnimatePresence>

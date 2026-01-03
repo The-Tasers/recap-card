@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
 import { useOptionsStore } from '@/lib/options-store';
 import { useCheckInStore } from '@/lib/checkin-store';
 import { useI18n, type TranslationKey } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
-import { FREE_PLAN_LIMITS, State } from '@/lib/types';
+import { State } from '@/lib/types';
 import {
   X,
   Check,
@@ -32,8 +31,6 @@ import {
   User,
   Dumbbell,
   ShoppingBag,
-  Plus,
-  LogIn,
   Undo2,
   Trash2,
   type LucideIcon,
@@ -181,8 +178,6 @@ const CATEGORY_ORDER = ['energy', 'emotion', 'tension'];
 interface CheckInFlowProps {
   onComplete: () => void;
   onCancel: () => void;
-  isAuthenticated?: boolean;
-  userId?: string;
 }
 
 // State orb component for selection
@@ -259,7 +254,7 @@ function StateOrb({
             'font-medium text-foreground text-center leading-tight'
           )}
         >
-          {t(`state.${state.id}` as any) || state.label}
+          {t(`state.${state.id}` as TranslationKey) || state.label}
         </span>
       )}
     </motion.button>
@@ -382,13 +377,10 @@ function InlineDiscardMessage({
 export function CheckInFlow({
   onComplete,
   onCancel,
-  isAuthenticated = false,
-  userId,
 }: CheckInFlowProps) {
   const { t } = useI18n();
   const { addCheckIn, getOrCreateToday } = useCheckInStore();
-  const { states, contexts, people, getCustomContexts, getCustomPeople, addCustomContext, addCustomPerson } =
-    useOptionsStore();
+  const { states, contexts, people } = useOptionsStore();
 
   const [stateId, setStateId] = useState<string | undefined>();
   const [contextId, setContextId] = useState<string | undefined>();
@@ -397,45 +389,6 @@ export function CheckInFlow({
   const [showStateSelector, setShowStateSelector] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-
-  // Custom items for add functionality
-  const [isAddingContext, setIsAddingContext] = useState(false);
-  const [isAddingPerson, setIsAddingPerson] = useState(false);
-  const [newContextLabel, setNewContextLabel] = useState('');
-  const [newPersonLabel, setNewPersonLabel] = useState('');
-  const [showLoginNotice, setShowLoginNotice] = useState<
-    'context' | 'person' | null
-  >(null);
-  const [tooltipPosition, setTooltipPosition] = useState<'left' | 'right'>(
-    'left'
-  );
-  const contextButtonRef = useRef<HTMLDivElement>(null);
-  const personButtonRef = useRef<HTMLDivElement>(null);
-
-  // Close login notice on click outside
-  useEffect(() => {
-    if (!showLoginNotice) return;
-
-    const handleClickOutside = () => {
-      setShowLoginNotice(null);
-    };
-
-    // Add listener with a small delay to avoid immediate close
-    const timer = setTimeout(() => {
-      document.addEventListener('click', handleClickOutside);
-    }, 10);
-
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener('click', handleClickOutside);
-    };
-  }, [showLoginNotice]);
-
-  const customContexts = getCustomContexts();
-  const customPeople = getCustomPeople();
-  const canAddContext =
-    customContexts.length < FREE_PLAN_LIMITS.maxCustomContexts;
-  const canAddPerson = customPeople.length < FREE_PLAN_LIMITS.maxCustomPeople;
 
   // Check if user has made any changes
   const hasChanges = stateId || contextId || personId;
@@ -489,64 +442,6 @@ export function CheckInFlow({
     setPersonId(id);
     setShowDiscardMessage(false);
   }, []);
-
-  // Handle adding custom context (saves to server)
-  const handleAddContext = useCallback(async () => {
-    if (newContextLabel.trim() && canAddContext && userId) {
-      try {
-        const context = await addCustomContext(newContextLabel.trim(), userId);
-        setContextId(context.id);
-        setNewContextLabel('');
-        setIsAddingContext(false);
-      } catch (error) {
-        console.error('Failed to add context:', error);
-      }
-    }
-  }, [newContextLabel, canAddContext, userId, addCustomContext]);
-
-  // Handle adding custom person (saves to server)
-  const handleAddPerson = useCallback(async () => {
-    if (newPersonLabel.trim() && canAddPerson && userId) {
-      try {
-        const person = await addCustomPerson(newPersonLabel.trim(), userId);
-        setPersonId(person.id);
-        setNewPersonLabel('');
-        setIsAddingPerson(false);
-      } catch (error) {
-        console.error('Failed to add person:', error);
-      }
-    }
-  }, [newPersonLabel, canAddPerson, userId, addCustomPerson]);
-
-  // Handle add button click with login check
-  const handleAddButtonClick = useCallback(
-    (type: 'context' | 'person') => {
-      if (!isAuthenticated) {
-        // Calculate tooltip position based on button position
-        const buttonRef =
-          type === 'context' ? contextButtonRef : personButtonRef;
-        if (buttonRef.current) {
-          const rect = buttonRef.current.getBoundingClientRect();
-          const tooltipWidth = 180; // min-w-[180px]
-          const screenWidth = window.innerWidth;
-          // If tooltip would overflow right edge, position from right instead
-          if (rect.left + tooltipWidth > screenWidth - 16) {
-            setTooltipPosition('right');
-          } else {
-            setTooltipPosition('left');
-          }
-        }
-        setShowLoginNotice(type);
-        return;
-      }
-      if (type === 'context' && canAddContext) {
-        setIsAddingContext(true);
-      } else if (type === 'person' && canAddPerson) {
-        setIsAddingPerson(true);
-      }
-    },
-    [isAuthenticated, canAddContext, canAddPerson]
-  );
 
   // Complete the check-in with success animation
   const handleDone = useCallback(() => {
@@ -656,7 +551,7 @@ export function CheckInFlow({
                 return (
                   <div key={category} className="space-y-1.5 sm:space-y-3">
                     <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide text-center">
-                      {t(`state.${category}` as any)}
+                      {t(`state.${category}` as TranslationKey)}
                     </p>
                     <div className="flex justify-center gap-1.5 sm:gap-3 flex-wrap">
                       {categoryStates.map((state) => (
@@ -691,7 +586,7 @@ export function CheckInFlow({
           ) : null}
         </AnimatePresence>
 
-        {/* Context selection - shown after state is selected, hides immediately when returning to state selector */}
+        {/* Context selection - shown after state is selected */}
         {stateId && !showStateSelector && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -743,89 +638,11 @@ export function CheckInFlow({
                   </motion.button>
                 );
               })}
-
-              {/* Add context button */}
-              {isAddingContext ? (
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="text"
-                    value={newContextLabel}
-                    onChange={(e) => setNewContextLabel(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && newContextLabel.trim())
-                        handleAddContext();
-                      if (e.key === 'Escape') {
-                        setIsAddingContext(false);
-                        setNewContextLabel('');
-                      }
-                    }}
-                    placeholder="..."
-                    className="px-3 py-2 text-sm rounded-xl border-2 border-primary bg-background focus:outline-none w-28"
-                    autoFocus
-                    maxLength={20}
-                  />
-                  <button
-                    onClick={handleAddContext}
-                    disabled={!newContextLabel.trim()}
-                    className="p-2 rounded-xl bg-primary text-primary-foreground disabled:opacity-30 cursor-pointer transition-opacity"
-                  >
-                    <Check className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsAddingContext(false);
-                      setNewContextLabel('');
-                    }}
-                    className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              ) : (
-                <div className="relative" ref={contextButtonRef}>
-                  <motion.button
-                    type="button"
-                    onClick={() => handleAddButtonClick('context')}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl border-2 border-dashed border-muted-foreground/30 text-muted-foreground hover:text-foreground cursor-pointer"
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {!isAuthenticated ? (
-                      <LogIn className="h-4 w-4" />
-                    ) : (
-                      <Plus className="h-4 w-4" />
-                    )}
-                    <span className="text-sm">{t('context.addCustom')}</span>
-                  </motion.button>
-                  <AnimatePresence>
-                    {showLoginNotice === 'context' && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 4 }}
-                        className={`absolute top-full mt-2 z-10 px-4 py-3 rounded-xl bg-card border border-border shadow-lg min-w-[180px] ${
-                          tooltipPosition === 'right' ? 'right-0' : 'left-0'
-                        }`}
-                      >
-                        <p className="text-sm text-muted-foreground mb-2">
-                          {t('customItem.loginRequired')}
-                        </p>
-                        <Link
-                          href="/login"
-                          className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 font-medium"
-                        >
-                          <LogIn className="h-4 w-4" />
-                          {t('auth.signIn')}
-                        </Link>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              )}
             </div>
           </motion.div>
         )}
 
-        {/* Person selection - shown after context is selected, hides immediately when returning to state selector */}
+        {/* Person selection - shown after context is selected */}
         {stateId && contextId && !showStateSelector && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -891,84 +708,6 @@ export function CheckInFlow({
                   </motion.button>
                 );
               })}
-
-              {/* Add person button */}
-              {isAddingPerson ? (
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="text"
-                    value={newPersonLabel}
-                    onChange={(e) => setNewPersonLabel(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && newPersonLabel.trim())
-                        handleAddPerson();
-                      if (e.key === 'Escape') {
-                        setIsAddingPerson(false);
-                        setNewPersonLabel('');
-                      }
-                    }}
-                    placeholder="..."
-                    className="px-3 py-2 text-sm rounded-xl border-2 border-primary bg-background focus:outline-none w-28"
-                    autoFocus
-                    maxLength={20}
-                  />
-                  <button
-                    onClick={handleAddPerson}
-                    disabled={!newPersonLabel.trim()}
-                    className="p-2 rounded-xl bg-primary text-primary-foreground disabled:opacity-30 cursor-pointer transition-opacity"
-                  >
-                    <Check className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsAddingPerson(false);
-                      setNewPersonLabel('');
-                    }}
-                    className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              ) : (
-                <div className="relative" ref={personButtonRef}>
-                  <motion.button
-                    type="button"
-                    onClick={() => handleAddButtonClick('person')}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl border-2 border-dashed border-muted-foreground/30 text-muted-foreground hover:text-foreground cursor-pointer"
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {!isAuthenticated ? (
-                      <LogIn className="h-4 w-4" />
-                    ) : (
-                      <Plus className="h-4 w-4" />
-                    )}
-                    <span className="text-sm">{t('person.addNew')}</span>
-                  </motion.button>
-                  <AnimatePresence>
-                    {showLoginNotice === 'person' && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 4 }}
-                        className={`absolute top-full mt-2 z-10 px-4 py-3 rounded-xl bg-card border border-border shadow-lg min-w-[180px] ${
-                          tooltipPosition === 'right' ? 'right-0' : 'left-0'
-                        }`}
-                      >
-                        <p className="text-sm text-muted-foreground mb-2">
-                          {t('customItem.loginRequired')}
-                        </p>
-                        <Link
-                          href="/login"
-                          className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 font-medium"
-                        >
-                          <LogIn className="h-4 w-4" />
-                          {t('auth.signIn')}
-                        </Link>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              )}
             </div>
           </motion.div>
         )}
