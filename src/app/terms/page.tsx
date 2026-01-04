@@ -30,26 +30,64 @@ export default function TermsPage() {
         </div>
 
         {/* Content */}
-        <div className="space-y-6 text-sm text-muted-foreground flex-1 overflow-y-auto">
+        <div className="space-y-6 text-sm text-muted-foreground flex-1 overflow-y-auto pb-4">
+          <p className="text-xs text-muted-foreground/70">{t('terms.lastUpdated')}</p>
+          <p>{t('terms.intro')}</p>
+
           <section>
             <h2 className="text-foreground font-medium mb-2">
-              {t('terms.using')}
+              {t('terms.acceptance')}
             </h2>
-            <p>{t('terms.usingText')}</p>
+            <p>{t('terms.acceptanceText')}</p>
           </section>
 
           <section>
             <h2 className="text-foreground font-medium mb-2">
-              {t('terms.yourContent')}
+              {t('terms.description')}
             </h2>
-            <p>{t('terms.yourContentText')}</p>
+            <p>{t('terms.descriptionText')}</p>
           </section>
 
           <section>
             <h2 className="text-foreground font-medium mb-2">
-              {t('terms.service')}
+              {t('terms.userResponsibilities')}
             </h2>
-            <p>{t('terms.serviceText')}</p>
+            <p>{t('terms.userResponsibilitiesText')}</p>
+          </section>
+
+          <section>
+            <h2 className="text-foreground font-medium mb-2">
+              {t('terms.intellectualProperty')}
+            </h2>
+            <p>{t('terms.intellectualPropertyText')}</p>
+          </section>
+
+          <section>
+            <h2 className="text-foreground font-medium mb-2">
+              {t('terms.disclaimer')}
+            </h2>
+            <p>{t('terms.disclaimerText')}</p>
+          </section>
+
+          <section>
+            <h2 className="text-foreground font-medium mb-2">
+              {t('terms.limitation')}
+            </h2>
+            <p>{t('terms.limitationText')}</p>
+          </section>
+
+          <section>
+            <h2 className="text-foreground font-medium mb-2">
+              {t('terms.changes')}
+            </h2>
+            <p>{t('terms.changesText')}</p>
+          </section>
+
+          <section>
+            <h2 className="text-foreground font-medium mb-2">
+              {t('terms.termination')}
+            </h2>
+            <p>{t('terms.terminationText')}</p>
           </section>
 
           <section>

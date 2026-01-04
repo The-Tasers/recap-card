@@ -30,7 +30,9 @@ export default function PrivacyPage() {
         </div>
 
         {/* Content */}
-        <div className="space-y-6 text-sm text-muted-foreground flex-1 overflow-y-auto">
+        <div className="space-y-6 text-sm text-muted-foreground flex-1 overflow-y-auto pb-4">
+          <p className="text-xs text-muted-foreground/70">{t('privacy.lastUpdated')}</p>
+
           <section>
             <h2 className="text-foreground font-medium mb-2">
               {t('privacy.yourData')}

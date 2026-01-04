@@ -19,7 +19,8 @@ export const translations = {
       'Capture how you feel as it happens. See your day as it really was, not as memory rewrites it.',
     'onboarding.button': 'Try it now',
     'onboarding.successTitle': 'Your first moment',
-    'onboarding.successDesc': 'This is how your day builds up, one moment at a time.',
+    'onboarding.successDesc':
+      'This is how your day builds up, one moment at a time.',
     'onboarding.seeRecap': 'See your recap',
 
     // Mood select view
@@ -104,34 +105,55 @@ export const translations = {
 
     // Privacy page
     'privacy.title': 'Privacy Policy',
-    'privacy.yourData': 'Your Data',
+    'privacy.lastUpdated': 'Last updated: January 2026',
+    'privacy.yourData': 'Data Storage',
     'privacy.yourDataText':
-      'Recapz stores your journal entries locally on your device. Your data never leaves your device.',
+      'All your moments, feelings, and patterns are stored locally on your device only. We do not have servers that collect or store your personal data.',
     'privacy.whatWeCollect': 'What We Collect',
     'privacy.whatWeCollectText':
-      "We don't collect any data. Everything stays on your device. We don't track your behavior or sell your data.",
-    'privacy.dataSecurity': 'Data Security',
+      'We do not collect any personal information, usage analytics, or tracking data. Your emotional journey stays completely private.',
+    'privacy.dataSecurity': 'Data Sharing',
     'privacy.dataSecurityText':
-      'Your data is stored locally on your device. We prioritize your privacy with industry-standard security practices.',
-    'privacy.yourRights': 'Your Rights',
+      'We never share, sell, or transfer your data to third parties. Your information never leaves your device.',
+    'privacy.yourRights': 'Your Control',
     'privacy.yourRightsText':
-      'You can delete all your data at any time from the app settings.',
+      'You can delete all your data at any time from the Settings.',
     'privacy.contact': 'Contact',
-    'privacy.contactText': 'Questions? Reach out at',
+    'privacy.contactText':
+      'If you have questions about this privacy policy, please contact us at',
 
     // Terms page
     'terms.title': 'Terms of Service',
-    'terms.using': 'Using Recapz',
-    'terms.usingText':
-      'Recapz is a personal journaling app. By using it, you agree to use it responsibly and not for any illegal purposes.',
-    'terms.yourContent': 'Your Content',
-    'terms.yourContentText':
-      "You own everything you create in Recapz. We don't claim any rights to your journal entries, photos, or other content. You're responsible for what you write.",
-    'terms.service': 'Service',
-    'terms.serviceText':
-      "We provide Recapz as-is. While we strive for reliability, we can't guarantee uninterrupted service. We may update or modify the app at any time.",
+    'terms.lastUpdated': 'Last updated: January 2026',
+    'terms.intro':
+      'Welcome to RECAPZ. By using this app, you agree to these terms.',
+    'terms.acceptance': 'Acceptance of Terms',
+    'terms.acceptanceText':
+      'By downloading, installing, or using RECAPZ, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the app.',
+    'terms.description': 'Description of Service',
+    'terms.descriptionText':
+      'RECAPZ is a personal journaling and mood tracking application. All data is stored locally on your device. We do not collect, store, or have access to your personal entries.',
+    'terms.userResponsibilities': 'User Responsibilities',
+    'terms.userResponsibilitiesText':
+      'You are responsible for maintaining the security of your device. You agree to use the app only for lawful purposes. You understand that your data exists only on your device.',
+    'terms.intellectualProperty': 'Intellectual Property',
+    'terms.intellectualPropertyText':
+      'The app, including its design, features, and content (excluding your personal entries), is owned by RECAPZ. Your personal entries remain entirely yours.',
+    'terms.disclaimer': 'Disclaimer of Warranties',
+    'terms.disclaimerText':
+      'The app is provided "as is" without warranties of any kind. We do not guarantee uninterrupted or error-free operation.',
+    'terms.limitation': 'Limitation of Liability',
+    'terms.limitationText':
+      'To the maximum extent permitted by law, RECAPZ shall not be liable for any indirect, incidental, or consequential damages arising from your use of the app.',
+    'terms.changes': 'Changes to Terms',
+    'terms.changesText':
+      'We may update these terms from time to time. Continued use of the app after changes constitutes acceptance of the new terms.',
+    'terms.termination': 'Termination',
+    'terms.terminationText':
+      'You may stop using the app at any time by deleting it from your device, which will also delete all your local data.',
     'terms.contact': 'Contact',
-    'terms.contactText': 'Questions? Reach out at',
+    'terms.contactText':
+      'If you have questions about these terms, please contact us at',
 
     // Blocks
     'block.sleep': 'Hours slept',
@@ -342,7 +364,8 @@ export const translations = {
     'insights.examplesTitle': 'What you might discover:',
     'insights.example.1': 'You feel drained after work, but energized at home',
     'insights.example.2': 'Time with friends consistently lifts your mood',
-    'insights.example.3': 'Your mornings start calm, but evenings get scattered',
+    'insights.example.3':
+      'Your mornings start calm, but evenings get scattered',
     // Real dynamic insights with actual data
     'insights.contextMakesState': '{context} usually brings {state}',
     'insights.personMakesState': '{person} often brings {state}',
@@ -526,7 +549,8 @@ export const translations = {
       'Отмечай как себя чувствуешь прямо сейчас. Увидишь день таким, каким он был, а не каким его перепишет память.',
     'onboarding.button': 'Попробовать',
     'onboarding.successTitle': 'Твой первый момент',
-    'onboarding.successDesc': 'Так день складывается из моментов, один за другим.',
+    'onboarding.successDesc':
+      'Так день складывается из моментов, один за другим.',
     'onboarding.seeRecap': 'Посмотреть итоги',
 
     // Mood select view
@@ -611,34 +635,55 @@ export const translations = {
 
     // Privacy page
     'privacy.title': 'Конфиденциальность',
-    'privacy.yourData': 'Твои данные',
+    'privacy.lastUpdated': 'Обновлено: Январь 2026',
+    'privacy.yourData': 'Хранение данных',
     'privacy.yourDataText':
-      'Recapz хранит записи на твоём устройстве. Данные никуда не отправляются.',
+      'Все твои моменты, чувства и паттерны хранятся только локально на твоём устройстве. У нас нет серверов, которые собирают или хранят твои личные данные.',
     'privacy.whatWeCollect': 'Что мы собираем',
     'privacy.whatWeCollectText':
-      'Мы не собираем никаких данных. Всё остаётся на твоём устройстве. Мы не следим за тобой и не продаём данные.',
-    'privacy.dataSecurity': 'Безопасность',
+      'Мы не собираем никакой личной информации, аналитики использования или данных отслеживания. Твой эмоциональный путь остаётся полностью приватным.',
+    'privacy.dataSecurity': 'Передача данных',
     'privacy.dataSecurityText':
-      'Данные хранятся локально на твоём устройстве.',
-    'privacy.yourRights': 'Твои права',
+      'Мы никогда не передаём, не продаём и не делимся твоими данными с третьими лицами. Твоя информация никогда не покидает твоё устройство.',
+    'privacy.yourRights': 'Твой контроль',
     'privacy.yourRightsText':
       'Ты можешь удалить все данные в любой момент через настройки.',
     'privacy.contact': 'Связь',
-    'privacy.contactText': 'Вопросы? Пиши на',
+    'privacy.contactText':
+      'Если есть вопросы по политике конфиденциальности, напиши на',
 
     // Terms page
-    'terms.title': 'Условия',
-    'terms.using': 'Использование',
-    'terms.usingText':
-      'Recapz - приложение для личного дневника. Используя его, ты соглашаешься вести себя ответственно и не нарушать закон.',
-    'terms.yourContent': 'Твой контент',
-    'terms.yourContentText':
-      'Всё, что ты создаёшь в Recapz, принадлежит тебе. Мы не претендуем на твои записи, фото или другой контент. Ты сам отвечаешь за то, что пишешь.',
-    'terms.service': 'Сервис',
-    'terms.serviceText':
-      'Recapz предоставляется «как есть». Мы стараемся работать стабильно, но не можем гарантировать бесперебойность. Приложение может обновляться.',
+    'terms.title': 'Условия использования',
+    'terms.lastUpdated': 'Обновлено: Январь 2026',
+    'terms.intro':
+      'Добро пожаловать в RECAPZ. Используя приложение, вы соглашаетесь с этими условиями.',
+    'terms.acceptance': 'Принятие условий',
+    'terms.acceptanceText':
+      'Скачивая, устанавливая или используя RECAPZ, вы соглашаетесь с этими Условиями использования. Если вы не согласны, пожалуйста, не используйте приложение.',
+    'terms.description': 'Описание сервиса',
+    'terms.descriptionText':
+      'RECAPZ — приложение для личного дневника и отслеживания настроения. Все данные хранятся локально на вашем устройстве. Мы не собираем, не храним и не имеем доступа к вашим записям.',
+    'terms.userResponsibilities': 'Ответственность пользователя',
+    'terms.userResponsibilitiesText':
+      'Вы несёте ответственность за безопасность своего устройства. Вы соглашаетесь использовать приложение только в законных целях. Вы понимаете, что ваши данные существуют только на вашем устройстве.',
+    'terms.intellectualProperty': 'Интеллектуальная собственность',
+    'terms.intellectualPropertyText':
+      'Приложение, включая его дизайн, функции и контент (кроме ваших личных записей), принадлежит RECAPZ. Ваши личные записи полностью принадлежат вам.',
+    'terms.disclaimer': 'Отказ от гарантий',
+    'terms.disclaimerText':
+      'Приложение предоставляется «как есть» без каких-либо гарантий. Мы не гарантируем бесперебойную или безошибочную работу.',
+    'terms.limitation': 'Ограничение ответственности',
+    'terms.limitationText':
+      'В максимальной степени, допускаемой законом, RECAPZ не несёт ответственности за косвенные, случайные или последующие убытки, связанные с использованием приложения.',
+    'terms.changes': 'Изменение условий',
+    'terms.changesText':
+      'Мы можем время от времени обновлять эти условия. Продолжение использования приложения после изменений означает принятие новых условий.',
+    'terms.termination': 'Прекращение использования',
+    'terms.terminationText':
+      'Вы можете прекратить использование приложения в любое время, удалив его с устройства, что также удалит все ваши локальные данные.',
     'terms.contact': 'Связь',
-    'terms.contactText': 'Вопросы? Пиши на',
+    'terms.contactText':
+      'Если у вас есть вопросы об этих условиях, напишите на',
 
     // Blocks
     'block.sleep': 'Сон',
