@@ -23,6 +23,14 @@ import {
 import { useSettingsStore } from '@/lib/store';
 import { useI18n } from '@/lib/i18n';
 import {
+  trackInsightsOpen,
+  trackInsightsClose,
+  trackDayRecapOpen,
+  trackDayRecapClose,
+  trackDateNavigation,
+  trackDateSelect,
+} from '@/lib/analytics';
+import {
   Activity,
   Plus,
   Moon,
@@ -527,13 +535,9 @@ interface DayGlobeProps {
 }
 
 const DayGlobe = memo(function DayGlobe({
-  dayProgress,
   isExpanded,
   isDarkTheme = true,
 }: DayGlobeProps) {
-  // Day/night visual based on day progress (not real-world time)
-  const dayness = Math.sin(dayProgress * Math.PI);
-
   // Colors depend on theme only - simple, decorative
   let oceanColor: string;
   let landColor: string;
@@ -884,6 +888,7 @@ export function CheckInHome({
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
       thirtyDaysAgo.setHours(0, 0, 0, 0);
       if (newDate < thirtyDaysAgo) return;
+      trackDateNavigation(direction === -1 ? 'prev' : 'next');
       setSelectedDate(newDate);
       setExpandedGroupIndex(null);
       setSelectedMoment(null);
@@ -1087,6 +1092,7 @@ export function CheckInHome({
             <button
               onClick={(e) => {
                 e.stopPropagation();
+                trackDateNavigation('calendar');
                 setShowDatePicker(true);
               }}
               className="p-1.5 rounded-xl bg-primary/10 text-primary hover:scale-105 transition-all cursor-pointer"
@@ -1097,6 +1103,7 @@ export function CheckInHome({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  trackDateSelect(0);
                   setSelectedDate(new Date());
                   setExpandedGroupIndex(null);
                   setSelectedMoment(null);
@@ -1161,6 +1168,14 @@ export function CheckInHome({
             onClose={() => setShowDatePicker(false)}
             selectedDate={selectedDate}
             onSelectDate={(date) => {
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const selected = new Date(date);
+              selected.setHours(0, 0, 0, 0);
+              const daysFromToday = Math.round(
+                (selected.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+              );
+              trackDateSelect(daysFromToday);
               setSelectedDate(date);
               setExpandedGroupIndex(null);
               setSelectedMoment(null);
@@ -1378,7 +1393,8 @@ export function CheckInHome({
                   const textColor = DARK_TEXT_STATES.has(selectedMoment.stateId)
                     ? 'text-gray-900'
                     : 'text-white';
-                  const Icon = STATE_ICONS[selectedMoment.stateId] || HelpCircle;
+                  const Icon =
+                    STATE_ICONS[selectedMoment.stateId] || HelpCircle;
                   const stateLabel = state
                     ? t(`state.${state.id}` as TranslationKey) || state.label
                     : '';
@@ -1522,6 +1538,7 @@ export function CheckInHome({
                         <motion.button
                           onClick={(e) => {
                             e.stopPropagation();
+                            trackDayRecapOpen(selectedDayCheckIns.length);
                             setShowRecapPanel(true);
                           }}
                           className={`flex items-center gap-2 rounded-full font-medium cursor-pointer transition-colors ${
@@ -1585,7 +1602,12 @@ export function CheckInHome({
         </div>
 
         {/* Insights button with rotating intriguing labels */}
-        <InsightsButton onClick={() => setShowInsightsPanel(true)} />
+        <InsightsButton
+          onClick={() => {
+            trackInsightsOpen();
+            setShowInsightsPanel(true);
+          }}
+        />
       </div>
 
       {/* Footer */}
@@ -1603,7 +1625,10 @@ export function CheckInHome({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/40 z-40"
-              onClick={() => setShowRecapPanel(false)}
+              onClick={() => {
+                trackDayRecapClose();
+                setShowRecapPanel(false);
+              }}
             />
 
             {/* Panel/Modal */}
@@ -1627,7 +1652,10 @@ export function CheckInHome({
                     {isToday ? t('home.seeReflection') : t('home.seeDayRecap')}
                   </h2>
                   <button
-                    onClick={() => setShowRecapPanel(false)}
+                    onClick={() => {
+                      trackDayRecapClose();
+                      setShowRecapPanel(false);
+                    }}
                     className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
                   >
                     <X className="h-4 w-4" />
@@ -1658,7 +1686,10 @@ export function CheckInHome({
                     {isToday ? t('home.seeReflection') : t('home.seeDayRecap')}
                   </h2>
                   <button
-                    onClick={() => setShowRecapPanel(false)}
+                    onClick={() => {
+                      trackDayRecapClose();
+                      setShowRecapPanel(false);
+                    }}
                     className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
                   >
                     <X className="h-4 w-4" />
@@ -1689,7 +1720,10 @@ export function CheckInHome({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/40 z-40"
-              onClick={() => setShowInsightsPanel(false)}
+              onClick={() => {
+                trackInsightsClose();
+                setShowInsightsPanel(false);
+              }}
             />
 
             {/* Panel/Modal */}
@@ -1713,7 +1747,10 @@ export function CheckInHome({
                     {t('insights.title')}
                   </h2>
                   <button
-                    onClick={() => setShowInsightsPanel(false)}
+                    onClick={() => {
+                      trackInsightsClose();
+                      setShowInsightsPanel(false);
+                    }}
                     className="flex items-center justify-center w-10 h-10 rounded-full bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
                   >
                     <X className="h-5 w-5" />
@@ -1740,7 +1777,10 @@ export function CheckInHome({
                     {t('insights.title')}
                   </h2>
                   <button
-                    onClick={() => setShowInsightsPanel(false)}
+                    onClick={() => {
+                      trackInsightsClose();
+                      setShowInsightsPanel(false);
+                    }}
                     className="flex items-center justify-center w-10 h-10 rounded-full bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
                   >
                     <X className="h-5 w-5" />
@@ -1897,20 +1937,32 @@ function InsightsPanelContent() {
 
   // Calculate how many insights to show based on moments
   // 4 = 1, 8 = 2, 12 = 3, 18 = 4, 25+ = 5 insights
-  const maxInsightsToShow = totalMoments >= INSIGHT_THRESHOLDS[4] ? 5
-    : totalMoments >= INSIGHT_THRESHOLDS[3] ? 4
-    : totalMoments >= INSIGHT_THRESHOLDS[2] ? 3
-    : totalMoments >= INSIGHT_THRESHOLDS[1] ? 2
-    : totalMoments >= INSIGHT_THRESHOLDS[0] ? 1
-    : 0;
+  const maxInsightsToShow =
+    totalMoments >= INSIGHT_THRESHOLDS[4]
+      ? 5
+      : totalMoments >= INSIGHT_THRESHOLDS[3]
+      ? 4
+      : totalMoments >= INSIGHT_THRESHOLDS[2]
+      ? 3
+      : totalMoments >= INSIGHT_THRESHOLDS[1]
+      ? 2
+      : totalMoments >= INSIGHT_THRESHOLDS[0]
+      ? 1
+      : 0;
 
   // Next threshold to unlock more insights
-  const nextThreshold = totalMoments < INSIGHT_THRESHOLDS[0] ? INSIGHT_THRESHOLDS[0]
-    : totalMoments < INSIGHT_THRESHOLDS[1] ? INSIGHT_THRESHOLDS[1]
-    : totalMoments < INSIGHT_THRESHOLDS[2] ? INSIGHT_THRESHOLDS[2]
-    : totalMoments < INSIGHT_THRESHOLDS[3] ? INSIGHT_THRESHOLDS[3]
-    : totalMoments < INSIGHT_THRESHOLDS[4] ? INSIGHT_THRESHOLDS[4]
-    : null;
+  const nextThreshold =
+    totalMoments < INSIGHT_THRESHOLDS[0]
+      ? INSIGHT_THRESHOLDS[0]
+      : totalMoments < INSIGHT_THRESHOLDS[1]
+      ? INSIGHT_THRESHOLDS[1]
+      : totalMoments < INSIGHT_THRESHOLDS[2]
+      ? INSIGHT_THRESHOLDS[2]
+      : totalMoments < INSIGHT_THRESHOLDS[3]
+      ? INSIGHT_THRESHOLDS[3]
+      : totalMoments < INSIGHT_THRESHOLDS[4]
+      ? INSIGHT_THRESHOLDS[4]
+      : null;
 
   const momentsToNextInsight = nextThreshold ? nextThreshold - totalMoments : 0;
 
@@ -2241,7 +2293,10 @@ function InsightsPanelContent() {
   const renderInsightText = (insight: DynamicInsight) => {
     const { text, highlightedParts } = insight;
 
-    if (!highlightedParts || (!highlightedParts.subject && !highlightedParts.result)) {
+    if (
+      !highlightedParts ||
+      (!highlightedParts.subject && !highlightedParts.result)
+    ) {
       return text;
     }
 
@@ -2265,7 +2320,9 @@ function InsightsPanelContent() {
             {highlightedParts.subject}
           </span>
         );
-        remainingText = remainingText.slice(subjectIndex + highlightedParts.subject.length);
+        remainingText = remainingText.slice(
+          subjectIndex + highlightedParts.subject.length
+        );
       }
     }
 
@@ -2285,7 +2342,9 @@ function InsightsPanelContent() {
             {highlightedParts.result}
           </span>
         );
-        remainingText = remainingText.slice(resultIndex + highlightedParts.result.length);
+        remainingText = remainingText.slice(
+          resultIndex + highlightedParts.result.length
+        );
       }
     }
 
@@ -2326,7 +2385,10 @@ function InsightsPanelContent() {
           parts.push(remainingText.slice(0, index));
         }
         // Add the highlighted word (preserve original case from text)
-        const actualWord = remainingText.slice(index, index + highlight.word.length);
+        const actualWord = remainingText.slice(
+          index,
+          index + highlight.word.length
+        );
         parts.push(
           <span
             key={`highlight-${keyIndex++}`}
@@ -2353,10 +2415,16 @@ function InsightsPanelContent() {
 
   // Examples to show (only show examples that don't have a real insight yet)
   const exampleTypes = ['context', 'person', 'time'] as const;
-  const coveredTypes = new Set(visibleInsights.map(i =>
-    i.type === 'contextState' ? 'context' : i.type === 'personState' ? 'person' : 'time'
-  ));
-  const remainingExamples = exampleTypes.filter(t => !coveredTypes.has(t));
+  const coveredTypes = new Set(
+    visibleInsights.map((i) =>
+      i.type === 'contextState'
+        ? 'context'
+        : i.type === 'personState'
+        ? 'person'
+        : 'time'
+    )
+  );
+  const remainingExamples = exampleTypes.filter((t) => !coveredTypes.has(t));
 
   return (
     <div className="flex flex-col py-2">
@@ -2366,7 +2434,9 @@ function InsightsPanelContent() {
           <div className="flex items-center justify-between text-xs text-muted-foreground/60 mb-2">
             <span>{t('insights.momentCount', { count: totalMoments })}</span>
             {momentsToNextInsight > 0 && maxInsightsToShow < 5 && (
-              <span>{t('insights.toNext', { count: momentsToNextInsight })}</span>
+              <span>
+                {t('insights.toNext', { count: momentsToNextInsight })}
+              </span>
             )}
           </div>
           {/* Progress bar showing insight unlocks */}
@@ -2380,13 +2450,18 @@ function InsightsPanelContent() {
                   className="h-full bg-foreground/60"
                   initial={{ width: 0 }}
                   animate={{
-                    width: totalMoments >= threshold
-                      ? '100%'
-                      : i === 0
+                    width:
+                      totalMoments >= threshold
+                        ? '100%'
+                        : i === 0
                         ? `${(totalMoments / threshold) * 100}%`
                         : totalMoments >= INSIGHT_THRESHOLDS[i - 1]
-                          ? `${((totalMoments - INSIGHT_THRESHOLDS[i - 1]) / (threshold - INSIGHT_THRESHOLDS[i - 1])) * 100}%`
-                          : '0%'
+                        ? `${
+                            ((totalMoments - INSIGHT_THRESHOLDS[i - 1]) /
+                              (threshold - INSIGHT_THRESHOLDS[i - 1])) *
+                            100
+                          }%`
+                        : '0%',
                   }}
                   transition={{ duration: 0.5, delay: 0.1 * i }}
                 />
@@ -2409,7 +2484,11 @@ function InsightsPanelContent() {
             >
               <div
                 className="mt-0.5 p-1.5 rounded-lg"
-                style={{ backgroundColor: `${insight.highlightedParts?.subjectColor || insight.color}15` }}
+                style={{
+                  backgroundColor: `${
+                    insight.highlightedParts?.subjectColor || insight.color
+                  }15`,
+                }}
               >
                 {getInsightIcon(insight)}
               </div>
@@ -2435,15 +2514,24 @@ function InsightsPanelContent() {
               transition={{ delay: visibleInsights.length * 0.1 + 0.2 }}
               className="flex items-start gap-3 p-3 rounded-xl bg-muted/20 border border-muted/50"
             >
-              <div className="mt-0.5 p-1.5 rounded-lg" style={{ backgroundColor: '#60a5fa15' }}>
+              <div
+                className="mt-0.5 p-1.5 rounded-lg"
+                style={{ backgroundColor: '#60a5fa15' }}
+              >
                 <Activity className="h-4 w-4" style={{ color: '#60a5fa' }} />
               </div>
               <p className="text-sm text-muted-foreground/80 leading-relaxed italic pt-0.5">
                 {renderExampleInsight(
                   t('insights.example.1' as TranslationKey),
                   language === 'ru'
-                    ? [{ word: 'работы', color: '#60a5fa' }, { word: 'дома', color: '#60a5fa' }]
-                    : [{ word: 'work', color: '#60a5fa' }, { word: 'home', color: '#60a5fa' }]
+                    ? [
+                        { word: 'работы', color: '#60a5fa' },
+                        { word: 'дома', color: '#60a5fa' },
+                      ]
+                    : [
+                        { word: 'work', color: '#60a5fa' },
+                        { word: 'home', color: '#60a5fa' },
+                      ]
                 )}
               </p>
             </motion.div>
@@ -2456,7 +2544,10 @@ function InsightsPanelContent() {
               transition={{ delay: visibleInsights.length * 0.1 + 0.3 }}
               className="flex items-start gap-3 p-3 rounded-xl bg-muted/20 border border-muted/50"
             >
-              <div className="mt-0.5 p-1.5 rounded-lg" style={{ backgroundColor: '#f472b615' }}>
+              <div
+                className="mt-0.5 p-1.5 rounded-lg"
+                style={{ backgroundColor: '#f472b615' }}
+              >
                 <Smile className="h-4 w-4" style={{ color: '#f472b6' }} />
               </div>
               <p className="text-sm text-muted-foreground/80 leading-relaxed italic pt-0.5">
@@ -2477,15 +2568,24 @@ function InsightsPanelContent() {
               transition={{ delay: visibleInsights.length * 0.1 + 0.4 }}
               className="flex items-start gap-3 p-3 rounded-xl bg-muted/20 border border-muted/50"
             >
-              <div className="mt-0.5 p-1.5 rounded-lg" style={{ backgroundColor: '#f9731615' }}>
+              <div
+                className="mt-0.5 p-1.5 rounded-lg"
+                style={{ backgroundColor: '#f9731615' }}
+              >
                 <Sun className="h-4 w-4" style={{ color: '#f97316' }} />
               </div>
               <p className="text-sm text-muted-foreground/80 leading-relaxed italic pt-0.5">
                 {renderExampleInsight(
                   t('insights.example.3' as TranslationKey),
                   language === 'ru'
-                    ? [{ word: 'Утром', color: '#f97316' }, { word: 'вечеру', color: '#f97316' }]
-                    : [{ word: 'Morning', color: '#f97316' }, { word: 'evening', color: '#f97316' }]
+                    ? [
+                        { word: 'Утром', color: '#f97316' },
+                        { word: 'вечеру', color: '#f97316' },
+                      ]
+                    : [
+                        { word: 'Morning', color: '#f97316' },
+                        { word: 'evening', color: '#f97316' },
+                      ]
                 )}
               </p>
             </motion.div>
@@ -2501,7 +2601,8 @@ function InsightsPanelContent() {
           transition={{ delay: 0.5 }}
           className="text-sm text-muted-foreground/50 pt-3 text-center"
         >
-          {t('insights.emptyNoDays' as TranslationKey) || 'Start tracking moments to see patterns'}
+          {t('insights.emptyNoDays' as TranslationKey) ||
+            'Start tracking moments to see patterns'}
         </motion.p>
       )}
 
@@ -2513,7 +2614,8 @@ function InsightsPanelContent() {
           transition={{ delay: 0.6 }}
           className="text-xs text-muted-foreground/40 pt-3 text-center"
         >
-          {t('insights.moreToUnlock' as TranslationKey) || 'More moments reveal deeper patterns'}
+          {t('insights.moreToUnlock' as TranslationKey) ||
+            'More moments reveal deeper patterns'}
         </motion.p>
       )}
     </div>

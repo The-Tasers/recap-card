@@ -1,11 +1,19 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOptionsStore } from '@/lib/options-store';
 import { useCheckInStore } from '@/lib/checkin-store';
 import { useI18n, type TranslationKey } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
+import {
+  trackMomentStart,
+  trackMomentComplete,
+  trackMomentCancel,
+  trackStateSelect,
+  trackContextSelect,
+  trackPersonSelect,
+} from '@/lib/analytics';
 import { State } from '@/lib/types';
 import {
   X,
@@ -30,13 +38,11 @@ import {
   ShoppingBag,
   Undo2,
   Trash2,
-  TreePine,
   Plane,
   UtensilsCrossed,
   GraduationCap,
   Heart,
   Baby,
-  PawPrint,
   UserPlus,
   HeartHandshake,
   Battery,
@@ -312,7 +318,11 @@ interface SelectedStateDisplayProps {
   onTap: () => void;
 }
 
-function SelectedStateDisplay({ stateId, contextId, onTap }: SelectedStateDisplayProps) {
+function SelectedStateDisplay({
+  stateId,
+  contextId,
+  onTap,
+}: SelectedStateDisplayProps) {
   const { t } = useI18n();
   const { states, contexts } = useOptionsStore();
   const state = states.find((s) => s.id === stateId);
@@ -360,9 +370,7 @@ function SelectedStateDisplay({ stateId, contextId, onTap }: SelectedStateDispla
           {t(`state.${stateId}` as TranslationKey) || state.label}
         </span>
         {contextLabel && (
-          <span className="text-xs text-muted-foreground">
-            {contextLabel}
-          </span>
+          <span className="text-xs text-muted-foreground">{contextLabel}</span>
         )}
         {!contextLabel && (
           <span className="text-xs text-muted-foreground">
@@ -418,10 +426,7 @@ function InlineDiscardMessage({
   );
 }
 
-export function CheckInFlow({
-  onComplete,
-  onCancel,
-}: CheckInFlowProps) {
+export function CheckInFlow({ onComplete, onCancel }: CheckInFlowProps) {
   const { t } = useI18n();
   const { addCheckIn, getOrCreateToday, checkIns } = useCheckInStore();
   const { states, contexts, people } = useOptionsStore();
@@ -434,6 +439,11 @@ export function CheckInFlow({
   const [showSuccess, setShowSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isFirstMoment, setIsFirstMoment] = useState(false);
+
+  // Track moment start on mount
+  useEffect(() => {
+    trackMomentStart();
+  }, []);
 
   // Check if user has made any changes
   const hasChanges = stateId || contextId || personId;
@@ -460,16 +470,23 @@ export function CheckInFlow({
     if (hasChanges && !showDiscardMessage) {
       setShowDiscardMessage(true);
     } else {
+      trackMomentCancel(!!hasChanges);
       onCancel();
     }
   }, [hasChanges, showDiscardMessage, onCancel]);
 
   // Handle state selection
-  const handleStateSelect = useCallback((id: string) => {
-    setStateId(id);
-    setShowStateSelector(false);
-    setShowDiscardMessage(false);
-  }, []);
+  const handleStateSelect = useCallback(
+    (id: string) => {
+      const state = states.find((s) => s.id === id);
+      const category = state?.category || 'unknown';
+      trackStateSelect(id, category);
+      setStateId(id);
+      setShowStateSelector(false);
+      setShowDiscardMessage(false);
+    },
+    [states]
+  );
 
   // Handle tapping selected state to go back to selector
   const handleSelectedStateTap = useCallback(() => {
@@ -477,16 +494,26 @@ export function CheckInFlow({
   }, []);
 
   // Handle context selection
-  const handleContextSelect = useCallback((id: string) => {
-    setContextId(id);
-    setShowDiscardMessage(false);
-  }, []);
+  const handleContextSelect = useCallback(
+    (id: string) => {
+      const context = contexts.find((c) => c.id === id);
+      trackContextSelect(id, !context?.isDefault);
+      setContextId(id);
+      setShowDiscardMessage(false);
+    },
+    [contexts]
+  );
 
   // Handle person selection
-  const handlePersonSelect = useCallback((id: string | undefined) => {
-    setPersonId(id);
-    setShowDiscardMessage(false);
-  }, []);
+  const handlePersonSelect = useCallback(
+    (id: string | undefined) => {
+      const person = id ? people.find((p) => p.id === id) : undefined;
+      trackPersonSelect(id, person ? !person.isDefault : false);
+      setPersonId(id);
+      setShowDiscardMessage(false);
+    },
+    [people]
+  );
 
   // Complete the check-in with success animation
   const handleDone = useCallback(() => {
@@ -497,6 +524,16 @@ export function CheckInFlow({
     // Check if this is the first ever moment before adding
     const isFirst = checkIns.length === 0;
     setIsFirstMoment(isFirst);
+
+    // Track moment completion
+    const state = states.find((s) => s.id === stateId);
+    trackMomentComplete({
+      stateId,
+      stateCategory: state?.category || 'unknown',
+      contextId,
+      hasPerson: !!personId,
+      isFirstMoment: isFirst,
+    });
 
     const today = getOrCreateToday();
     addCheckIn({
@@ -526,6 +563,7 @@ export function CheckInFlow({
     onComplete,
     isSaving,
     checkIns.length,
+    states,
   ]);
 
   const canComplete = !!stateId && !!contextId;
@@ -663,7 +701,8 @@ export function CheckInFlow({
                 const isCustom = !context.isDefault;
                 // Use translation for default contexts, label for custom ones
                 const label = context.isDefault
-                  ? t(`context.${context.id}` as TranslationKey) || context.label
+                  ? t(`context.${context.id}` as TranslationKey) ||
+                    context.label
                   : context.label;
 
                 return (

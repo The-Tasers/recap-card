@@ -10,6 +10,12 @@ import { useSettingsStore } from '@/lib/store';
 import { COLOR_THEMES, type ColorTheme } from '@/lib/types';
 import { applyColorTheme } from '@/components/theme-provider';
 import { cn } from '@/lib/utils';
+import {
+  trackOnboardingStart,
+  trackOnboardingComplete,
+  trackOnboardingLanguageChange,
+  trackOnboardingThemeChange,
+} from '@/lib/analytics';
 
 // Hook to track cursor/touch proximity and calculate push displacement for orbs
 function useOrbProximity(orbCount: number, proximity = 80, pushStrength = 25) {
@@ -194,6 +200,11 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   const currentLanguage = LANGUAGES.find((l) => l.value === language);
   const currentTheme = COLOR_THEMES.find((th) => th.value === colorTheme);
 
+  // Track onboarding start on mount
+  useEffect(() => {
+    trackOnboardingStart();
+  }, []);
+
   // Orb proximity effect - orbs push away from cursor/touch
   const { containerRef: orbContainerRef, orbRefs, springs } = useOrbProximity(MOOD_ORBS.length);
 
@@ -236,17 +247,20 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   }, [showLanguageMenu, showThemeMenu]);
 
   const handleLanguageChange = (lang: Language) => {
+    trackOnboardingLanguageChange(lang);
     setLanguage(lang);
     setShowLanguageMenu(false);
   };
 
   const handleThemeChange = (theme: ColorTheme) => {
+    trackOnboardingThemeChange(theme);
     setColorTheme(theme);
     applyColorTheme(theme);
     setShowThemeMenu(false);
   };
 
   const handleTryItNow = () => {
+    trackOnboardingComplete(true);
     setCookie(ONBOARDING_COOKIE, 'true');
     onComplete(true); // true = open check-in flow
   };

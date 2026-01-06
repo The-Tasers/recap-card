@@ -112,13 +112,16 @@ export const translations = {
       'All your moments, feelings, and patterns are stored locally on your device only. We do not have servers that collect or store your personal data.',
     'privacy.whatWeCollect': 'What We Collect',
     'privacy.whatWeCollectText':
-      'We do not collect any personal information, usage analytics, or tracking data. Your emotional journey stays completely private.',
+      'We do not collect any personal information. Your moments, feelings, and emotional data stay completely private on your device.',
+    'privacy.analytics': 'Anonymous Analytics',
+    'privacy.analyticsText':
+      'We use Google Analytics to collect anonymous usage data such as which features are used and general app interactions. This helps us improve the app. This data is aggregated and cannot be used to identify you personally. No emotional content, moments, or personal reflections are ever transmitted.',
     'privacy.dataSecurity': 'Data Sharing',
     'privacy.dataSecurityText':
-      'We never share, sell, or transfer your data to third parties. Your information never leaves your device.',
+      'Your personal emotional data never leaves your device. Anonymous analytics are processed by Google Analytics under their privacy policy.',
     'privacy.yourRights': 'Your Control',
     'privacy.yourRightsText':
-      'You can delete all your data at any time from the Settings.',
+      'You can delete all your local data at any time from the Settings. You can also use browser settings or extensions to opt out of Google Analytics.',
     'privacy.contact': 'Contact',
     'privacy.contactText':
       'If you have questions about this privacy policy, please contact us at',
@@ -670,13 +673,16 @@ export const translations = {
       'Все твои моменты, чувства и паттерны хранятся только локально на твоём устройстве. У нас нет серверов, которые собирают или хранят твои личные данные.',
     'privacy.whatWeCollect': 'Что мы собираем',
     'privacy.whatWeCollectText':
-      'Мы не собираем никакой личной информации, аналитики использования или данных отслеживания. Твой эмоциональный путь остаётся полностью приватным.',
+      'Мы не собираем никакой личной информации. Твои моменты, чувства и эмоциональные данные остаются полностью приватными на твоём устройстве.',
+    'privacy.analytics': 'Анонимная аналитика',
+    'privacy.analyticsText':
+      'Мы используем Google Analytics для сбора анонимных данных об использовании: какие функции используются и общее взаимодействие с приложением. Это помогает нам улучшать приложение. Эти данные агрегированы и не могут быть использованы для твоей идентификации. Никакой эмоциональный контент, моменты или личные размышления никогда не передаются.',
     'privacy.dataSecurity': 'Передача данных',
     'privacy.dataSecurityText':
-      'Мы никогда не передаём, не продаём и не делимся твоими данными с третьими лицами. Твоя информация никогда не покидает твоё устройство.',
+      'Твои личные эмоциональные данные никогда не покидают твоё устройство. Анонимная аналитика обрабатывается Google Analytics согласно их политике конфиденциальности.',
     'privacy.yourRights': 'Твой контроль',
     'privacy.yourRightsText':
-      'Ты можешь удалить все данные в любой момент через настройки.',
+      'Ты можешь удалить все локальные данные в любой момент через настройки. Также можно отключить Google Analytics через настройки браузера или расширения.',
     'privacy.contact': 'Связь',
     'privacy.contactText':
       'Если есть вопросы по политике конфиденциальности, напиши на',
