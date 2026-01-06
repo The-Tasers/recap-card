@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion';
 import { Globe, Palette } from 'lucide-react';
 import { AppLogo } from '@/components/app-footer';
@@ -16,19 +16,46 @@ function useOrbProximity(orbCount: number, proximity = 80, pushStrength = 25) {
   const containerRef = useRef<HTMLDivElement>(null);
   const orbRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Create spring-animated displacement values for each orb
-  const displacements = useRef(
-    Array.from({ length: orbCount }, () => ({
-      x: useMotionValue(0),
-      y: useMotionValue(0),
-    }))
-  ).current;
+  // Create motion values at top level (hooks must be called unconditionally)
+  const x0 = useMotionValue(0);
+  const y0 = useMotionValue(0);
+  const x1 = useMotionValue(0);
+  const y1 = useMotionValue(0);
+  const x2 = useMotionValue(0);
+  const y2 = useMotionValue(0);
+  const x3 = useMotionValue(0);
+  const y3 = useMotionValue(0);
+  const x4 = useMotionValue(0);
+  const y4 = useMotionValue(0);
 
-  // Create springs for smooth animation
-  const springs = displacements.map((d) => ({
-    x: useSpring(d.x, { stiffness: 300, damping: 25 }),
-    y: useSpring(d.y, { stiffness: 300, damping: 25 }),
-  }));
+  // Create springs at top level
+  const sx0 = useSpring(x0, { stiffness: 300, damping: 25 });
+  const sy0 = useSpring(y0, { stiffness: 300, damping: 25 });
+  const sx1 = useSpring(x1, { stiffness: 300, damping: 25 });
+  const sy1 = useSpring(y1, { stiffness: 300, damping: 25 });
+  const sx2 = useSpring(x2, { stiffness: 300, damping: 25 });
+  const sy2 = useSpring(y2, { stiffness: 300, damping: 25 });
+  const sx3 = useSpring(x3, { stiffness: 300, damping: 25 });
+  const sy3 = useSpring(y3, { stiffness: 300, damping: 25 });
+  const sx4 = useSpring(x4, { stiffness: 300, damping: 25 });
+  const sy4 = useSpring(y4, { stiffness: 300, damping: 25 });
+
+  // Bundle into arrays for easy access
+  const displacements = useMemo(() => [
+    { x: x0, y: y0 },
+    { x: x1, y: y1 },
+    { x: x2, y: y2 },
+    { x: x3, y: y3 },
+    { x: x4, y: y4 },
+  ].slice(0, orbCount), [orbCount, x0, y0, x1, y1, x2, y2, x3, y3, x4, y4]);
+
+  const springs = useMemo(() => [
+    { x: sx0, y: sy0 },
+    { x: sx1, y: sy1 },
+    { x: sx2, y: sy2 },
+    { x: sx3, y: sy3 },
+    { x: sx4, y: sy4 },
+  ].slice(0, orbCount), [orbCount, sx0, sy0, sx1, sy1, sx2, sy2, sx3, sy3, sx4, sy4]);
 
   const calculatePush = useCallback((clientX: number, clientY: number) => {
     if (!containerRef.current) return;
@@ -492,26 +519,38 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 }
 
 export function useOnboarding() {
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [checked, setChecked] = useState(false);
-  const [shouldOpenCheckIn, setShouldOpenCheckIn] = useState(false);
+  // Start with server-safe defaults to avoid hydration mismatch
+  const [state, setState] = useState({
+    showOnboarding: false,
+    checked: false,
+    shouldOpenCheckIn: false,
+  });
 
+  // Check cookie on client after hydration
+  // This is a valid use case for setState in effect - reading browser state on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hasCompletedOnboarding = getCookie(ONBOARDING_COOKIE);
-      setShowOnboarding(!hasCompletedOnboarding);
-      setChecked(true);
-    }
+    const hasCompletedOnboarding = getCookie(ONBOARDING_COOKIE);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setState({
+      showOnboarding: !hasCompletedOnboarding,
+      checked: true,
+      shouldOpenCheckIn: false,
+    });
   }, []);
 
-  const completeOnboarding = (openCheckIn: boolean) => {
-    setShowOnboarding(false);
-    setShouldOpenCheckIn(openCheckIn);
-  };
+  const completeOnboarding = useCallback((openCheckIn: boolean) => {
+    setState(prev => ({ ...prev, showOnboarding: false, shouldOpenCheckIn: openCheckIn }));
+  }, []);
 
-  const clearOpenCheckIn = () => {
-    setShouldOpenCheckIn(false);
-  };
+  const clearOpenCheckIn = useCallback(() => {
+    setState(prev => ({ ...prev, shouldOpenCheckIn: false }));
+  }, []);
 
-  return { showOnboarding, completeOnboarding, checked, shouldOpenCheckIn, clearOpenCheckIn };
+  return {
+    showOnboarding: state.showOnboarding,
+    completeOnboarding,
+    checked: state.checked,
+    shouldOpenCheckIn: state.shouldOpenCheckIn,
+    clearOpenCheckIn
+  };
 }

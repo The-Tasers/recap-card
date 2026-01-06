@@ -21,6 +21,7 @@ export const translations = {
     'onboarding.successTitle': 'Your first moment',
     'onboarding.successDesc':
       'This is how your day builds up, one moment at a time.',
+    'onboarding.continue': 'Got it',
     'onboarding.seeRecap': 'See your recap',
 
     // Mood select view
@@ -352,50 +353,67 @@ export const translations = {
     'home.momentContext': 'One moment in a larger day.',
 
     // Rotating button labels for insights (intriguing, curiosity-driven)
-    'insights.button.0': 'See patterns?',
-    'insights.button.1': 'Your rhythm',
-    'insights.button.2': 'What changed?',
-    'insights.button.3': 'Week pulse',
-    'insights.button.4': 'Notice anything?',
+    'insights.button.0': 'Your rhythm',
+    'insights.button.1': 'What changed?',
+    'insights.button.2': "What' next?",
 
     // Insights panel
     'insights.title': 'Patterns',
     'insights.empty': 'A few more moments and patterns will emerge',
+    'insights.emptyNoDays': 'Start tracking moments to see patterns',
+    'insights.emptyNeedDays':
+      '{count} more {count, plural, one {day} other {days}} with moments needed',
+    'insights.emptyNeedMoments': 'A few more moments needed for insights',
+    'insights.moreToUnlock': 'More moments reveal deeper patterns',
+    'insights.momentCount':
+      '{count} {count, plural, one {moment} other {moments}}',
+    'insights.toNext': '+{count} to next insight',
     'insights.examplesTitle': 'What you might discover:',
     'insights.example.1': 'You feel drained after work, but energized at home',
     'insights.example.2': 'Time with friends consistently lifts your mood',
     'insights.example.3':
       'Your mornings start calm, but evenings get scattered',
     // Real dynamic insights with actual data
-    'insights.contextMakesState': '{context} usually brings {state}',
-    'insights.personMakesState': '{person} often brings {state}',
+    'insights.contextMakesState': 'You tend to feel {state} at {context}',
+    'insights.personMakesState': 'Time with {person} often leaves you {state}',
     'insights.morningVsEvening': 'Mornings feel {comparison} than evenings',
     'insights.eveningVsMorning': 'Evenings feel {comparison} than mornings',
     'insights.weekendBoost': 'Weekends noticeably lift your mood',
-    'insights.workDrains': 'Work days take more energy',
+    'insights.workDrains': 'Work days tend to drain your energy',
     'insights.betterRecently': 'Things have been looking up lately',
-    'insights.harderRecently': 'Last few days felt heavier',
+    'insights.harderRecently': 'The last few days have felt heavier',
     'insights.steadyWeek': 'Your energy stayed steady this week',
     'insights.variedWeek': 'This week was a rollercoaster',
     // Comparison words
     'insights.comparison.better': 'better',
     'insights.comparison.calmer': 'calmer',
     'insights.comparison.more_energized': 'more energized',
-    // State forms for insights (nouns/feelings that work after "brings")
-    'insights.state.energized': 'energy',
+    // State forms for insights (adjectives that work after "feel" / "leaves you")
+    'insights.state.energized': 'energized',
     'insights.state.calm': 'calm',
-    'insights.state.tired': 'tiredness',
-    'insights.state.drained': 'fatigue',
-    'insights.state.content': 'contentment',
-    'insights.state.anxious': 'anxiety',
-    'insights.state.frustrated': 'frustration',
-    'insights.state.grateful': 'gratitude',
-    'insights.state.uncertain': 'uncertainty',
-    'insights.state.focused': 'focus',
-    'insights.state.scattered': 'scatter',
-    'insights.state.present': 'presence',
-    'insights.state.distracted': 'distraction',
-    'insights.state.neutral': 'balance',
+    'insights.state.tired': 'tired',
+    'insights.state.drained': 'drained',
+    'insights.state.rested': 'rested',
+    'insights.state.content': 'content',
+    'insights.state.anxious': 'anxious',
+    'insights.state.frustrated': 'frustrated',
+    'insights.state.grateful': 'grateful',
+    'insights.state.uncertain': 'uncertain',
+    'insights.state.focused': 'focused',
+    'insights.state.scattered': 'scattered',
+    'insights.state.present': 'present',
+    'insights.state.distracted': 'distracted',
+    'insights.state.overwhelmed': 'overwhelmed',
+    'insights.state.neutral': 'neutral',
+    // Person forms for insights (same as regular in English, but needed for Russian instrumental case)
+    'insights.person.partner': 'Partner',
+    'insights.person.family': 'Family',
+    'insights.person.friends': 'Friends',
+    'insights.person.colleagues': 'Colleagues',
+    'insights.person.kids': 'Kids',
+    'insights.person.pets': 'Pets',
+    'insights.person.strangers': 'Strangers',
+    'insights.person.clients': 'Clients',
 
     // Check-in home
     'checkin.add': 'How are you?',
@@ -442,22 +460,24 @@ export const translations = {
     'state.emotion': 'Feeling',
     'state.tension': 'Focus',
     'state.more': 'More',
-    // Energy states
-    'state.energized': 'Energized',
-    'state.calm': 'Rested',
-    'state.tired': 'Tired',
+    // Energy states (low to high)
     'state.drained': 'Drained',
-    // Emotion states
-    'state.content': 'Content',
-    'state.anxious': 'Anxious',
+    'state.tired': 'Tired',
+    'state.calm': 'Calm',
+    'state.rested': 'Rested',
+    'state.energized': 'Energized',
+    // Emotion states (negative to positive)
     'state.frustrated': 'Frustrated',
-    'state.grateful': 'Grateful',
+    'state.anxious': 'Anxious',
     'state.uncertain': 'Uncertain',
-    // Tension states
-    'state.focused': 'Focused',
-    'state.scattered': 'Scattered',
-    'state.present': 'Present',
+    'state.content': 'Content',
+    'state.grateful': 'Grateful',
+    // Tension states (scattered to present)
+    'state.overwhelmed': 'Overwhelmed',
     'state.distracted': 'Distracted',
+    'state.scattered': 'Scattered',
+    'state.focused': 'Focused',
+    'state.present': 'Present',
 
     // Context selection
     'context.addCustom': 'Add',
@@ -470,6 +490,10 @@ export const translations = {
     'context.exercise': 'Exercise',
     'context.errands': 'Errands',
     'context.rest': 'Rest',
+    'context.outdoors': 'Outdoors',
+    'context.eating': 'Eating',
+    'context.learning': 'Learning',
+    'context.travel': 'Travel',
 
     // Person selection (step 3)
     'person.title': 'People',
@@ -481,6 +505,10 @@ export const translations = {
     'person.family': 'Family',
     'person.friends': 'Friends',
     'person.colleagues': 'Colleagues',
+    'person.kids': 'Kids',
+    'person.pets': 'Pets',
+    'person.strangers': 'Strangers',
+    'person.clients': 'Clients',
 
     // Day recap
     'recap.title': 'Your day',
@@ -535,7 +563,7 @@ export const translations = {
 
     // Date picker
     'datePicker.title': 'Go to date',
-    'datePicker.endOfTimeline': '90 days of history',
+    'datePicker.endOfTimeline': '30 days of history',
   },
 
   ru: {
@@ -546,11 +574,12 @@ export const translations = {
     // Onboarding
     'onboarding.title': 'День — это много моментов',
     'onboarding.description':
-      'Отмечай как себя чувствуешь прямо сейчас. Увидишь день таким, каким он был, а не каким его перепишет память.',
+      'Отмечай как себя чувствуешь прямо сейчас. Увидишь день, каким он был на самом деле',
     'onboarding.button': 'Попробовать',
     'onboarding.successTitle': 'Твой первый момент',
     'onboarding.successDesc':
       'Так день складывается из моментов, один за другим.',
+    'onboarding.continue': 'Понятно',
     'onboarding.seeRecap': 'Посмотреть итоги',
 
     // Mood select view
@@ -881,49 +910,66 @@ export const translations = {
     'home.momentContext': 'Один момент из многих.',
 
     // Rotating button labels for insights (intriguing, curiosity-driven)
-    'insights.button.0': 'Заметил паттерны?',
-    'insights.button.1': 'Твой ритм',
-    'insights.button.2': 'Что изменилось?',
-    'insights.button.3': 'Пульс недели',
-    'insights.button.4': 'Замечаешь?',
+    'insights.button.0': 'Твой ритм',
+    'insights.button.1': 'Что изменилось?',
+    'insights.button.2': 'А что дальше?',
 
     // Insights panel
-    'insights.title': 'Паттерны',
+    'insights.title': 'Твоя история',
     'insights.empty': 'Ещё пара моментов — и появятся паттерны',
-    'insights.examplesTitle': 'Что ты можешь обнаружить:',
+    'insights.emptyNoDays': 'Начни отмечать моменты, чтобы увидеть паттерны',
+    'insights.emptyNeedDays':
+      'Нужно ещё {count} {count, plural, one {день} few {дня} other {дней}} с моментами',
+    'insights.emptyNeedMoments': 'Нужно ещё несколько моментов',
+    'insights.moreToUnlock': 'Больше моментов — глубже паттерны',
+    'insights.momentCount':
+      '{count} {count, plural, one {момент} few {момента} other {моментов}}',
+    'insights.toNext': '+{count} до нового открытия',
+    'insights.examplesTitle': 'Что ты можешь увидеть:',
     'insights.example.1': 'После работы ты выжат, а дома — полон сил',
     'insights.example.2': 'Время с друзьями стабильно поднимает настроение',
     'insights.example.3': 'Утром ты спокоен, но к вечеру рассеян',
     // Real dynamic insights with actual data
-    'insights.contextMakesState': '{context} приносит {state}',
-    'insights.personMakesState': '{person} приносит {state}',
+    'insights.contextMakesState': '{context} — обычно {state}',
+    'insights.personMakesState': 'С {person} часто {state}',
     'insights.morningVsEvening': 'Утром {comparison}, чем вечером',
     'insights.eveningVsMorning': 'Вечером {comparison}, чем утром',
-    'insights.weekendBoost': 'На выходных настроение лучше',
-    'insights.workDrains': 'Рабочие дни забирают больше сил',
-    'insights.betterRecently': 'Последние дни стало лучше',
-    'insights.harderRecently': 'Последние дни были тяжелее',
+    'insights.weekendBoost': 'На выходных настроение заметно лучше',
+    'insights.workDrains': 'Рабочие дни отнимают больше сил',
+    'insights.betterRecently': 'Последние дни стало полегче',
+    'insights.harderRecently': 'Последние дни были потяжелее',
     'insights.steadyWeek': 'Энергия стабильна всю неделю',
     'insights.variedWeek': 'Неделя была американскими горками',
     // Comparison words
     'insights.comparison.better': 'лучше',
     'insights.comparison.calmer': 'спокойнее',
     'insights.comparison.more_energized': 'больше сил',
-    // State forms for insights (nouns that work after "приносит")
-    'insights.state.energized': 'энергию',
+    // State forms for insights (nouns that work after "— обычно" / "часто")
+    'insights.state.energized': 'энергия',
     'insights.state.calm': 'спокойствие',
     'insights.state.tired': 'усталость',
     'insights.state.drained': 'истощение',
-    'insights.state.content': 'довольство',
-    'insights.state.anxious': 'тревогу',
+    'insights.state.rested': 'отдых',
+    'insights.state.content': 'радость',
+    'insights.state.anxious': 'тревога',
     'insights.state.frustrated': 'раздражение',
-    'insights.state.grateful': 'благодарность',
-    'insights.state.uncertain': 'неясность',
+    'insights.state.grateful': 'удовольствие',
+    'insights.state.uncertain': 'неуверенность',
     'insights.state.focused': 'фокус',
     'insights.state.scattered': 'рассеянность',
-    'insights.state.present': 'вовлечённость',
-    'insights.state.distracted': 'отвлечённость',
-    'insights.state.neutral': 'равновесие',
+    'insights.state.present': 'собранность',
+    'insights.state.distracted': 'отвлечение',
+    'insights.state.overwhelmed': 'перегрузка',
+    'insights.state.neutral': 'нейтрально',
+    // Person forms for insights (instrumental case - творительный падеж for "С кем?")
+    'insights.person.partner': 'партнёром',
+    'insights.person.family': 'семьёй',
+    'insights.person.friends': 'друзьями',
+    'insights.person.colleagues': 'коллегами',
+    'insights.person.kids': 'детьми',
+    'insights.person.pets': 'питомцами',
+    'insights.person.strangers': 'незнакомцами',
+    'insights.person.clients': 'клиентами',
 
     // Check-in home
     'checkin.add': 'Как дела?',
@@ -965,27 +1011,29 @@ export const translations = {
     'tone.heavy': 'Тяжело',
 
     // State selection
-    'state.neutral': 'Ровно',
+    'state.neutral': 'Нейтрально',
     'state.energy': 'Силы',
     'state.emotion': 'Настрой',
     'state.tension': 'Фокус',
     'state.more': 'Ещё',
-    // Energy states
-    'state.energized': 'Заряжен',
-    'state.calm': 'В норме',
-    'state.tired': 'Устал',
-    'state.drained': 'Выжат',
-    // Emotion states
-    'state.content': 'Хорошо',
-    'state.anxious': 'Тревожно',
-    'state.frustrated': 'Бесит',
-    'state.grateful': 'Отлично',
-    'state.uncertain': 'Непонятно',
-    // Tension states
-    'state.focused': 'Собран',
-    'state.scattered': 'Рассеян',
-    'state.present': 'Вовлечён',
-    'state.distracted': 'Отвлечён',
+    // Energy states (low to high)
+    'state.drained': 'Истощение',
+    'state.tired': 'Усталость',
+    'state.calm': 'Спокойствие',
+    'state.rested': 'Отдых',
+    'state.energized': 'Энергия',
+    // Emotion states (negative to positive)
+    'state.frustrated': 'Раздражение',
+    'state.anxious': 'Тревога',
+    'state.uncertain': 'Неуверенность',
+    'state.content': 'Радость',
+    'state.grateful': 'Удовольствие',
+    // Tension states (scattered to present)
+    'state.overwhelmed': 'Перегрузка',
+    'state.distracted': 'Отвлечение',
+    'state.scattered': 'Рассеянность',
+    'state.focused': 'В фокусе',
+    'state.present': 'Собранность',
 
     // Context selection
     'context.addCustom': 'Добавить',
@@ -998,6 +1046,10 @@ export const translations = {
     'context.exercise': 'Спорт',
     'context.errands': 'Дела',
     'context.rest': 'Отдыхаю',
+    'context.outdoors': 'На улице',
+    'context.eating': 'Еда',
+    'context.learning': 'Учёба',
+    'context.travel': 'Путешествие',
 
     // Person selection (step 3)
     'person.title': 'Люди',
@@ -1009,6 +1061,10 @@ export const translations = {
     'person.family': 'Семья',
     'person.friends': 'Друзья',
     'person.colleagues': 'Коллеги',
+    'person.kids': 'Дети',
+    'person.pets': 'Питомцы',
+    'person.strangers': 'Незнакомцы',
+    'person.clients': 'Клиенты',
 
     // Day recap
     'recap.title': 'Твой день',
@@ -1061,6 +1117,6 @@ export const translations = {
 
     // Date picker
     'datePicker.title': 'Перейти к дате',
-    'datePicker.endOfTimeline': '90 дней истории',
+    'datePicker.endOfTimeline': '30 дней истории',
   },
 } as const;

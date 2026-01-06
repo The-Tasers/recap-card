@@ -11,14 +11,11 @@ import {
   X,
   Check,
   Sun,
-  CloudSun,
   Moon,
+  Cloud,
   CloudRain,
   Smile,
-  Meh,
   Frown,
-  Annoyed,
-  Laugh,
   Target,
   Shuffle,
   Eye,
@@ -33,26 +30,47 @@ import {
   ShoppingBag,
   Undo2,
   Trash2,
+  TreePine,
+  Plane,
+  UtensilsCrossed,
+  GraduationCap,
+  Heart,
+  Baby,
+  PawPrint,
+  UserPlus,
+  HeartHandshake,
+  Battery,
+  Zap,
+  AlertCircle,
+  HelpCircle,
+  MapPin,
+  Coffee,
+  Dog,
   type LucideIcon,
 } from 'lucide-react';
 
-// State icons - emotion uses face emoticons from bad to good
+// State icons by category
 const STATE_ICONS: Record<string, LucideIcon> = {
+  // Neutral
   neutral: Minus,
-  energized: Sun,
-  calm: CloudSun,
+  // Energy (low to high)
+  drained: Battery,
   tired: Moon,
-  drained: CloudRain,
-  // Emotion: faces from bad to good
-  frustrated: Frown, // worst
-  anxious: Annoyed, // bad
-  uncertain: Meh, // neutral
-  content: Smile, // good
-  grateful: Laugh, // best
-  focused: Target,
-  scattered: Shuffle,
-  present: Eye,
+  calm: Cloud,
+  rested: Sun,
+  energized: Zap,
+  // Emotion (negative to positive)
+  frustrated: Frown,
+  anxious: AlertCircle,
+  uncertain: HelpCircle,
+  content: Smile,
+  grateful: Heart,
+  // Tension (scattered to present)
+  overwhelmed: CloudRain,
   distracted: EyeOff,
+  scattered: Shuffle,
+  focused: Target,
+  present: Eye,
 };
 
 // Context icons
@@ -64,7 +82,23 @@ const CONTEXT_ICONS: Record<string, LucideIcon> = {
   alone: User,
   exercise: Dumbbell,
   errands: ShoppingBag,
-  rest: Moon,
+  rest: Coffee,
+  outdoors: MapPin,
+  eating: UtensilsCrossed,
+  learning: GraduationCap,
+  travel: Plane,
+};
+
+// Person icons
+const PERSON_ICONS: Record<string, LucideIcon> = {
+  partner: Heart,
+  family: Users,
+  friends: Smile,
+  colleagues: Briefcase,
+  kids: Baby,
+  pets: Dog,
+  strangers: UserPlus,
+  clients: HeartHandshake,
 };
 
 // =============================================================================
@@ -114,18 +148,23 @@ const STATE_ORB_COLORS: Record<
   },
 
   // ENERGY category: blue/cyan family (cool energy feel)
-  // drained(dark) → tired → calm → energized(bright)
+  // drained(dark) → tired → calm → rested → energized(bright)
   drained: {
-    bg: 'bg-indigo-900',
-    glow: 'rgba(49, 46, 129, 0.4)',
-    rgb: '#312e81',
+    bg: 'bg-indigo-500',
+    glow: 'rgba(99, 102, 241, 0.4)',
+    rgb: '#6366f1',
   },
   tired: {
-    bg: 'bg-blue-400',
-    glow: 'rgba(96, 165, 250, 0.4)',
-    rgb: '#60a5fa',
+    bg: 'bg-indigo-400',
+    glow: 'rgba(129, 140, 248, 0.4)',
+    rgb: '#818cf8',
   },
   calm: {
+    bg: 'bg-indigo-300',
+    glow: 'rgba(165, 180, 252, 0.4)',
+    rgb: '#a5b4fc',
+  },
+  rested: {
     bg: 'bg-sky-400',
     glow: 'rgba(56, 189, 248, 0.4)',
     rgb: '#38bdf8',
@@ -137,21 +176,26 @@ const STATE_ORB_COLORS: Record<
   },
 
   // TENSION/FOCUS category: purple/violet family (mental clarity)
-  // scattered(chaotic) → distracted → focused → present(clear)
-  scattered: {
-    bg: 'bg-purple-700',
-    glow: 'rgba(126, 34, 206, 0.4)',
-    rgb: '#7e22ce',
+  // overwhelmed → distracted → scattered → focused → present(clear)
+  overwhelmed: {
+    bg: 'bg-violet-600',
+    glow: 'rgba(124, 58, 237, 0.4)',
+    rgb: '#7c3aed',
   },
   distracted: {
+    bg: 'bg-purple-600',
+    glow: 'rgba(147, 51, 234, 0.4)',
+    rgb: '#9333ea',
+  },
+  scattered: {
     bg: 'bg-purple-500',
     glow: 'rgba(168, 85, 247, 0.4)',
     rgb: '#a855f7',
   },
   focused: {
-    bg: 'bg-violet-400',
-    glow: 'rgba(167, 139, 250, 0.4)',
-    rgb: '#a78bfa',
+    bg: 'bg-purple-400',
+    glow: 'rgba(192, 132, 252, 0.4)',
+    rgb: '#c084fc',
   },
   present: {
     bg: 'bg-fuchsia-400',
@@ -168,9 +212,9 @@ const DEFAULT_ORB_COLORS = {
 
 // Category order for state display
 const CATEGORY_STATE_ORDER: Record<string, string[]> = {
-  energy: ['drained', 'tired', 'calm', 'energized'],
+  energy: ['drained', 'tired', 'calm', 'rested', 'energized'],
   emotion: ['frustrated', 'anxious', 'uncertain', 'content', 'grateful'],
-  tension: ['scattered', 'distracted', 'focused', 'present'],
+  tension: ['overwhelmed', 'distracted', 'scattered', 'focused', 'present'],
 };
 
 const CATEGORY_ORDER = ['energy', 'emotion', 'tension'];
@@ -198,23 +242,23 @@ function StateOrb({
 }: StateOrbProps) {
   const { t } = useI18n();
   const colors = STATE_ORB_COLORS[state.id] || DEFAULT_ORB_COLORS;
-  const Icon = STATE_ICONS[state.id] || Meh;
+  const Icon = STATE_ICONS[state.id] || HelpCircle;
 
   const sizeConfig = {
     sm: {
-      orb: 'w-12 h-12 sm:w-12 sm:h-12',
-      icon: 'w-5 h-5 sm:w-5 sm:h-5',
-      text: 'text-[10px] sm:text-xs',
+      orb: 'w-10 h-10 sm:w-12 sm:h-12',
+      icon: 'w-4 h-4 sm:w-5 sm:h-5',
+      text: 'text-[9px] sm:text-xs',
     },
     md: {
-      orb: 'w-14 h-14 sm:w-16 sm:h-16',
-      icon: 'w-6 h-6 sm:w-6 sm:h-6',
-      text: 'text-xs sm:text-sm',
+      orb: 'w-11 h-11 sm:w-14 sm:h-14',
+      icon: 'w-5 h-5 sm:w-6 sm:h-6',
+      text: 'text-[10px] sm:text-xs',
     },
     lg: {
-      orb: 'w-16 h-16 sm:w-20 sm:h-20',
-      icon: 'w-7 h-7 sm:w-8 sm:h-8',
-      text: 'text-xs sm:text-base',
+      orb: 'w-14 h-14 sm:w-18 sm:h-18',
+      icon: 'w-6 h-6 sm:w-7 sm:h-7',
+      text: 'text-[10px] sm:text-sm',
     },
   };
 
@@ -275,7 +319,7 @@ function SelectedStateDisplay({ stateId, contextId, onTap }: SelectedStateDispla
   if (!state) return null;
 
   const colors = STATE_ORB_COLORS[stateId] || DEFAULT_ORB_COLORS;
-  const Icon = STATE_ICONS[stateId] || Meh;
+  const Icon = STATE_ICONS[stateId] || HelpCircle;
 
   // Get context label if selected
   const context = contextId ? contexts.find((c) => c.id === contextId) : null;
@@ -379,7 +423,7 @@ export function CheckInFlow({
   onCancel,
 }: CheckInFlowProps) {
   const { t } = useI18n();
-  const { addCheckIn, getOrCreateToday } = useCheckInStore();
+  const { addCheckIn, getOrCreateToday, checkIns } = useCheckInStore();
   const { states, contexts, people } = useOptionsStore();
 
   const [stateId, setStateId] = useState<string | undefined>();
@@ -389,6 +433,7 @@ export function CheckInFlow({
   const [showStateSelector, setShowStateSelector] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isFirstMoment, setIsFirstMoment] = useState(false);
 
   // Check if user has made any changes
   const hasChanges = stateId || contextId || personId;
@@ -449,6 +494,10 @@ export function CheckInFlow({
 
     setIsSaving(true);
 
+    // Check if this is the first ever moment before adding
+    const isFirst = checkIns.length === 0;
+    setIsFirstMoment(isFirst);
+
     const today = getOrCreateToday();
     addCheckIn({
       dayId: today.id,
@@ -458,11 +507,16 @@ export function CheckInFlow({
       personId,
     });
 
-    // Show success screen briefly
+    // Show success screen
     setShowSuccess(true);
-    setTimeout(() => {
-      onComplete();
-    }, 1200);
+
+    // For first moment, don't auto-close - user clicks button
+    // For subsequent moments, auto-close after brief delay
+    if (!isFirst) {
+      setTimeout(() => {
+        onComplete();
+      }, 1200);
+    }
   }, [
     stateId,
     contextId,
@@ -471,6 +525,7 @@ export function CheckInFlow({
     addCheckIn,
     onComplete,
     isSaving,
+    checkIns.length,
   ]);
 
   const canComplete = !!stateId && !!contextId;
@@ -529,11 +584,11 @@ export function CheckInFlow({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="space-y-3 sm:space-y-6 pt-1"
+              className="space-y-2 sm:space-y-4 pt-1"
             >
               {/* Neutral state - prominent at top */}
               {neutralState && (
-                <div className="flex justify-center pb-2 sm:pb-4 border-b border-border/50">
+                <div className="flex justify-center pb-1.5 sm:pb-3 border-b border-border/50">
                   <StateOrb
                     state={neutralState}
                     isSelected={stateId === 'neutral'}
@@ -549,11 +604,11 @@ export function CheckInFlow({
                 if (categoryStates.length === 0) return null;
 
                 return (
-                  <div key={category} className="space-y-1.5 sm:space-y-3">
+                  <div key={category} className="space-y-1 sm:space-y-2">
                     <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide text-center">
                       {t(`state.${category}` as TranslationKey)}
                     </p>
-                    <div className="flex justify-center gap-1.5 sm:gap-3 flex-wrap">
+                    <div className="flex justify-center gap-1 sm:gap-2">
                       {categoryStates.map((state) => (
                         <StateOrb
                           key={state.id}
@@ -682,6 +737,7 @@ export function CheckInFlow({
                 const label = translationKey
                   ? t(translationKey as 'person.partner') || person.label
                   : person.label;
+                const PersonIcon = PERSON_ICONS[person.id] || User;
 
                 return (
                   <motion.button
@@ -696,7 +752,7 @@ export function CheckInFlow({
                     )}
                     whileTap={{ scale: 0.97 }}
                   >
-                    <User
+                    <PersonIcon
                       className={cn(
                         'h-4 w-4',
                         isSelected
@@ -802,15 +858,45 @@ export function CheckInFlow({
               </motion.div>
             </motion.div>
 
-            {/* Success text */}
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="mt-6 text-lg font-medium text-foreground"
-            >
-              {t('checkin.momentSaved')}
-            </motion.p>
+            {/* Success text - different for first moment */}
+            {isFirstMoment ? (
+              <>
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="mt-6 text-lg font-medium text-foreground"
+                >
+                  {t('onboarding.successTitle')}
+                </motion.p>
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="mt-2 text-sm text-muted-foreground text-center max-w-[250px]"
+                >
+                  {t('onboarding.successDesc')}
+                </motion.p>
+                <motion.button
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  onClick={onComplete}
+                  className="mt-6 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium text-base hover:bg-primary/90 transition-colors"
+                >
+                  {t('onboarding.continue')}
+                </motion.button>
+              </>
+            ) : (
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="mt-6 text-lg font-medium text-foreground"
+              >
+                {t('checkin.momentSaved')}
+              </motion.p>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

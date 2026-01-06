@@ -15,7 +15,7 @@ interface DatePickerTimelineProps {
 }
 
 // Generate array of dates going back from today (oldest first, today last)
-function generateDateList(daysBack: number = 90): Date[] {
+function generateDateList(daysBack: number = 30): Date[] {
   const dates: Date[] = [];
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -51,7 +51,7 @@ export function DatePickerTimeline({
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  const allDates = useMemo(() => generateDateList(90), []);
+  const allDates = useMemo(() => generateDateList(30), []);
 
   // Get check-in counts per day
   const checkInCountByDate = useMemo(() => {

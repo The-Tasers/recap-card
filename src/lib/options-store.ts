@@ -10,22 +10,24 @@ import { State, Context, Person, StateCategory } from './types';
 const DEFAULT_STATES: State[] = [
   // Neutral
   { id: 'neutral', label: 'Neutral', category: 'neutral', isDefault: true },
-  // Energy
-  { id: 'energized', label: 'Energized', category: 'energy', isDefault: true },
-  { id: 'calm', label: 'Calm', category: 'energy', isDefault: true },
-  { id: 'tired', label: 'Tired', category: 'energy', isDefault: true },
+  // Energy category (low to high) - 5 states
   { id: 'drained', label: 'Drained', category: 'energy', isDefault: true },
-  // Emotion
-  { id: 'grateful', label: 'Grateful', category: 'emotion', isDefault: true },
-  { id: 'content', label: 'Content', category: 'emotion', isDefault: true },
-  { id: 'uncertain', label: 'Uncertain', category: 'emotion', isDefault: true },
-  { id: 'anxious', label: 'Anxious', category: 'emotion', isDefault: true },
+  { id: 'tired', label: 'Tired', category: 'energy', isDefault: true },
+  { id: 'calm', label: 'Calm', category: 'energy', isDefault: true },
+  { id: 'rested', label: 'Rested', category: 'energy', isDefault: true },
+  { id: 'energized', label: 'Energized', category: 'energy', isDefault: true },
+  // Emotion category (negative to positive) - 5 states
   { id: 'frustrated', label: 'Frustrated', category: 'emotion', isDefault: true },
-  // Tension
-  { id: 'present', label: 'Present', category: 'tension', isDefault: true },
-  { id: 'focused', label: 'Focused', category: 'tension', isDefault: true },
+  { id: 'anxious', label: 'Anxious', category: 'emotion', isDefault: true },
+  { id: 'uncertain', label: 'Uncertain', category: 'emotion', isDefault: true },
+  { id: 'content', label: 'Content', category: 'emotion', isDefault: true },
+  { id: 'grateful', label: 'Grateful', category: 'emotion', isDefault: true },
+  // Tension category (scattered to present) - 5 states
+  { id: 'overwhelmed', label: 'Overwhelmed', category: 'tension', isDefault: true },
   { id: 'distracted', label: 'Distracted', category: 'tension', isDefault: true },
   { id: 'scattered', label: 'Scattered', category: 'tension', isDefault: true },
+  { id: 'focused', label: 'Focused', category: 'tension', isDefault: true },
+  { id: 'present', label: 'Present', category: 'tension', isDefault: true },
 ];
 
 const DEFAULT_CONTEXTS: Context[] = [
@@ -37,6 +39,10 @@ const DEFAULT_CONTEXTS: Context[] = [
   { id: 'exercise', label: 'Exercise', isDefault: true },
   { id: 'errands', label: 'Errands', isDefault: true },
   { id: 'rest', label: 'Rest', isDefault: true },
+  { id: 'outdoors', label: 'Outdoors', isDefault: true },
+  { id: 'eating', label: 'Eating', isDefault: true },
+  { id: 'learning', label: 'Learning', isDefault: true },
+  { id: 'travel', label: 'Travel', isDefault: true },
 ];
 
 const DEFAULT_PEOPLE: Person[] = [
@@ -44,6 +50,10 @@ const DEFAULT_PEOPLE: Person[] = [
   { id: 'family', label: 'Family', isDefault: true },
   { id: 'friends', label: 'Friends', isDefault: true },
   { id: 'colleagues', label: 'Colleagues', isDefault: true },
+  { id: 'kids', label: 'Kids', isDefault: true },
+  { id: 'pets', label: 'Pets', isDefault: true },
+  { id: 'strangers', label: 'Strangers', isDefault: true },
+  { id: 'clients', label: 'Clients', isDefault: true },
 ];
 
 // ============================================================================
