@@ -29,6 +29,10 @@ import {
   trackDayRecapClose,
   trackDateNavigation,
   trackDateSelect,
+  trackOrbTap,
+  trackMergedOrbExpand,
+  trackMergedOrbCollapse,
+  trackMomentSelectFromGroup,
 } from '@/lib/analytics';
 import {
   Activity,
@@ -980,6 +984,7 @@ export function CheckInHome({
         setExpandedGroupIndex(null);
         // Calculate origin position from arc
         const checkIn = group[0];
+        trackOrbTap();
         const pos = getCheckInArcPosition(checkIn.timestamp);
         setSelectedMomentOrigin({ x: pos.x, y: pos.y });
         setSelectedMoment(checkIn);
@@ -988,8 +993,10 @@ export function CheckInHome({
     } else {
       // Multiple moments - expand/collapse group to show grid in arc center
       if (expandedGroupIndex === groupIndex) {
+        trackMergedOrbCollapse();
         setExpandedGroupIndex(null);
       } else {
+        trackMergedOrbExpand();
         setExpandedGroupIndex(groupIndex);
       }
       setSelectedMoment(null);
@@ -999,6 +1006,7 @@ export function CheckInHome({
   };
 
   const handleMomentSelect = (checkIn: CheckIn, event?: React.MouseEvent) => {
+    trackMomentSelectFromGroup();
     // Select moment from expanded group - animate from grid center (not arc position)
     // Grid is at left-1/2 top-[70%] in the arc container (200x120 viewBox)
     // x: 100 = 50% of 200, y: 84 = 70% of 120

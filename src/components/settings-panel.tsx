@@ -20,6 +20,7 @@ import {
   trackThemeChange,
   trackLanguageChange,
   trackDataClear,
+  trackContactClick,
 } from '@/lib/analytics';
 
 const CONTACT_EMAIL = 'support@recapz.app';
@@ -233,6 +234,7 @@ export function SettingsPanel({ isOpen, onClose, isMobile }: SettingsPanelProps)
 
           <a
             href={`mailto:${CONTACT_EMAIL}`}
+            onClick={() => trackContactClick()}
             className="flex items-center justify-center gap-2 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
           >
             <MessageSquare className="h-4 w-4 text-muted-foreground" />

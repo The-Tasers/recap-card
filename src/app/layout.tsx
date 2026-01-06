@@ -11,6 +11,7 @@ import { I18nProvider } from '@/lib/i18n';
 import { DynamicMetadata } from '@/components/dynamic-metadata';
 
 const GA_MEASUREMENT_ID = 'G-VREKFE83N5';
+const isDev = process.env.NODE_ENV === 'development';
 
 // Inline script to prevent theme flash - runs before React hydration
 const themeScript = `
@@ -70,18 +71,22 @@ export default function RootLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${GA_MEASUREMENT_ID}');
-          `}
-        </Script>
+        {!isDev && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA_MEASUREMENT_ID}');
+              `}
+            </Script>
+          </>
+        )}
       </head>
       <body
         className={`${geistSans.variable} font-sans antialiased min-h-screen-dynamic bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100`}

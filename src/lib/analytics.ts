@@ -8,8 +8,15 @@ declare global {
   }
 }
 
+const isDev = process.env.NODE_ENV === 'development';
+
 // Helper to check if gtag is available
+// In development: logs to console instead of sending to GA4
 function gtag(...args: unknown[]) {
+  if (isDev) {
+    console.log('📊 Analytics:', ...args);
+    return;
+  }
   if (typeof window !== 'undefined' && window.gtag) {
     window.gtag(...args);
   }
@@ -188,6 +195,34 @@ export function trackDayRecapClose() {
 }
 
 // ============================================================================
+// Orb Interaction Events
+// ============================================================================
+
+export function trackOrbTap() {
+  gtag('event', 'orb_tap', {
+    event_category: 'engagement',
+  });
+}
+
+export function trackMergedOrbExpand() {
+  gtag('event', 'merged_orb_expand', {
+    event_category: 'engagement',
+  });
+}
+
+export function trackMergedOrbCollapse() {
+  gtag('event', 'merged_orb_collapse', {
+    event_category: 'engagement',
+  });
+}
+
+export function trackMomentSelectFromGroup() {
+  gtag('event', 'moment_select_from_group', {
+    event_category: 'engagement',
+  });
+}
+
+// ============================================================================
 // Settings Events
 // ============================================================================
 
@@ -232,6 +267,12 @@ export function trackDataExport() {
 export function trackDataClear() {
   gtag('event', 'data_clear', {
     event_category: 'data',
+  });
+}
+
+export function trackContactClick() {
+  gtag('event', 'contact_click', {
+    event_category: 'settings',
   });
 }
 
