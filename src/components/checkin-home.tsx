@@ -18,7 +18,7 @@ import {
   ExpectationTone,
   CheckIn,
   EXPECTATION_TONES,
-  ALL_COLOR_THEMES,
+  COLOR_THEMES,
 } from '@/lib/types';
 import { useSettingsStore } from '@/lib/store';
 import { useI18n } from '@/lib/i18n';
@@ -806,7 +806,7 @@ export function CheckInHome({
 
   // Determine if current theme is dark
   const isDarkTheme = useMemo(() => {
-    const theme = ALL_COLOR_THEMES.find((t) => t.value === colorTheme);
+    const theme = COLOR_THEMES.find((t) => t.value === colorTheme);
     return theme?.isDark ?? true;
   }, [colorTheme]);
 
@@ -1590,17 +1590,17 @@ export function CheckInHome({
           </div>
         </motion.div>
 
-        {/* Empty explanation for today only - below buttons */}
+        {/* Explanation for today - below buttons, always visible */}
         <div className="h-[24px] mt-4 flex items-center justify-center">
           <AnimatePresence>
-            {!selectedMoment && selectedDayCheckIns.length === 0 && isToday && (
+            {!selectedMoment && isToday && (
               <motion.p
                 key="empty-explanation"
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
                 transition={{ delay: 0.5 }}
-                className="text-sm text-muted-foreground text-center max-w-xs"
+                className="text-sm text-muted-foreground/70 text-center max-w-xs italic"
               >
                 {t('home.emptyExplanation') ||
                   'Catch how you feel as the day unfolds'}
@@ -1609,6 +1609,10 @@ export function CheckInHome({
           </AnimatePresence>
         </div>
 
+      </div>
+
+      {/* Footer with insights button */}
+      <div className="shrink-0 px-6 pb-2">
         {/* Insights button with rotating intriguing labels */}
         <InsightsButton
           onClick={() => {
@@ -1616,10 +1620,6 @@ export function CheckInHome({
             setShowInsightsPanel(true);
           }}
         />
-      </div>
-
-      {/* Footer */}
-      <div className="shrink-0 px-6">
         <AppFooter showLogo={false} />
       </div>
 
@@ -1656,7 +1656,7 @@ export function CheckInHome({
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 pb-3">
-                  <h2 className="text-lg font-semibold">
+                  <h2 className="text-lg font-semibold text-foreground">
                     {isToday ? t('home.seeReflection') : t('home.seeDayRecap')}
                   </h2>
                   <button
@@ -1690,7 +1690,7 @@ export function CheckInHome({
               >
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-                  <h2 className="text-lg font-semibold">
+                  <h2 className="text-lg font-semibold text-foreground">
                     {isToday ? t('home.seeReflection') : t('home.seeDayRecap')}
                   </h2>
                   <button
@@ -1751,7 +1751,7 @@ export function CheckInHome({
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 pb-4">
-                  <h2 className="text-xl font-semibold">
+                  <h2 className="text-xl font-semibold text-foreground">
                     {t('insights.title')}
                   </h2>
                   <button
@@ -1781,7 +1781,7 @@ export function CheckInHome({
               >
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-5 border-b border-border">
-                  <h2 className="text-xl font-semibold">
+                  <h2 className="text-xl font-semibold text-foreground">
                     {t('insights.title')}
                   </h2>
                   <button

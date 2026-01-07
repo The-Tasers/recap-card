@@ -24,7 +24,7 @@ export default function PrivacyPage() {
             <ChevronLeft className="h-5 w-5" />
           </motion.button>
 
-          <h1 className="text-lg font-medium">{t('privacy.title')}</h1>
+          <h1 className="text-lg font-medium text-foreground">{t('privacy.title')}</h1>
 
           <div className="w-9" />
         </div>

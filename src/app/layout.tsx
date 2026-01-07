@@ -17,7 +17,7 @@ const isDev = process.env.NODE_ENV === 'development';
 const themeScript = `
 (function() {
   try {
-    var lightThemes = ['linen', 'sage', 'rose'];
+    var lightThemes = ['daylight'];
     var stored = localStorage.getItem('recap-cards');
     var colorTheme = 'midnight';
     if (stored) {

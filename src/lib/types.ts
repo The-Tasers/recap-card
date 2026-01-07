@@ -3,9 +3,9 @@
 // ============================================================================
 
 // App color themes
-export type ColorTheme = 'midnight' | 'ocean' | 'ember' | 'linen' | 'sage' | 'rose';
+export type ColorTheme = 'midnight' | 'daylight';
 
-export const ALL_COLOR_THEMES: {
+export const COLOR_THEMES: {
   value: ColorTheme;
   label: string;
   description: string;
@@ -20,46 +20,13 @@ export const ALL_COLOR_THEMES: {
     isDark: true,
   },
   {
-    value: 'ocean',
-    label: 'Ocean',
-    description: 'Calming teal depths',
-    preview: { bg: '#1a2e38', card: '#243d4a', accent: '#5eb8b0' },
-    isDark: true,
-  },
-  {
-    value: 'ember',
-    label: 'Ember',
-    description: 'Warm charcoal',
-    preview: { bg: '#1f1a18', card: '#2a2320', accent: '#e8a87c' },
-    isDark: true,
-  },
-  {
-    value: 'linen',
+    value: 'daylight',
     label: 'Daylight',
-    description: 'Warm amber glow',
-    preview: { bg: '#faf7f2', card: '#fdfcf9', accent: '#d4a055' },
-    isDark: false,
-  },
-  {
-    value: 'sage',
-    label: 'Sage',
-    description: 'Fresh mint light',
-    preview: { bg: '#f2f7f4', card: '#fafcfb', accent: '#6b9e8a' },
-    isDark: false,
-  },
-  {
-    value: 'rose',
-    label: 'Rose',
-    description: 'Soft blush pink',
-    preview: { bg: '#faf5f7', card: '#fefcfd', accent: '#d4a5b5' },
+    description: 'Clean light mode',
+    preview: { bg: '#faf8fc', card: '#fdfcfe', accent: '#8b7cf5' },
     isDark: false,
   },
 ];
-
-// Visible themes for MVP (one dark, one light)
-export const COLOR_THEMES = ALL_COLOR_THEMES.filter(
-  (theme) => theme.value === 'midnight' || theme.value === 'linen'
-);
 
 // ============================================================================
 // FREE PLAN LIMITS

@@ -85,7 +85,7 @@ export function SettingsPanel({ isOpen, onClose, isMobile }: SettingsPanelProps)
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
-        <h1 className="text-lg font-medium">{t('settings.title')}</h1>
+        <h1 className="text-lg font-medium text-foreground">{t('settings.title')}</h1>
         <motion.button
           type="button"
           onClick={onClose}
