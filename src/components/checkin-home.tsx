@@ -1958,22 +1958,6 @@ function InsightsPanelContent() {
       ? 1
       : 0;
 
-  // Next threshold to unlock more insights
-  const nextThreshold =
-    totalMoments < INSIGHT_THRESHOLDS[0]
-      ? INSIGHT_THRESHOLDS[0]
-      : totalMoments < INSIGHT_THRESHOLDS[1]
-      ? INSIGHT_THRESHOLDS[1]
-      : totalMoments < INSIGHT_THRESHOLDS[2]
-      ? INSIGHT_THRESHOLDS[2]
-      : totalMoments < INSIGHT_THRESHOLDS[3]
-      ? INSIGHT_THRESHOLDS[3]
-      : totalMoments < INSIGHT_THRESHOLDS[4]
-      ? INSIGHT_THRESHOLDS[4]
-      : null;
-
-  const momentsToNextInsight = nextThreshold ? nextThreshold - totalMoments : 0;
-
   // Generate REAL dynamic insights from actual data
   const insights = useMemo((): DynamicInsight[] => {
     if (maxInsightsToShow === 0) return [];
@@ -2434,52 +2418,59 @@ function InsightsPanelContent() {
   );
   const remainingExamples = exampleTypes.filter((t) => !coveredTypes.has(t));
 
+  // Calculate progress percentage for teaser card
+  // Consider both: moments toward threshold AND pattern dominance
+  const progressPercent = useMemo(() => {
+    // If no moments, 0%
+    if (totalMoments === 0) return 0;
+
+    // Calculate moment-based progress toward next threshold
+    const currentThresholdIndex = INSIGHT_THRESHOLDS.findIndex(t => totalMoments < t);
+    const nextThreshold = currentThresholdIndex >= 0 ? INSIGHT_THRESHOLDS[currentThresholdIndex] : INSIGHT_THRESHOLDS[INSIGHT_THRESHOLDS.length - 1];
+    const prevThreshold = currentThresholdIndex > 0 ? INSIGHT_THRESHOLDS[currentThresholdIndex - 1] : 0;
+    const momentProgress = currentThresholdIndex >= 0
+      ? ((totalMoments - prevThreshold) / (nextThreshold - prevThreshold)) * 100
+      : 100;
+
+    // If we have enough moments for at least one insight slot but no insights detected,
+    // calculate progress based on pattern dominance
+    if (totalMoments >= INSIGHT_THRESHOLDS[0] && visibleInsights.length === 0) {
+      // Find the best dominance percentage across all contexts
+      const allCheckIns = allData.flatMap((d) => d.checkIns);
+      let bestDominance = 0;
+
+      // Check context dominance
+      const contextGroups = new Map<string, string[]>();
+      allCheckIns.forEach((c) => {
+        if (!c.contextId) return;
+        const states = contextGroups.get(c.contextId) || [];
+        states.push(c.stateId);
+        contextGroups.set(c.contextId, states);
+      });
+
+      contextGroups.forEach((stateIds) => {
+        if (stateIds.length < 2) return;
+        const stateCount = new Map<string, number>();
+        stateIds.forEach((s) => stateCount.set(s, (stateCount.get(s) || 0) + 1));
+        let maxCount = 0;
+        stateCount.forEach((count) => {
+          if (count > maxCount) maxCount = count;
+        });
+        const dominance = maxCount / stateIds.length;
+        if (dominance > bestDominance) bestDominance = dominance;
+      });
+
+      // Progress is how close we are to 50% dominance (the threshold)
+      // Scale: 0% dominance = 0%, 50%+ dominance = 100%
+      return Math.min((bestDominance / 0.5) * 100, 100);
+    }
+
+    return momentProgress;
+  }, [totalMoments, visibleInsights.length, allData]);
+
   return (
     <div className="flex flex-col py-2">
-      {/* Progress indicator - moments count */}
-      {totalMoments > 0 && (
-        <div className="mb-4 px-1">
-          <div className="flex items-center justify-between text-xs text-muted-foreground/60 mb-2">
-            <span>{t('insights.momentCount', { count: totalMoments })}</span>
-            {momentsToNextInsight > 0 && maxInsightsToShow < 5 && (
-              <span>
-                {t('insights.toNext', { count: momentsToNextInsight })}
-              </span>
-            )}
-          </div>
-          {/* Progress bar showing insight unlocks */}
-          <div className="flex gap-1">
-            {INSIGHT_THRESHOLDS.map((threshold, i) => (
-              <div
-                key={threshold}
-                className="flex-1 h-1 rounded-full overflow-hidden bg-muted/30"
-              >
-                <motion.div
-                  className="h-full bg-foreground/60"
-                  initial={{ width: 0 }}
-                  animate={{
-                    width:
-                      totalMoments >= threshold
-                        ? '100%'
-                        : i === 0
-                        ? `${(totalMoments / threshold) * 100}%`
-                        : totalMoments >= INSIGHT_THRESHOLDS[i - 1]
-                        ? `${
-                            ((totalMoments - INSIGHT_THRESHOLDS[i - 1]) /
-                              (threshold - INSIGHT_THRESHOLDS[i - 1])) *
-                            100
-                          }%`
-                        : '0%',
-                  }}
-                  transition={{ duration: 0.5, delay: 0.1 * i }}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Real insights first */}
+      {/* Real insights */}
       {visibleInsights.length > 0 && (
         <div className="space-y-3 mb-4">
           {visibleInsights.map((insight, i) => (
@@ -2508,10 +2499,37 @@ function InsightsPanelContent() {
         </div>
       )}
 
-      {/* Examples for what's coming (only show uncovered types) */}
+      {/* Teaser insight - pattern emerging (unfilled slot with progress) */}
+      {remainingExamples.length > 0 && totalMoments > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: visibleInsights.length * 0.1 + 0.1 }}
+          className="mb-4 relative overflow-hidden rounded-xl border border-dashed border-muted/50 bg-muted/10"
+        >
+          {/* Progress fill - colored bar */}
+          <motion.div
+            className="absolute left-0 top-0 bottom-0 bg-primary/20"
+            initial={{ width: 0 }}
+            animate={{ width: `${progressPercent}%` }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+          />
+          {/* Content */}
+          <div className="relative flex items-center gap-3 p-3">
+            <div className="p-1.5 rounded-lg bg-primary/15">
+              <Sparkles className="h-4 w-4 text-primary/60" />
+            </div>
+            <p className="text-sm text-muted-foreground/60 italic">
+              {t('insights.discovering')}
+            </p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Examples section */}
       {remainingExamples.length > 0 && (
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground mb-2">
+          <p className="text-xs text-muted-foreground/40">
             {t('insights.examplesTitle')}
           </p>
 
@@ -2520,25 +2538,25 @@ function InsightsPanelContent() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: visibleInsights.length * 0.1 + 0.2 }}
-              className="flex items-start gap-3 p-3 rounded-xl bg-muted/20 border border-muted/50"
+              className="flex items-start gap-3 p-3 rounded-xl bg-muted/15 border border-muted/30"
             >
               <div
-                className="mt-0.5 p-1.5 rounded-lg"
+                className="mt-0.5 p-1.5 rounded-lg opacity-60"
                 style={{ backgroundColor: '#60a5fa15' }}
               >
                 <Activity className="h-4 w-4" style={{ color: '#60a5fa' }} />
               </div>
-              <p className="text-sm text-muted-foreground/80 leading-relaxed italic pt-0.5">
+              <p className="text-sm text-muted-foreground/50 leading-relaxed italic pt-0.5">
                 {renderExampleInsight(
                   t('insights.example.1' as TranslationKey),
                   language === 'ru'
                     ? [
-                        { word: 'работы', color: '#60a5fa' },
-                        { word: 'дома', color: '#60a5fa' },
+                        { word: 'работы', color: '#60a5fa70' },
+                        { word: 'дома', color: '#60a5fa70' },
                       ]
                     : [
-                        { word: 'work', color: '#60a5fa' },
-                        { word: 'home', color: '#60a5fa' },
+                        { word: 'work', color: '#60a5fa70' },
+                        { word: 'home', color: '#60a5fa70' },
                       ]
                 )}
               </p>
@@ -2550,20 +2568,20 @@ function InsightsPanelContent() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: visibleInsights.length * 0.1 + 0.3 }}
-              className="flex items-start gap-3 p-3 rounded-xl bg-muted/20 border border-muted/50"
+              className="flex items-start gap-3 p-3 rounded-xl bg-muted/15 border border-muted/30"
             >
               <div
-                className="mt-0.5 p-1.5 rounded-lg"
+                className="mt-0.5 p-1.5 rounded-lg opacity-60"
                 style={{ backgroundColor: '#f472b615' }}
               >
                 <Smile className="h-4 w-4" style={{ color: '#f472b6' }} />
               </div>
-              <p className="text-sm text-muted-foreground/80 leading-relaxed italic pt-0.5">
+              <p className="text-sm text-muted-foreground/50 leading-relaxed italic pt-0.5">
                 {renderExampleInsight(
                   t('insights.example.2' as TranslationKey),
                   language === 'ru'
-                    ? [{ word: 'друзьями', color: '#f472b6' }]
-                    : [{ word: 'friends', color: '#f472b6' }]
+                    ? [{ word: 'друзьями', color: '#f472b670' }]
+                    : [{ word: 'friends', color: '#f472b670' }]
                 )}
               </p>
             </motion.div>
@@ -2574,25 +2592,25 @@ function InsightsPanelContent() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: visibleInsights.length * 0.1 + 0.4 }}
-              className="flex items-start gap-3 p-3 rounded-xl bg-muted/20 border border-muted/50"
+              className="flex items-start gap-3 p-3 rounded-xl bg-muted/15 border border-muted/30"
             >
               <div
-                className="mt-0.5 p-1.5 rounded-lg"
+                className="mt-0.5 p-1.5 rounded-lg opacity-60"
                 style={{ backgroundColor: '#f9731615' }}
               >
                 <Sun className="h-4 w-4" style={{ color: '#f97316' }} />
               </div>
-              <p className="text-sm text-muted-foreground/80 leading-relaxed italic pt-0.5">
+              <p className="text-sm text-muted-foreground/50 leading-relaxed italic pt-0.5">
                 {renderExampleInsight(
                   t('insights.example.3' as TranslationKey),
                   language === 'ru'
                     ? [
-                        { word: 'Утром', color: '#f97316' },
-                        { word: 'вечеру', color: '#f97316' },
+                        { word: 'Утром', color: '#f9731670' },
+                        { word: 'вечеру', color: '#f9731670' },
                       ]
                     : [
-                        { word: 'Morning', color: '#f97316' },
-                        { word: 'evening', color: '#f97316' },
+                        { word: 'Morning', color: '#f9731670' },
+                        { word: 'evening', color: '#f9731670' },
                       ]
                 )}
               </p>
@@ -2611,19 +2629,6 @@ function InsightsPanelContent() {
         >
           {t('insights.emptyNoDays' as TranslationKey) ||
             'Start tracking moments to see patterns'}
-        </motion.p>
-      )}
-
-      {/* Progress message when have some data but not max insights */}
-      {totalMoments > 0 && maxInsightsToShow < 5 && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="text-xs text-muted-foreground/40 pt-3 text-center"
-        >
-          {t('insights.moreToUnlock' as TranslationKey) ||
-            'More moments reveal deeper patterns'}
         </motion.p>
       )}
     </div>

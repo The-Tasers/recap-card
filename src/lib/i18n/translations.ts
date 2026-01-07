@@ -361,16 +361,18 @@ export const translations = {
     'insights.button.2': "What' next?",
 
     // Insights panel
-    'insights.title': 'Patterns',
-    'insights.empty': 'A few more moments and patterns will emerge',
-    'insights.emptyNoDays': 'Start tracking moments to see patterns',
+    'insights.title': 'Your Story',
+    'insights.empty': "A few more moments and you'll start to see yourself",
+    'insights.emptyNoDays': 'Start tracking moments to learn about yourself',
     'insights.emptyNeedDays':
       '{count} more {count, plural, one {day} other {days}} with moments needed',
     'insights.emptyNeedMoments': 'A few more moments needed for insights',
-    'insights.moreToUnlock': 'More moments reveal deeper patterns',
+    'insights.moreToUnlock': 'More moments, more to discover',
     'insights.momentCount':
       '{count} {count, plural, one {moment} other {moments}}',
     'insights.toNext': '+{count} to next insight',
+    'insights.discovering': 'Something is taking shape...',
+    'insights.teaserPlaceholder': 'Your pattern will appear here',
     'insights.examplesTitle': 'What you might discover:',
     'insights.example.1': 'You feel drained after work, but energized at home',
     'insights.example.2': 'Time with friends consistently lifts your mood',
@@ -922,15 +924,17 @@ export const translations = {
 
     // Insights panel
     'insights.title': 'Твоя история',
-    'insights.empty': 'Ещё пара моментов — и появятся паттерны',
-    'insights.emptyNoDays': 'Начни отмечать моменты, чтобы увидеть паттерны',
+    'insights.empty': 'Ещё пара моментов — и начнёшь замечать интересные вещи',
+    'insights.emptyNoDays': 'Отмечай моменты, чтобы узнать себя лучше',
     'insights.emptyNeedDays':
       'Нужно ещё {count} {count, plural, one {день} few {дня} other {дней}} с моментами',
     'insights.emptyNeedMoments': 'Нужно ещё несколько моментов',
-    'insights.moreToUnlock': 'Больше моментов — глубже паттерны',
+    'insights.moreToUnlock': 'Чем больше моментов, тем больше открытий',
     'insights.momentCount':
       '{count} {count, plural, one {момент} few {момента} other {моментов}}',
     'insights.toNext': '+{count} до нового открытия',
+    'insights.discovering': 'Кое-что вырисовывается...',
+    'insights.teaserPlaceholder': 'Здесь появится твой паттерн',
     'insights.examplesTitle': 'Что ты можешь увидеть:',
     'insights.example.1': 'После работы ты выжат, а дома — полон сил',
     'insights.example.2': 'Время с друзьями стабильно поднимает настроение',
