@@ -49,13 +49,6 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-foreground font-medium mb-2">
-              {t('privacy.analytics')}
-            </h2>
-            <p>{t('privacy.analyticsText')}</p>
-          </section>
-
-          <section>
-            <h2 className="text-foreground font-medium mb-2">
               {t('privacy.dataSecurity')}
             </h2>
             <p>{t('privacy.dataSecurityText')}</p>

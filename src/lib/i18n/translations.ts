@@ -113,18 +113,91 @@ export const translations = {
     'privacy.whatWeCollect': 'What We Collect',
     'privacy.whatWeCollectText':
       'We do not collect any personal information. Your moments, feelings, and emotional data stay completely private on your device.',
-    'privacy.analytics': 'Anonymous Analytics',
-    'privacy.analyticsText':
-      'We use Google Analytics to collect anonymous usage data such as which features are used and general app interactions. This helps us improve the app. This data is aggregated and cannot be used to identify you personally. No emotional content, moments, or personal reflections are ever transmitted.',
     'privacy.dataSecurity': 'Data Sharing',
     'privacy.dataSecurityText':
-      'Your personal emotional data never leaves your device. Anonymous analytics are processed by Google Analytics under their privacy policy.',
+      'Your personal emotional data never leaves your device. We do not share any of your data with third parties.',
     'privacy.yourRights': 'Your Control',
     'privacy.yourRightsText':
-      'You can delete all your local data at any time from the Settings. You can also use browser settings or extensions to opt out of Google Analytics.',
+      'You can delete all your local data at any time from the Settings.',
     'privacy.contact': 'Contact',
     'privacy.contactText':
       'If you have questions about this privacy policy, please contact us at',
+
+    // Mobile Privacy page
+    'privacy.mobile.title': 'Privacy Policy',
+    'privacy.mobile.lastUpdated': 'Last Updated: January 2026',
+    'privacy.mobile.introduction': 'Introduction',
+    'privacy.mobile.introText':
+      'RECAPZ ("we," "our," or "the app") is committed to protecting your privacy. This Privacy Policy explains how we handle your information when you use our iOS mobile application.',
+    'privacy.mobile.commitment':
+      'Your data stays on your device. Period.',
+    'privacy.mobile.dontCollect': 'Information We Don\'t Collect',
+    'privacy.mobile.dontCollectIntro': 'We do not collect:',
+    'privacy.mobile.dontCollect1':
+      'Personal information (name, email, phone number)',
+    'privacy.mobile.dontCollect2':
+      'Usage analytics or behavior tracking',
+    'privacy.mobile.dontCollect3':
+      'Device identifiers or advertising IDs',
+    'privacy.mobile.dontCollect4': 'Location data',
+    'privacy.mobile.dontCollect5':
+      'Any data whatsoever from your use of the app',
+    'privacy.mobile.youCreate': 'Information You Create',
+    'privacy.mobile.youCreateIntro':
+      'When using RECAPZ, you create and store the following data locally on your device:',
+    'privacy.mobile.emotionalCheckins': 'Emotional Check-ins',
+    'privacy.mobile.checkin1':
+      'Your selected emotional states (energy, feeling, focus)',
+    'privacy.mobile.checkin2': 'Timestamps of when you recorded each moment',
+    'privacy.mobile.checkin3':
+      'Context information (activities, locations you manually enter)',
+    'privacy.mobile.checkin4':
+      'People you were with (if you choose to add this information)',
+    'privacy.mobile.appPreferences': 'App Preferences',
+    'privacy.mobile.pref1': 'Theme selection (color scheme)',
+    'privacy.mobile.pref2': 'Language preference',
+    'privacy.mobile.pref3': 'Notification settings and reminder times',
+    'privacy.mobile.pref4': 'Onboarding completion status',
+    'privacy.mobile.allDataStays':
+      'All this data is stored exclusively on your iPhone, never transmitted to any external server, never shared with any third party, and can be completely deleted at any time through the app\'s settings.',
+    'privacy.mobile.dataSecurity': 'Data Security',
+    'privacy.mobile.dataSecurityText':
+      'Your data is protected by Apple\'s built-in iOS security mechanisms, local device encryption (if you have device encryption enabled), and no network transmission (because we never send your data anywhere).',
+    'privacy.mobile.icloudBackup': 'iCloud Backup',
+    'privacy.mobile.icloudBackupText':
+      'If you have iCloud Backup enabled on your device, your RECAPZ data may be included in your encrypted iCloud backup along with your other app data. This is controlled by Apple\'s iOS settings, not by RECAPZ. We recommend keeping iCloud Backup enabled for data recovery purposes.',
+    'privacy.mobile.noThirdParty': 'No Third-Party Services',
+    'privacy.mobile.noThirdPartyIntro': 'RECAPZ does not use:',
+    'privacy.mobile.noThirdParty1':
+      'Analytics services (no Google Analytics, Firebase, Mixpanel, etc.)',
+    'privacy.mobile.noThirdParty2': 'Advertising networks',
+    'privacy.mobile.noThirdParty3': 'Crash reporting services',
+    'privacy.mobile.noThirdParty4': 'Social media integrations',
+    'privacy.mobile.noThirdParty5':
+      'Any third-party SDKs that collect data',
+    'privacy.mobile.notifications': 'Notifications',
+    'privacy.mobile.notificationsText':
+      'If you enable notifications, all notifications are generated and scheduled locally on your device. No push notification servers are used, and no external services are notified when you receive a reminder.',
+    'privacy.mobile.dataControl': 'Data Deletion',
+    'privacy.mobile.dataControlIntro': 'You have complete control over your data:',
+    'privacy.mobile.deleteAll': 'Delete All Data',
+    'privacy.mobile.deleteAllText':
+      'Go to Settings → History → "Clear all data" to permanently delete all your check-ins, preferences, and app data from your device.',
+    'privacy.mobile.deleteApp': 'Delete the App',
+    'privacy.mobile.deleteAppText':
+      'Uninstalling RECAPZ from your iPhone will permanently remove all app data from your device.',
+    'privacy.mobile.noRecovery': 'No Recovery',
+    'privacy.mobile.noRecoveryText':
+      'Once you delete your data, it cannot be recovered because we don\'t have copies of it anywhere.',
+    'privacy.mobile.yourRights': 'Your Rights',
+    'privacy.mobile.yourRightsText':
+      'Because all your data stays on your device: You can view all your data within the app, delete all data instantly through app settings, and you have complete control at all times.',
+    'privacy.mobile.changes': 'Changes to This Privacy Policy',
+    'privacy.mobile.changesText':
+      'We may update this Privacy Policy from time to time. We will notify you by updating the "Last Updated" date and posting the new policy in the app. Continued use after changes constitutes acceptance of the updated policy.',
+    'privacy.mobile.summary': 'Summary',
+    'privacy.mobile.summaryText':
+      'RECAPZ doesn\'t collect any data from you. Everything you record stays on your iPhone. We can\'t see it, we can\'t access it, and we don\'t want it. Your emotional journey is yours and yours alone. That\'s our promise.',
 
     // Terms page
     'terms.title': 'Terms of Service',
@@ -158,6 +231,84 @@ export const translations = {
     'terms.contact': 'Contact',
     'terms.contactText':
       'If you have questions about these terms, please contact us at',
+
+    // Mobile Terms page
+    'terms.mobile.title': 'Terms of Service',
+    'terms.mobile.lastUpdated': 'Last Updated: January 2026',
+    'terms.mobile.agreement': 'Agreement to Terms',
+    'terms.mobile.agreementText':
+      'By downloading, installing, or using RECAPZ ("the app," "our app," or "the service"), you agree to be bound by these Terms of Service. If you do not agree to these Terms, please do not use the app.',
+    'terms.mobile.description': 'Description of Service',
+    'terms.mobile.descriptionIntro':
+      'RECAPZ is a personal emotional awareness and reflection app for iOS devices. The app allows you to:',
+    'terms.mobile.desc1': 'Record emotional check-ins throughout your day',
+    'terms.mobile.desc2': 'Track patterns in your emotional states',
+    'terms.mobile.desc3': 'Visualize your emotional journey',
+    'terms.mobile.desc4': 'Set reminders for self-reflection',
+    'terms.mobile.desc5': 'Customize your experience with themes and languages',
+    'terms.mobile.notMedical':
+      'All data is stored locally on your device. RECAPZ does not provide medical, therapeutic, or professional mental health services.',
+    'terms.mobile.eligibility': 'Eligibility',
+    'terms.mobile.eligibilityText':
+      'RECAPZ is available to users of all ages. If you are under 13 years old, please have a parent or guardian review these Terms with you.',
+    'terms.mobile.license': 'License to Use',
+    'terms.mobile.licenseGrant':
+      'We grant you a limited, non-exclusive, non-transferable, revocable license to use RECAPZ for personal, non-commercial purposes, subject to these Terms.',
+    'terms.mobile.restrictions': 'You may not:',
+    'terms.mobile.restrict1':
+      'Modify, reverse engineer, decompile, or disassemble the app',
+    'terms.mobile.restrict2': 'Remove any copyright or proprietary notices',
+    'terms.mobile.restrict3': 'Use the app for any illegal or unauthorized purpose',
+    'terms.mobile.restrict4':
+      'Attempt to gain unauthorized access to any part of the app',
+    'terms.mobile.restrict5':
+      'Copy, distribute, or create derivative works from the app',
+    'terms.mobile.userContent': 'User-Generated Content',
+    'terms.mobile.yourData':
+      'All content you create in RECAPZ (check-ins, notes, preferences) remains your property. You retain all rights to your data.',
+    'terms.mobile.localStorage':
+      'Your data is stored exclusively on your device. We do not have access to, cannot view, and do not collect your content.',
+    'terms.mobile.yourResponsibility': 'You are solely responsible for:',
+    'terms.mobile.resp1': 'The accuracy of information you record',
+    'terms.mobile.resp2': 'Maintaining the security of your device',
+    'terms.mobile.resp3':
+      'Backing up your data (via iCloud or other methods)',
+    'terms.mobile.intellectualProperty': 'Intellectual Property',
+    'terms.mobile.intellectualPropertyText':
+      'RECAPZ, including its design, features, graphics, user interface, code, and all related materials, is owned by us and protected by copyright, trademark, and other intellectual property laws.',
+    'terms.mobile.noMedicalAdvice': 'No Medical Advice',
+    'terms.mobile.notSubstitute': 'Not a Substitute for Professional Care',
+    'terms.mobile.notSubstituteText':
+      'RECAPZ is a self-reflection tool, not a medical device or mental health treatment. The app does not provide medical advice, diagnosis, or treatment and should not be used in emergency situations.',
+    'terms.mobile.emergency': 'Emergency Situations',
+    'terms.mobile.emergencyText':
+      'If you are experiencing a mental health emergency: United States: Call 988 (Suicide & Crisis Lifeline) or 911. International: Contact your local emergency services. RECAPZ is not designed for crisis situations.',
+    'terms.mobile.disclaimers': 'Disclaimers',
+    'terms.mobile.disclaimersAsIs':
+      'RECAPZ is provided "as is" and "as available" without warranties of any kind, either express or implied.',
+    'terms.mobile.disclaimersNoGuarantee':
+      'We do not guarantee that the app will be uninterrupted, timely, secure, or error-free, or that your data will be preserved (you should maintain backups).',
+    'terms.mobile.limitation': 'Limitation of Liability',
+    'terms.mobile.limitationText':
+      'To the maximum extent permitted by law, we shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of data, loss of profits, emotional distress, or personal injury.',
+    'terms.mobile.updates': 'App Updates and Changes',
+    'terms.mobile.updatesText':
+      'We reserve the right to modify or discontinue the app, add or remove features, and update these Terms at any time. Continued use after changes constitutes acceptance of the updated Terms.',
+    'terms.mobile.appStore': 'Apple App Store',
+    'terms.mobile.appStoreText':
+      'Your use of RECAPZ is also subject to Apple\'s App Store Terms of Service. In case of conflict between these Terms and Apple\'s terms, Apple\'s terms shall prevail for issues related to the App Store.',
+    'terms.mobile.privacyRef': 'Privacy',
+    'terms.mobile.privacyRefText':
+      'Please review our Privacy Policy to understand how we handle your information (we don\'t collect it). The Privacy Policy is incorporated into these Terms by reference.',
+    'terms.mobile.termination': 'Termination',
+    'terms.mobile.terminationText':
+      'You may stop using RECAPZ at any time by deleting the app from your device. Upon termination, your license to use the app ends and you must delete the app from your devices.',
+    'terms.mobile.contact': 'Contact Information',
+    'terms.mobile.contactText':
+      'If you have questions about these Terms, please contact us at',
+    'terms.mobile.summary': 'Summary',
+    'terms.mobile.summaryText':
+      'Use RECAPZ for personal reflection and self-awareness. Don\'t use it as a substitute for professional mental health care. Your data stays on your device and is your responsibility to back up. Be kind, use the app responsibly, and take care of yourself. If you\'re in crisis, please reach out for professional help.',
 
     // Blocks
     'block.sleep': 'Hours slept',
@@ -676,18 +827,91 @@ export const translations = {
     'privacy.whatWeCollect': 'Что мы собираем',
     'privacy.whatWeCollectText':
       'Мы не собираем никакой личной информации. Твои моменты, чувства и эмоциональные данные остаются полностью приватными на твоём устройстве.',
-    'privacy.analytics': 'Анонимная аналитика',
-    'privacy.analyticsText':
-      'Мы используем Google Analytics для сбора анонимных данных об использовании: какие функции используются и общее взаимодействие с приложением. Это помогает нам улучшать приложение. Эти данные агрегированы и не могут быть использованы для твоей идентификации. Никакой эмоциональный контент, моменты или личные размышления никогда не передаются.',
     'privacy.dataSecurity': 'Передача данных',
     'privacy.dataSecurityText':
-      'Твои личные эмоциональные данные никогда не покидают твоё устройство. Анонимная аналитика обрабатывается Google Analytics согласно их политике конфиденциальности.',
+      'Твои личные эмоциональные данные никогда не покидают твоё устройство. Мы не передаём никакие твои данные третьим лицам.',
     'privacy.yourRights': 'Твой контроль',
     'privacy.yourRightsText':
-      'Ты можешь удалить все локальные данные в любой момент через настройки. Также можно отключить Google Analytics через настройки браузера или расширения.',
+      'Ты можешь удалить все локальные данные в любой момент через настройки.',
     'privacy.contact': 'Связь',
     'privacy.contactText':
       'Если есть вопросы по политике конфиденциальности, напиши на',
+
+    // Mobile Privacy page (Russian)
+    'privacy.mobile.title': 'Конфиденциальность',
+    'privacy.mobile.lastUpdated': 'Обновлено: Январь 2026',
+    'privacy.mobile.introduction': 'Введение',
+    'privacy.mobile.introText':
+      'RECAPZ ("мы", "наше" или "приложение") заботится о защите твоей конфиденциальности. Эта Политика конфиденциальности объясняет, как мы обрабатываем твои данные в нашем iOS приложении.',
+    'privacy.mobile.commitment':
+      'Твои данные остаются на твоём устройстве. Точка.',
+    'privacy.mobile.dontCollect': 'Что мы НЕ собираем',
+    'privacy.mobile.dontCollectIntro': 'Мы НЕ собираем:',
+    'privacy.mobile.dontCollect1':
+      'Личную информацию (имя, email, телефон)',
+    'privacy.mobile.dontCollect2':
+      'Аналитику использования или отслеживание поведения',
+    'privacy.mobile.dontCollect3':
+      'Идентификаторы устройства или рекламные ID',
+    'privacy.mobile.dontCollect4': 'Данные о местоположении',
+    'privacy.mobile.dontCollect5':
+      'Вообще любые данные об использовании приложения',
+    'privacy.mobile.youCreate': 'Информация, которую создаёшь ты',
+    'privacy.mobile.youCreateIntro':
+      'Используя RECAPZ, ты создаёшь и сохраняешь следующие данные локально на своём устройстве:',
+    'privacy.mobile.emotionalCheckins': 'Эмоциональные записи',
+    'privacy.mobile.checkin1':
+      'Твои выбранные эмоциональные состояния (энергия, чувства, фокус)',
+    'privacy.mobile.checkin2': 'Метки времени, когда ты записал каждый момент',
+    'privacy.mobile.checkin3':
+      'Контекстную информацию (активности, места, которые ты вводишь вручную)',
+    'privacy.mobile.checkin4':
+      'Людей, с которыми ты был (если решишь добавить эту информацию)',
+    'privacy.mobile.appPreferences': 'Настройки приложения',
+    'privacy.mobile.pref1': 'Выбранная тема (цветовая схема)',
+    'privacy.mobile.pref2': 'Предпочитаемый язык',
+    'privacy.mobile.pref3': 'Настройки уведомлений и время напоминаний',
+    'privacy.mobile.pref4': 'Статус прохождения онбординга',
+    'privacy.mobile.allDataStays':
+      'Все эти данные хранятся исключительно на твоём iPhone, никогда не передаются на внешние серверы, никогда не передаются третьим лицам и могут быть полностью удалены в любое время через настройки приложения.',
+    'privacy.mobile.dataSecurity': 'Безопасность данных',
+    'privacy.mobile.dataSecurityText':
+      'Твои данные защищены встроенными механизмами безопасности iOS от Apple, локальным шифрованием устройства (если у тебя включено шифрование) и отсутствием сетевой передачи (потому что мы никогда не отправляем твои данные куда-либо).',
+    'privacy.mobile.icloudBackup': 'Резервное копирование iCloud',
+    'privacy.mobile.icloudBackupText':
+      'Если у тебя включено резервное копирование iCloud на устройстве, твои данные RECAPZ могут быть включены в зашифрованную резервную копию iCloud вместе с другими данными приложений. Это контролируется настройками iOS от Apple, а не RECAPZ. Мы рекомендуем держать резервное копирование iCloud включенным для восстановления данных.',
+    'privacy.mobile.noThirdParty': 'Нет сторонних сервисов',
+    'privacy.mobile.noThirdPartyIntro': 'RECAPZ НЕ использует:',
+    'privacy.mobile.noThirdParty1':
+      'Сервисы аналитики (никакого Google Analytics, Firebase, Mixpanel и т.д.)',
+    'privacy.mobile.noThirdParty2': 'Рекламные сети',
+    'privacy.mobile.noThirdParty3': 'Сервисы отчётов об ошибках',
+    'privacy.mobile.noThirdParty4': 'Интеграции с социальными сетями',
+    'privacy.mobile.noThirdParty5':
+      'Любые сторонние SDK, которые собирают данные',
+    'privacy.mobile.notifications': 'Уведомления',
+    'privacy.mobile.notificationsText':
+      'Если ты включишь уведомления, все уведомления генерируются и планируются локально на твоём устройстве. Никакие серверы push-уведомлений не используются, и никакие внешние сервисы не уведомляются, когда ты получаешь напоминание.',
+    'privacy.mobile.dataControl': 'Удаление данных',
+    'privacy.mobile.dataControlIntro': 'У тебя полный контроль над твоими данными:',
+    'privacy.mobile.deleteAll': 'Удалить все данные',
+    'privacy.mobile.deleteAllText':
+      'Перейди в Настройки → История → "Удалить все данные", чтобы навсегда удалить все твои записи, настройки и данные приложения с устройства.',
+    'privacy.mobile.deleteApp': 'Удалить приложение',
+    'privacy.mobile.deleteAppText':
+      'Удаление RECAPZ с твоего iPhone навсегда удалит все данные приложения с устройства.',
+    'privacy.mobile.noRecovery': 'Без восстановления',
+    'privacy.mobile.noRecoveryText':
+      'Как только ты удалишь свои данные, их невозможно будет восстановить, потому что у нас нет их копий где-либо.',
+    'privacy.mobile.yourRights': 'Твои права',
+    'privacy.mobile.yourRightsText':
+      'Поскольку все твои данные остаются на твоём устройстве: Ты можешь просматривать все данные в приложении, мгновенно удалять все данные через настройки приложения, и у тебя всегда полный контроль.',
+    'privacy.mobile.changes': 'Изменения этой Политики',
+    'privacy.mobile.changesText':
+      'Мы можем время от времени обновлять эту Политику конфиденциальности. Мы уведомим тебя, обновив дату "Обновлено" и опубликовав новую политику в приложении. Продолжение использования после изменений означает принятие обновлённой политики.',
+    'privacy.mobile.summary': 'Итого',
+    'privacy.mobile.summaryText':
+      'RECAPZ не собирает никакие данные от тебя. Всё, что ты записываешь, остаётся на твоём iPhone. Мы не можем это видеть, не можем получить к этому доступ, и нам это не нужно. Твоё эмоциональное путешествие принадлежит только тебе. Это наше обещание.',
 
     // Terms page
     'terms.title': 'Условия использования',
@@ -721,6 +945,85 @@ export const translations = {
     'terms.contact': 'Связь',
     'terms.contactText':
       'Если у вас есть вопросы об этих условиях, напишите на',
+
+    // Mobile Terms page (Russian)
+    'terms.mobile.title': 'Условия использования',
+    'terms.mobile.lastUpdated': 'Обновлено: Январь 2026',
+    'terms.mobile.agreement': 'Согласие с условиями',
+    'terms.mobile.agreementText':
+      'Скачивая, устанавливая или используя RECAPZ ("приложение", "наше приложение" или "сервис"), ты соглашаешься с этими Условиями использования. Если ты не согласен с этими Условиями, пожалуйста, не используй приложение.',
+    'terms.mobile.description': 'Описание сервиса',
+    'terms.mobile.descriptionIntro':
+      'RECAPZ — это приложение для личного эмоционального осознания и рефлексии для iOS устройств. Приложение позволяет тебе:',
+    'terms.mobile.desc1': 'Записывать эмоциональные чек-ины в течение дня',
+    'terms.mobile.desc2': 'Отслеживать паттерны в твоих эмоциональных состояниях',
+    'terms.mobile.desc3': 'Визуализировать твоё эмоциональное путешествие',
+    'terms.mobile.desc4': 'Устанавливать напоминания для саморефлексии',
+    'terms.mobile.desc5': 'Настраивать опыт с помощью тем и языков',
+    'terms.mobile.notMedical':
+      'Все данные хранятся локально на твоём устройстве. RECAPZ не предоставляет медицинские, терапевтические или профессиональные услуги в области психического здоровья.',
+    'terms.mobile.eligibility': 'Право использования',
+    'terms.mobile.eligibilityText':
+      'RECAPZ доступен пользователям всех возрастов. Если тебе меньше 13 лет, пожалуйста, попроси родителя или опекуна ознакомиться с этими Условиями вместе с тобой.',
+    'terms.mobile.license': 'Лицензия на использование',
+    'terms.mobile.licenseGrant':
+      'Мы предоставляем тебе ограниченную, неисключительную, непередаваемую, отзывную лицензию на использование RECAPZ для личных, некоммерческих целей в соответствии с этими Условиями.',
+    'terms.mobile.restrictions': 'Тебе запрещено:',
+    'terms.mobile.restrict1':
+      'Модифицировать, проводить обратную разработку, декомпилировать или дизассемблировать приложение',
+    'terms.mobile.restrict2': 'Удалять любые уведомления об авторских правах',
+    'terms.mobile.restrict3':
+      'Использовать приложение для любых незаконных или несанкционированных целей',
+    'terms.mobile.restrict4':
+      'Пытаться получить несанкционированный доступ к любой части приложения',
+    'terms.mobile.restrict5':
+      'Копировать, распространять или создавать производные работы от приложения',
+    'terms.mobile.userContent': 'Пользовательский контент',
+    'terms.mobile.yourData':
+      'Весь контент, который ты создаёшь в RECAPZ (чек-ины, заметки, настройки), остаётся твоей собственностью. Ты сохраняешь все права на свои данные.',
+    'terms.mobile.localStorage':
+      'Твои данные хранятся исключительно на твоём устройстве. Мы не имеем доступа, не можем просматривать и не собираем твой контент.',
+    'terms.mobile.yourResponsibility': 'Ты несёшь полную ответственность за:',
+    'terms.mobile.resp1': 'Точность информации, которую ты записываешь',
+    'terms.mobile.resp2': 'Поддержание безопасности твоего устройства',
+    'terms.mobile.resp3':
+      'Резервное копирование твоих данных (через iCloud или другими способами)',
+    'terms.mobile.intellectualProperty': 'Интеллектуальная собственность',
+    'terms.mobile.intellectualPropertyText':
+      'RECAPZ, включая его дизайн, функции, графику, пользовательский интерфейс, код и все связанные материалы, принадлежат нам и защищены законами об авторском праве, товарных знаках и другой интеллектуальной собственности.',
+    'terms.mobile.noMedicalAdvice': 'Не медицинская консультация',
+    'terms.mobile.notSubstitute': 'Не замена профессиональной помощи',
+    'terms.mobile.notSubstituteText':
+      'RECAPZ — это инструмент для саморефлексии, а не медицинское устройство или лечение психического здоровья. Приложение не предоставляет медицинские консультации, диагностику или лечение и не должно использоваться в экстренных ситуациях.',
+    'terms.mobile.emergency': 'Экстренные ситуации',
+    'terms.mobile.emergencyText':
+      'Если у тебя экстренная ситуация с психическим здоровьем: США: Звони 988 (Линия помощи в кризисных ситуациях) или 911. Международные: Свяжись с местными экстренными службами. RECAPZ не предназначен для кризисных ситуаций.',
+    'terms.mobile.disclaimers': 'Отказ от гарантий',
+    'terms.mobile.disclaimersAsIs':
+      'RECAPZ предоставляется "как есть" и "как доступно" без каких-либо гарантий, явных или подразумеваемых.',
+    'terms.mobile.disclaimersNoGuarantee':
+      'Мы не гарантируем, что приложение будет работать без перерывов, своевременно, безопасно или без ошибок, или что твои данные будут сохранены (ты должен вести резервные копии).',
+    'terms.mobile.limitation': 'Ограничение ответственности',
+    'terms.mobile.limitationText':
+      'В максимальной степени, разрешённой законом, мы не несём ответственности за любые косвенные, случайные, особые, последующие или штрафные убытки, включая потерю данных, потерю прибыли, эмоциональный стресс или телесные повреждения.',
+    'terms.mobile.updates': 'Обновления и изменения приложения',
+    'terms.mobile.updatesText':
+      'Мы оставляем за собой право изменять или прекращать работу приложения, добавлять или удалять функции и обновлять эти Условия в любое время. Продолжение использования после изменений означает принятие обновлённых Условий.',
+    'terms.mobile.appStore': 'Apple App Store',
+    'terms.mobile.appStoreText':
+      'Твоё использование RECAPZ также регулируется Условиями использования Apple App Store. В случае конфликта между этими Условиями и условиями Apple, условия Apple имеют преимущество для вопросов, связанных с App Store.',
+    'terms.mobile.privacyRef': 'Конфиденциальность',
+    'terms.mobile.privacyRefText':
+      'Пожалуйста, ознакомься с нашей Политикой конфиденциальности, чтобы понять, как мы обрабатываем твою информацию (мы её не собираем). Политика конфиденциальности включена в эти Условия по ссылке.',
+    'terms.mobile.termination': 'Прекращение использования',
+    'terms.mobile.terminationText':
+      'Ты можешь прекратить использование RECAPZ в любое время, удалив приложение со своего устройства. После прекращения твоя лицензия на использование приложения заканчивается, и ты должен удалить приложение со своих устройств.',
+    'terms.mobile.contact': 'Контактная информация',
+    'terms.mobile.contactText':
+      'Если у тебя есть вопросы об этих Условиях, пожалуйста, свяжись с нами по адресу',
+    'terms.mobile.summary': 'Итого',
+    'terms.mobile.summaryText':
+      'Используй RECAPZ для личной рефлексии и самосознания. Не используй его как замену профессиональной помощи в области психического здоровья. Твои данные остаются на твоём устройстве, и ты несёшь ответственность за их резервное копирование. Будь добр, используй приложение ответственно и заботься о себе. Если у тебя кризис, пожалуйста, обратись за профессиональной помощью.',
 
     // Blocks
     'block.sleep': 'Сон',
