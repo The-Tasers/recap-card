@@ -29,7 +29,7 @@ export function TermsPageContent({ lang }: TermsPageProps) {
   };
 
   return (
-    <div className="min-h-screen-dynamic bg-background">
+    <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto h-full px-6 pt-8 pb-8 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -126,7 +126,7 @@ export function TermsPageContent({ lang }: TermsPageProps) {
             <p>{t(lang, 'terms.mobile.intellectualPropertyText')}</p>
           </section>
 
-          <section className="border-l-4 border-yellow-500 pl-4 py-2 bg-yellow-50 dark:bg-yellow-950/20">
+          <section className="border-l-4 border-yellow-500 pl-4 py-2 bg-yellow-50">
             <h2 className="text-foreground font-medium mb-2">
               {t(lang, 'terms.mobile.noMedicalAdvice')}
             </h2>
@@ -134,7 +134,7 @@ export function TermsPageContent({ lang }: TermsPageProps) {
               {t(lang, 'terms.mobile.notSubstitute')}
             </p>
             <p className="mb-3">{t(lang, 'terms.mobile.notSubstituteText')}</p>
-            <div className="mt-3 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded">
+            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded">
               <p className="font-medium text-foreground mb-2">
                 {t(lang, 'terms.mobile.emergency')}
               </p>

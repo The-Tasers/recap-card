@@ -29,7 +29,7 @@ export function PrivacyPageContent({ lang }: PrivacyPageProps) {
   };
 
   return (
-    <div className="min-h-screen-dynamic bg-background">
+    <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto h-full px-6 pt-8 pb-8 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
