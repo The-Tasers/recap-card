@@ -1,5 +1,5 @@
 import { TermsPageContent } from '@/components/terms-page';
 
 export default function TermsPage() {
-  return <TermsPageContent lang="en" />;
+  return <TermsPageContent lang="de" />;
 }

@@ -87,7 +87,7 @@ function setLanguageCookie(lang: Language) {
 export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set) => ({
-      colorTheme: 'midnight' as ColorTheme,
+      colorTheme: 'daylight' as ColorTheme,
       language: 'en' as Language,
 
       setColorTheme: (theme) => set({ colorTheme: theme }),

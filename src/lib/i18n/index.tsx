@@ -42,7 +42,17 @@ function getPlural(count: number, language: Language): string {
     return 'other';
   }
 
-  // English and default
+  if (language === 'zh' || language === 'ja' || language === 'ko') {
+    // Chinese, Japanese, Korean don't have plural forms
+    return 'other';
+  }
+
+  if (language === 'fr' || language === 'es') {
+    // French and Spanish: singular for 0 and 1
+    return count <= 1 ? 'one' : 'other';
+  }
+
+  // English, German and default
   return count === 1 ? 'one' : 'other';
 }
 
@@ -105,7 +115,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const t = useCallback(
     (key: TranslationKey, params?: Record<string, string | number>): string => {
-      const template = translations[language]?.[key] || translations.en[key] || key;
+      // Get translation from current language, fallback to English
+      const langTranslations = translations[language] as Partial<typeof translations.en> | undefined;
+      const template = langTranslations?.[key] || translations.en[key] || key;
 
       if (!params) return template;
 

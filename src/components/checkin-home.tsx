@@ -138,19 +138,43 @@ function getCheckInArcPosition(timestamp: string): { x: number; y: number } {
   return getArcPosition(progress);
 }
 
+// Locale mapping for date formatting
+const DATE_NAV_LOCALES: Record<string, string> = {
+  en: 'en-US',
+  es: 'es-ES',
+  fr: 'fr-FR',
+  de: 'de-DE',
+  zh: 'zh-CN',
+  ja: 'ja-JP',
+  ko: 'ko-KR',
+  ru: 'ru-RU',
+};
+
+const TODAY_LABELS: Record<string, string> = {
+  en: 'Today',
+  es: 'Hoy',
+  fr: 'Aujourd\'hui',
+  de: 'Heute',
+  zh: '今天',
+  ja: '今日',
+  ko: '오늘',
+  ru: 'Сегодня',
+};
+
 // Format date for navigation
 function formatDateNav(
   date: Date,
   isToday: boolean,
-  language: 'en' | 'ru'
+  language: string
 ): string {
-  const locale = language === 'ru' ? 'ru-RU' : 'en-US';
+  const locale = DATE_NAV_LOCALES[language] || 'en-US';
+  const todayLabel = TODAY_LABELS[language] || 'Today';
   if (isToday) {
     const monthDay = date.toLocaleDateString(locale, {
       month: 'short',
       day: 'numeric',
     });
-    return language === 'ru' ? `Сегодня · ${monthDay}` : `Today · ${monthDay}`;
+    return `${todayLabel} · ${monthDay}`;
   }
   const weekday = date.toLocaleDateString(locale, { weekday: 'short' });
   const monthDay = date.toLocaleDateString(locale, {
