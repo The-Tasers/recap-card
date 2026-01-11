@@ -76,59 +76,30 @@ function Logo({
   );
 }
 
-// Language selector for landing page - navigates to static pages
+// Language selector for landing page - simple inline links
 function LandingLanguageSelector({ currentLang }: { currentLang: Language }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const currentLangData = LANGUAGES.find((l) => l.value === currentLang);
-
   // Map language to URL path
   const getLanguagePath = (lang: Language) => {
     return lang === 'en' ? '/' : `/${lang}`;
   };
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded-lg hover:bg-muted/50"
-      >
-        <Globe className="h-4 w-4" />
-        <span>{currentLangData?.flag}</span>
-        <span className="hidden sm:inline">{currentLangData?.label}</span>
-        <ChevronDown className={cn('h-4 w-4 transition-transform', isOpen && 'rotate-180')} />
-      </button>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -4 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -4 }}
-            transition={{ duration: 0.15 }}
-            className="absolute top-full mt-2 right-0 bg-popover border border-border rounded-xl shadow-lg overflow-hidden min-w-40 z-50"
-          >
-            <div className="py-2">
-              {LANGUAGES.map((lang) => (
-                <Link
-                  key={lang.value}
-                  href={getLanguagePath(lang.value)}
-                  onClick={() => setIsOpen(false)}
-                  className={cn(
-                    'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors cursor-pointer',
-                    currentLang === lang.value
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-foreground hover:bg-muted/50'
-                  )}
-                >
-                  <span className="text-lg">{lang.flag}</span>
-                  <span>{lang.label}</span>
-                </Link>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div className="flex items-center gap-1">
+      {LANGUAGES.map((lang) => (
+        <a
+          key={lang.value}
+          href={getLanguagePath(lang.value)}
+          className={cn(
+            'px-2 py-1 text-lg rounded transition-colors',
+            currentLang === lang.value
+              ? 'bg-primary/10'
+              : 'hover:bg-muted/50 opacity-60 hover:opacity-100'
+          )}
+          title={lang.label}
+        >
+          {lang.flag}
+        </a>
+      ))}
     </div>
   );
 }
