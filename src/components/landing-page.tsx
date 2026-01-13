@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   Activity,
   Globe,
@@ -31,8 +31,8 @@ const LETTER_COLORS = {
   R: '#ef4444',
   E: '#f97316',
   C: '#eab308',
-  A: '#84cc16',
-  P: '#22c55e',
+  A: '#22c55e',
+  P: '#3b82f6',
 };
 
 function Logo({
@@ -79,6 +79,7 @@ function Logo({
 // Language selector for landing page - dropdown
 function LandingLanguageSelector({ currentLang }: { currentLang: Language }) {
   const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const getLanguagePath = (lang: Language) => {
     return lang === 'en' ? '/' : `/${lang}`;
@@ -86,8 +87,32 @@ function LandingLanguageSelector({ currentLang }: { currentLang: Language }) {
 
   const currentLanguage = LANGUAGES.find((l) => l.value === currentLang);
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen]);
+
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
@@ -104,34 +129,28 @@ function LandingLanguageSelector({ currentLang }: { currentLang: Language }) {
 
       <AnimatePresence>
         {isOpen && (
-          <>
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setIsOpen(false)}
-            />
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.15 }}
-              className="absolute right-0 top-full mt-2 z-50 bg-background border border-border rounded-xl shadow-lg overflow-hidden min-w-[160px]"
-            >
-              {LANGUAGES.map((lang) => (
-                <a
-                  key={lang.value}
-                  href={getLanguagePath(lang.value)}
-                  className={cn(
-                    'flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50 transition-colors',
-                    currentLang === lang.value && 'bg-primary/10'
-                  )}
-                  onClick={() => setIsOpen(false)}
-                >
-                  <span className="text-lg">{lang.flag}</span>
-                  <span className="text-sm">{lang.label}</span>
-                </a>
-              ))}
-            </motion.div>
-          </>
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.15 }}
+            className="absolute right-0 top-full mt-2 z-50 bg-background border border-border rounded-xl shadow-lg overflow-hidden min-w-[160px]"
+          >
+            {LANGUAGES.map((lang) => (
+              <a
+                key={lang.value}
+                href={getLanguagePath(lang.value)}
+                className={cn(
+                  'flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50 transition-colors',
+                  currentLang === lang.value && 'bg-primary/10'
+                )}
+                onClick={() => setIsOpen(false)}
+              >
+                <span className="text-lg">{lang.flag}</span>
+                <span className="text-sm">{lang.label}</span>
+              </a>
+            ))}
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
@@ -218,6 +237,28 @@ function t(lang: Language, key: string): string {
   const langTranslations = translations[lang] as Record<string, string> | undefined;
   const enTranslations = translations.en as Record<string, string>;
   return langTranslations?.[key] || enTranslations[key] || key;
+}
+
+// App Store button component
+const APP_STORE_URL = 'https://apps.apple.com/app/recapz-daily-reflection/id6757631286';
+
+function AppStoreButton({ lang }: { lang: Language }) {
+  return (
+    <a
+      href={APP_STORE_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-block hover:opacity-80 transition-opacity"
+    >
+      <Image
+        src={`/app-store-buttons/${lang}.svg`}
+        alt="Download on the App Store"
+        width={160}
+        height={54}
+        className="h-[54px] w-auto"
+      />
+    </a>
+  );
 }
 
 // Screenshots data
@@ -344,9 +385,12 @@ export function LandingPage({ lang }: LandingPageProps) {
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
                 {t(lang, 'landing.heroTitle')}
               </h1>
-              <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
+              <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
                 {t(lang, 'landing.heroSubtitle')}
               </p>
+              <div className="mb-12">
+                <AppStoreButton lang={lang} />
+              </div>
             </motion.div>
 
             {/* 3 Screenshots in Hero */}
@@ -556,6 +600,22 @@ export function LandingPage({ lang }: LandingPageProps) {
               delay={0.4}
             />
           </div>
+        </div>
+      </section>
+
+      {/* Download CTA Section */}
+      <section className="py-16 md:py-24">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">{t(lang, 'landing.ctaTitle')}</h2>
+            <p className="text-muted-foreground mb-8">{t(lang, 'landing.ctaSubtitle')}</p>
+            <AppStoreButton lang={lang} />
+          </motion.div>
         </div>
       </section>
 
