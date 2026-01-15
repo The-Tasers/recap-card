@@ -8,8 +8,8 @@ import { translations, type Language } from '@/lib/i18n/translations';
 
 // Helper to get translation
 function t(lang: Language, key: string): string {
-  const langTranslations = translations[lang] as Record<string, string> | undefined;
-  const enTranslations = translations.en as Record<string, string>;
+  const langTranslations = translations[lang] as unknown as Record<string, string> | undefined;
+  const enTranslations = translations.en as unknown as Record<string, string>;
   return langTranslations?.[key] || enTranslations[key] || key;
 }
 

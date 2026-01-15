@@ -3,10 +3,8 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import {
-  Activity,
-  Globe,
   ChevronDown,
   Sparkles,
   Lock,
@@ -14,148 +12,17 @@ import {
   Moon,
   Languages,
   Calendar,
-  MessageCircle,
-  Mail,
-  ChevronLeft,
-  ChevronRight,
   Heart,
   Palette,
   CloudOff,
+  X,
+  WifiOff,
+  Smartphone,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatePresence } from 'framer-motion';
-import { translations, type Language, LANGUAGES } from '@/lib/i18n/translations';
-
-// Logo component
-const LETTER_COLORS = {
-  R: '#ef4444',
-  E: '#f97316',
-  C: '#eab308',
-  A: '#22c55e',
-  P: '#3b82f6',
-};
-
-function Logo({
-  size = 'lg',
-  animated = false,
-}: {
-  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
-  animated?: boolean;
-}) {
-  const sizeConfig = {
-    sm: { text: 'text-xl', icon: 'h-5 w-5' },
-    md: { text: 'text-2xl', icon: 'h-6 w-6' },
-    lg: { text: 'text-3xl', icon: 'h-7 w-7' },
-    xl: { text: 'text-4xl', icon: 'h-8 w-8' },
-    '2xl': { text: 'text-5xl', icon: 'h-10 w-10' },
-  };
-
-  const { text: textSize, icon: iconSize } = sizeConfig[size];
-
-  return (
-    <span
-      className={cn(textSize, 'font-bold tracking-wide uppercase flex items-center')}
-    >
-      {Object.entries(LETTER_COLORS).map(([letter, color]) => (
-        <span key={letter} style={{ color }}>
-          {letter}
-        </span>
-      ))}
-      {animated ? (
-        <motion.span
-          animate={{ scale: [1, 1.15, 1] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          className="flex items-center"
-        >
-          <Activity className={cn(iconSize, 'text-primary rotate-45')} strokeWidth={3} />
-        </motion.span>
-      ) : (
-        <Activity className={cn(iconSize, 'text-primary rotate-45')} strokeWidth={3} />
-      )}
-    </span>
-  );
-}
-
-// Language selector for landing page - dropdown
-function LandingLanguageSelector({ currentLang }: { currentLang: Language }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const getLanguagePath = (lang: Language) => {
-    return lang === 'en' ? '/' : `/${lang}`;
-  };
-
-  const currentLanguage = LANGUAGES.find((l) => l.value === currentLang);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscape);
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [isOpen]);
-
-  return (
-    <div className="relative" ref={containerRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-      >
-        <Globe className="h-4 w-4 text-muted-foreground" />
-        <span className="text-lg">{currentLanguage?.flag}</span>
-        <ChevronDown
-          className={cn(
-            'h-4 w-4 text-muted-foreground transition-transform',
-            isOpen && 'rotate-180'
-          )}
-        />
-      </button>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 z-50 bg-background border border-border rounded-xl shadow-lg overflow-hidden min-w-[160px]"
-          >
-            {LANGUAGES.map((lang) => (
-              <a
-                key={lang.value}
-                href={getLanguagePath(lang.value)}
-                className={cn(
-                  'flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50 transition-colors',
-                  currentLang === lang.value && 'bg-primary/10'
-                )}
-                onClick={() => setIsOpen(false)}
-              >
-                <span className="text-lg">{lang.flag}</span>
-                <span className="text-sm">{lang.label}</span>
-              </a>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
+import { translations, type Language } from '@/lib/i18n/translations';
+import { SharedHeader, Logo } from './shared-header';
 
 // Feature card component
 function FeatureCard({
@@ -234,8 +101,8 @@ function FAQItem({
 
 // Helper to get translation
 function t(lang: Language, key: string): string {
-  const langTranslations = translations[lang] as Record<string, string> | undefined;
-  const enTranslations = translations.en as Record<string, string>;
+  const langTranslations = translations[lang] as unknown as Record<string, string> | undefined;
+  const enTranslations = translations.en as unknown as Record<string, string>;
   return langTranslations?.[key] || enTranslations[key] || key;
 }
 
@@ -271,75 +138,92 @@ const SCREENSHOTS = [
   { src: '/screenshots/6.png', alt: 'Settings' },
 ];
 
-// Screenshot slider component
-function ScreenshotSlider() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  const nextSlide = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % SCREENSHOTS.length);
-  }, []);
-
-  const prevSlide = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + SCREENSHOTS.length) % SCREENSHOTS.length);
-  }, []);
+// Screenshot grid component with modal
+function ScreenshotGrid() {
+  const [selectedImage, setSelectedImage] = useState<number | null>(null);
 
   return (
-    <div className="relative">
-      <div className="flex items-center justify-center gap-4 md:gap-8">
-        <button
-          onClick={prevSlide}
-          className="p-2 rounded-full bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-          aria-label="Previous screenshot"
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </button>
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 md:gap-8 max-w-4xl mx-auto">
+        {SCREENSHOTS.map((screenshot, index) => (
+          <motion.button
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: index * 0.1 }}
+            onClick={() => setSelectedImage(index)}
+            className="relative aspect-[9/19.5] rounded-2xl md:rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all hover:scale-[1.02] cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+          >
+            <Image
+              src={screenshot.src}
+              alt={screenshot.alt}
+              fill
+              className="object-cover"
+            />
+          </motion.button>
+        ))}
+      </div>
 
-        <div className="relative w-[240px] h-[522px] md:w-[280px] md:h-[608px] rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentIndex}
+      {/* Image Modal */}
+      <AnimatePresence>
+        {selectedImage !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedImage(null)}
+            className="fixed inset-0 z-100 bg-black/90 flex items-center justify-center p-4"
+          >
+            <motion.button
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="absolute inset-0"
+              onClick={() => setSelectedImage(null)}
+              className="absolute top-4 right-4 p-2 text-white/80 hover:text-white transition-colors z-10"
+            >
+              <X className="h-8 w-8" />
+            </motion.button>
+
+            {/* Navigation arrows */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedImage((prev) => (prev !== null && prev > 0 ? prev - 1 : SCREENSHOTS.length - 1));
+              }}
+              className="absolute left-4 p-3 text-white/80 hover:text-white transition-colors"
+            >
+              <ChevronDown className="h-8 w-8 rotate-90" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedImage((prev) => (prev !== null && prev < SCREENSHOTS.length - 1 ? prev + 1 : 0));
+              }}
+              className="absolute right-4 p-3 text-white/80 hover:text-white transition-colors"
+            >
+              <ChevronDown className="h-8 w-8 -rotate-90" />
+            </button>
+
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-sm aspect-[9/19.5] rounded-3xl overflow-hidden shadow-2xl"
             >
               <Image
-                src={SCREENSHOTS[currentIndex].src}
-                alt={SCREENSHOTS[currentIndex].alt}
+                src={SCREENSHOTS[selectedImage].src}
+                alt={SCREENSHOTS[selectedImage].alt}
                 fill
                 className="object-cover"
+                priority
               />
             </motion.div>
-          </AnimatePresence>
-        </div>
-
-        <button
-          onClick={nextSlide}
-          className="p-2 rounded-full bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-          aria-label="Next screenshot"
-        >
-          <ChevronRight className="h-6 w-6" />
-        </button>
-      </div>
-
-      {/* Dots indicator */}
-      <div className="flex justify-center gap-2 mt-6">
-        {SCREENSHOTS.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentIndex(index)}
-            className={cn(
-              'w-2 h-2 rounded-full transition-all cursor-pointer',
-              index === currentIndex
-                ? 'bg-primary w-6'
-                : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
-            )}
-            aria-label={`Go to screenshot ${index + 1}`}
-          />
-        ))}
-      </div>
-    </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
@@ -356,52 +240,64 @@ export function LandingPage({ lang }: LandingPageProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <Logo size="md" />
-          <div className="flex items-center gap-4">
-            <a
-              href="https://sponom.dev/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {t(lang, 'header.otherProducts')}
-            </a>
-            <LandingLanguageSelector currentLang={lang} />
-          </div>
-        </div>
-      </header>
+      <SharedHeader lang={lang} variant="fixed" maxWidth="6xl" />
 
       {/* Hero Section */}
       <section className="pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-col items-center text-center">
+          <div className="grid md:grid-cols-2 gap-12 md:gap-8 items-center">
+            {/* Left column - Text content */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
+              className="text-center md:text-left"
             >
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
                 {t(lang, 'landing.heroTitle')}
               </h1>
-              <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              <p className="text-lg md:text-xl text-muted-foreground mb-6 max-w-lg">
                 {t(lang, 'landing.heroSubtitle')}
               </p>
-              <div className="mb-12">
-                <AppStoreButton lang={lang} />
+              <p className="text-primary font-medium mb-8">
+                {t(lang, 'landing.heroPrivacy')}
+              </p>
+
+              {/* Learn More button */}
+              <div className="mb-8">
+                <a
+                  href="#features"
+                  className="inline-flex items-center px-6 py-3 border-2 border-primary text-primary rounded-full font-medium hover:bg-primary hover:text-primary-foreground transition-colors"
+                >
+                  {t(lang, 'landing.learnMore')}
+                </a>
               </div>
+
+              {/* Feature badges */}
+              <div className="flex flex-wrap justify-center md:justify-start gap-3 mb-8">
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 text-primary text-sm font-medium">
+                  <WifiOff className="h-4 w-4" />
+                  {t(lang, 'landing.badge100Offline')}
+                </span>
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border text-muted-foreground text-sm">
+                  <Smartphone className="h-4 w-4" />
+                  {t(lang, 'landing.badgeDataOnDevice')}
+                </span>
+              </div>
+
+              {/* App Store button */}
+              <AppStoreButton lang={lang} />
             </motion.div>
 
-            {/* 3 Screenshots in Hero */}
+            {/* Right column - Screenshots */}
             <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
-              className="flex items-end justify-center gap-3 md:gap-6"
+              className="flex items-end justify-center gap-2 md:gap-4"
             >
-              {/* Left phone - smaller and dimmed */}
-              <div className="relative w-[120px] h-[260px] md:w-[160px] md:h-[348px] opacity-60 transform -translate-y-4 rounded-xl md:rounded-2xl overflow-hidden shadow-xl">
+              {/* Left phone */}
+              <div className="relative w-[100px] h-[217px] md:w-[140px] md:h-[304px] opacity-80 rounded-xl md:rounded-2xl overflow-hidden shadow-xl">
                 <Image
                   src="/screenshots/3.png"
                   alt="Check-in screen"
@@ -411,7 +307,7 @@ export function LandingPage({ lang }: LandingPageProps) {
               </div>
 
               {/* Center phone - main and larger */}
-              <div className="relative w-[180px] h-[390px] md:w-[240px] md:h-[522px] z-10 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl">
+              <div className="relative w-[140px] h-[304px] md:w-[180px] md:h-[391px] z-10 rounded-xl md:rounded-2xl overflow-hidden shadow-2xl">
                 <Image
                   src="/screenshots/1.png"
                   alt="Main app screen"
@@ -421,8 +317,8 @@ export function LandingPage({ lang }: LandingPageProps) {
                 />
               </div>
 
-              {/* Right phone - smaller and dimmed */}
-              <div className="relative w-[120px] h-[260px] md:w-[160px] md:h-[348px] opacity-60 transform -translate-y-4 rounded-xl md:rounded-2xl overflow-hidden shadow-xl">
+              {/* Right phone */}
+              <div className="relative w-[100px] h-[217px] md:w-[140px] md:h-[304px] opacity-80 rounded-xl md:rounded-2xl overflow-hidden shadow-xl">
                 <Image
                   src="/screenshots/2.png"
                   alt="Discover patterns"
@@ -503,13 +399,13 @@ export function LandingPage({ lang }: LandingPageProps) {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <ScreenshotSlider />
+            <ScreenshotGrid />
           </motion.div>
         </div>
       </section>
 
       {/* Features Grid */}
-      <section className="py-16 md:py-24">
+      <section id="features" className="py-16 md:py-24 scroll-mt-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -619,45 +515,71 @@ export function LandingPage({ lang }: LandingPageProps) {
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section className="py-16 md:py-24 bg-muted/30">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
-              <MessageCircle className="h-8 w-8 text-primary" />
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">{t(lang, 'landing.contactTitle')}</h2>
-            <p className="text-muted-foreground mb-6">{t(lang, 'landing.contactText')}</p>
-            <a
-              href="mailto:support@recapz.app"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors"
-            >
-              <Mail className="h-5 w-5" />
-              support@recapz.app
-            </a>
-          </motion.div>
-        </div>
-      </section>
-
       {/* Footer */}
-      <footer className="py-8 border-t border-border/50">
+      <footer className="py-16 border-t border-border/50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <Link href={getLocalizedPath('/privacy')} className="hover:text-foreground transition-colors">
-                {t(lang, 'footer.privacy')}
-              </Link>
-              <Link href={getLocalizedPath('/terms')} className="hover:text-foreground transition-colors">
-                {t(lang, 'footer.terms')}
-              </Link>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+            {/* Logo & Description */}
+            <div className="md:col-span-1">
+              <Logo size="md" />
+              <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
+                {t(lang, 'footer.tagline')}
+              </p>
             </div>
+            {/* Features */}
+            <div>
+              <h4 className="font-semibold mb-4 text-sm">{t(lang, 'footer.features')}</h4>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li>
+                  <Link href={getLocalizedPath('/features/mood-tracking')} className="hover:text-foreground transition-colors">
+                    {t(lang, 'footer.moodTracking')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={getLocalizedPath('/features/daily-reflection')} className="hover:text-foreground transition-colors">
+                    {t(lang, 'footer.dailyReflection')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={getLocalizedPath('/features/mental-wellness')} className="hover:text-foreground transition-colors">
+                    {t(lang, 'footer.mentalWellness')}
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            {/* Legal */}
+            <div>
+              <h4 className="font-semibold mb-4 text-sm">{t(lang, 'footer.legal')}</h4>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li>
+                  <Link href={getLocalizedPath('/privacy')} className="hover:text-foreground transition-colors">
+                    {t(lang, 'footer.privacy')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={getLocalizedPath('/terms')} className="hover:text-foreground transition-colors">
+                    {t(lang, 'footer.terms')}
+                  </Link>
+                </li>
+                <li>
+                  <a href="mailto:support@recapz.app" className="hover:text-foreground transition-colors">
+                    {t(lang, 'footer.contact')}
+                  </a>
+                </li>
+              </ul>
+            </div>
+            {/* Get the App */}
+            <div>
+              <h4 className="font-semibold mb-4 text-sm">{t(lang, 'footer.download')}</h4>
+              <AppStoreButton lang={lang} />
+            </div>
+          </div>
+          <div className="pt-8 border-t border-border/50 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
               {t(lang, 'landing.copyright')}
+            </p>
+            <p className="text-xs text-muted-foreground/60">
+              Made with care for your wellbeing
             </p>
           </div>
         </div>
